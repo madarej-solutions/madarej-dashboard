@@ -756,7 +756,7 @@ function toggleTask(id,el){const s=stGet();s[id]=!s[id];stSet(s);el.classList.to
 function myPoints(){const s=stGet();let p=0;Object.keys(s).forEach(k=>{if(s[k])p+=k.startsWith('d_')?15:10;});return p;}
 
 /* ========== مصدر البيانات: جدول Google Sheets المنشور (يُملأ فور تجهيزه) ========== */
-const CFG={SHEET_CSV:''};
+const CFG={SHEET_CSV:'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5EYVTKcvQMp2MHjNQXNfCtzSwByimkLjAwhSrapQFneVNL13xqTEeT_XKjjsF_X75aWYKoUUzDnKl/pub?gid=0&single=true&output=csv'};
 let SHEETROWS=null;
 async function loadSheet(){
   if(!CFG.SHEET_CSV)return null;
