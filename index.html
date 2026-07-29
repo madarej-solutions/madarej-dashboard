@@ -138,10 +138,11 @@ tr:hover td{background:var(--surface2)}
     <input id="lemail" type="email" placeholder="name@gmail.com" style="width:100%;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:11px 12px;font-family:inherit;font-size:13.5px;direction:ltr;text-align:left">
     <div style="font-size:12px;color:var(--muted);margin:12px 0 6px">كلمة المرور</div>
     <input id="lpass" type="password" placeholder="••••••••" style="width:100%;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:11px 12px;font-family:inherit;font-size:13.5px;direction:ltr;text-align:left">
+    <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-top:8px;cursor:pointer"><input type="checkbox" onclick="showPass(this)" style="cursor:pointer"> إظهار كلمة المرور</label>
     <div id="lerr" style="color:#ef6b6b;font-size:12px;margin-top:8px;display:none">البريد أو كلمة المرور غير صحيحة</div>
     <button onclick="loginForm()" style="width:100%;margin-top:16px;background:linear-gradient(135deg,var(--s1),#1c5cab);color:#fff;border:0;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">دخول النظام 🚀</button>
   </div>
-  <div class="note2">الحسابات المسجلة: المدير العام · شهد (مديرة) · رغد · فجر · هيا — كلمات المرور المبدئية سلّمها المدير لكل موظفة وتُغيّر في النسخة النهائية. في التنفيذ على Power BI تُطبق الصلاحيات بحساب كل موظفة (Row-Level Security) المرتبط بإيميلها الذي تصلها عليه التقارير الأسبوعية.</div>
+  <div class="note2">كلمة المرور غير حساسة لحالة الأحرف — اكتبيها بحروف صغيرة ولا تضيفي مسافات. الحسابات المسجلة: المدير العام · شهد (مديرة) · رغد · فجر · هيا، وكلمات المرور المبدئية سلّمها المدير لكل موظفة وتُغيّر في النسخة النهائية. في التنفيذ على Power BI تُطبق الصلاحيات بحساب كل موظفة (Row-Level Security) المرتبط بإيميلها الذي تصلها عليه التقارير الأسبوعية.</div>
 </div>
 <div class="app">
 <aside class="side">
@@ -726,24 +727,26 @@ const ROLES={
   tasks:['تصميم منشور لإنستغرام وإدارة الحساب','تصميم ريلز','إعداد 5 تغريدات لمنصة X','إدارة حساب تيك توك: الرد على الرسائل الخاصة والتعليقات والاستفسارات (المالكة الأساسية للردود)','إدارة حساب سناب شات']},
  fajr:{label:'✍️ فجر',name:'فجر',email:'almohem711@gmail.com',desc:'إنستغرام · تيك توك · X · سناب',pages:['me','content','team','p_ig','p_tt','p_x','p_sc'],home:'me',
   tasks:['تصميم منشور لإنستغرام','إعداد 5 تغريدات لمنصة X','إعداد محتوى لتيك توك','مساندة إدارة تيك توك (الردود عند غياب رغد)','إدارة حساب سناب شات']},
- haya:{label:'💼 هيا',name:'هيا',email:'(يُسجل الإيميل)',desc:'إنستغرام · لينكدإن · X · سناب',pages:['me','content','team','p_ig','p_li','p_x','p_sc'],home:'me',
+ haya:{label:'💼 هيا',name:'هيا',email:'haya@madarej.sa',desc:'إنستغرام · لينكدإن · X · سناب',pages:['me','content','team','p_ig','p_li','p_x','p_sc'],home:'me',
   tasks:['تصميم منشور لإنستغرام','إعداد محتوى للينكدإن','إعداد 5 ردود لمنصة X','إدارة حساب سناب شات']},
  shahad:{label:'⭐ شهد — مديرة',name:'شهد',email:'iiishahad98@gmail.com',desc:'إشراف كامل على العمل — جميع اللوحات',pages:'all',home:'team',
   tasks:['الإشراف اليومي على تنفيذ التقويم ومتابعة الفريق','مراجعة الجودة قبل النشر (قائمة التحقق السبعة)','متابعة الردود وتحقيق SLA الساعتين','تجهيز اجتماع الأحد ورفع الملاحظات للمدير العام']},
 };
 const USERS={
- 'madareejconsulting@gmail.com':{role:'admin',pass:'Madarej@2026'},
- 'iiishahad98@gmail.com':{role:'shahad',pass:'Shahad@123'},
- 'rghdsqaf@gmail.com':{role:'raghad',pass:'Raghad@123'},
- 'almohem711@gmail.com':{role:'fajr',pass:'Fajr@123'},
+ 'madareejconsulting@gmail.com':{role:'admin',pass:['madarej2026','madarej@2026']},
+ 'iiishahad98@gmail.com':{role:'shahad',pass:['shahad2026','shahad@123']},
+ 'rghdsqaf@gmail.com':{role:'raghad',pass:['raghad2026','raghad@123']},
+ 'almohem711@gmail.com':{role:'fajr',pass:['fajr2026','fajr@123']},
+ 'haya@madarej.sa':{role:'haya',pass:['haya2026']},
 };
 function loginForm(){
-  const e=document.getElementById('lemail').value.trim().toLowerCase();
-  const p=document.getElementById('lpass').value;
+  let e=document.getElementById('lemail').value.trim().toLowerCase().replace(/\s+/g,'');
+  const p=document.getElementById('lpass').value.trim().toLowerCase();
   const u=USERS[e];
-  if(u&&u.pass===p){document.getElementById('lerr').style.display='none';loginAs(u.role);}
+  if(u&&u.pass.indexOf(p)>-1){document.getElementById('lerr').style.display='none';loginAs(u.role);}
   else document.getElementById('lerr').style.display='block';
 }
+function showPass(cb){document.getElementById('lpass').type=cb.checked?'text':'password';}
 let ROLE='admin';
 const nav=document.getElementById('nav'),main=document.getElementById('main');
 const allowed=k=>ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k);
@@ -792,6 +795,7 @@ render('overview');
 /* روابط مستقلة لكل موظف: #video / #b2b / #conv / #admin */
 const hashRole=location.hash.replace('#','');
 if(ROLES[hashRole])loginAs(hashRole);
+['lemail','lpass'].forEach(id=>document.getElementById(id).addEventListener('keydown',ev=>{if(ev.key==='Enter')loginForm();}));
 window.addEventListener('hashchange',()=>{const r=location.hash.replace('#','');if(ROLES[r])loginAs(r);});
 </script>
 </body>
