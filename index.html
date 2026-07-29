@@ -98,6 +98,27 @@ tr:hover td{background:var(--surface2)}
 .swot .q{border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8;color:var(--ink2)}
 .swot h4{font-size:12.5px;margin-bottom:4px}
 /* okr */
+/* ---- إضافات: المهام المحفوظة، لوحة الصدارة، بنك الخطافات ---- */
+.tk{display:flex;align-items:flex-start;gap:9px;background:var(--surface2);border-right:3px solid var(--s1);border-radius:8px;padding:9px 11px;margin-bottom:7px;font-size:12.5px;color:var(--ink2);line-height:1.7;cursor:pointer;transition:.15s}
+.tk:hover{border-right-color:var(--s4)}
+.tk input{margin-top:3px;cursor:pointer;width:15px;height:15px;accent-color:#0ca30c;flex:0 0 auto}
+.tk.done{opacity:.55;border-right-color:var(--good)}
+.tk.done span{text-decoration:line-through}
+.lb{width:100%;border-collapse:collapse;font-size:12.5px}
+.lb th{color:var(--muted);font-size:11px;font-weight:600;text-align:right;padding:7px 8px;border-bottom:1px solid var(--ring)}
+.lb td{padding:9px 8px;border-bottom:1px solid var(--ring);color:var(--ink2)}
+.lb tr:last-child td{border-bottom:0}
+.lb .rk{font-size:16px;font-weight:800;width:34px}
+.lb .nm{font-weight:700;color:var(--ink)}
+.lb .sc{font-weight:800;color:var(--s4)}
+.lb tr.me2{background:rgba(57,135,229,.09)}
+.hk{background:var(--surface2);border-radius:8px;padding:9px 11px;margin-bottom:7px;font-size:12.5px;color:var(--ink2);line-height:1.7;display:flex;gap:9px;align-items:flex-start;border-right:3px solid var(--s2)}
+.hk .cp{flex:0 0 auto;background:var(--surface);border:1px solid var(--ring);color:var(--muted);border-radius:6px;font-size:10.5px;padding:3px 8px;cursor:pointer;font-family:inherit}
+.hk .cp:hover{color:var(--ink);border-color:var(--s1)}
+.hk .cp.ok{color:var(--good);border-color:var(--good)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tabs button{background:var(--surface2);border:1px solid var(--ring);color:var(--muted);border-radius:20px;font-size:11.5px;padding:5px 12px;cursor:pointer;font-family:inherit}
+.tabs button.on{background:var(--s1);color:#fff;border-color:var(--s1)}
 .okr{margin-bottom:12px}
 .okr .t{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;color:var(--ink2)}
 /* chat */
@@ -684,6 +705,8 @@ PLATS.forEach(cf=>{pages[cf.key]={t:cf.t,h:()=>platPage(cf)};});
 /* ---------- صفحة الموظف الشخصية ---------- */
 function mePage(){
   const R=ROLES[ROLE];
+  const S=stGet();
+  const RHY=['نشرتُ محتوى اليوم في موعده من الإيقاع','رددتُ على كل الرسائل والتعليقات خلال ساعتين','وثّقتُ ما نشرتُه في سجل النشر'];
   const today=['الأحد: ريلز قصة نجاح 8:30م + قصص','الاثنين: منشور LinkedIn + ثريد X الساعة 12م','الثلاثاء: ريلز تعليمي 8:30م + سؤال بالقصص','الأربعاء: كاروسيل 8م + منشور X','الخميس: سناب وراء الكواليس + تجهيز محتوى الأسبوع','الجمعة: منشور خفيف بعد الصلاة','السبت: إجابة سؤال متكرر + قراءة تقريرك الأسبوعي 📥'][new Date().getDay()];
   return `
  <div class="row cols3">
@@ -703,8 +726,12 @@ function mePage(){
    <div style="font-size:12.5px;color:var(--ink2);line-height:2">📊 مؤشرات قنواتي — القائمة الجانبية<br>📚 دليل التشغيل وقوالب الردود — بنك المحتوى<br>💬 أي استفسار جاد يُحوّل لواتساب الشركة ويُسجل بمصدره</div></div>
  </div>
  <div class="row cols2e">
-  <div class="card"><h3>📌 مهامي الأساسية</h3>
-   ${R.tasks.map((t,i)=>`<div class="insight">${i+1}. ${t}</div>`).join('')}</div>
+  <div class="card"><h3>📌 مهامي الأساسية — اضغطي على المهمة عند إنجازها ✓</h3>
+   ${R.tasks.map((t,i)=>{const id='t_'+i,dn=S[id]?' done':'';return `<label class="tk${dn}" onclick="toggleTask('${id}',this)"><input type="checkbox" ${S[id]?'checked':''} onclick="event.stopPropagation();this.parentNode.click()"><span>${t}</span></label>`;}).join('')}
+   ${RHY.map((t,i)=>{const id='d_'+i,dn=S[id]?' done':'';return `<label class="tk${dn}" style="border-right-color:var(--s4)" onclick="toggleTask('${id}',this)"><input type="checkbox" ${S[id]?'checked':''} onclick="event.stopPropagation();this.parentNode.click()"><span>${t}</span></label>`;}).join('')}
+   <div class="okr" style="margin-top:12px"><div class="t"><span>نقاطي هذا الأسبوع</span><span class="b" id="ptsNow">${myPoints()}</span></div>
+   <div class="bar-wrap"><div class="bar-fill" id="ptsBar" style="width:${Math.min(100,myPoints())}%;background:#c98500"></div></div></div>
+   <div class="foot">يُحفظ تلقائياً على جهازك ويُصفَّر مع بداية كل أسبوع. أرسلي لقطة الشاشة لشهد مساء الخميس.</div></div>
   <div class="card"><h3>💪 قواعد النجاح — افعليها حتى تصلي</h3>
    <div class="insight o">انشري في الموعد المحدد بلا استثناء — الالتزام ≥90% يضعك في سباق شارة ⭐ الأكثر التزاماً.</div>
    <div class="insight">ردّي على كل رسالة وتعليق خلال ساعتين (9ص-9م) — سرعة الرد تحوّل المتابع إلى عميل.</div>
@@ -715,8 +742,121 @@ function mePage(){
 }
 pages.me={t:'صفحتي',h:mePage};
 
+/* ========== طبقة الحفظ: تعمل على المتصفح وتعود لذاكرة مؤقتة إن مُنع التخزين ========== */
+const MEM={};
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return MEM[k]!==undefined?MEM[k]:null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){MEM[k]=v}}
+};
+function weekKey(){const d=new Date();const s=new Date(d.getFullYear(),0,1);const w=Math.ceil(((d-s)/86400000+s.getDay()+1)/7);return d.getFullYear()+'-W'+w;}
+function stKey(r){return 'madarej:'+(r||ROLE)+':'+weekKey();}
+function stGet(r){try{return JSON.parse(store.get(stKey(r))||'{}')}catch(e){return{}}}
+function stSet(o,r){store.set(stKey(r),JSON.stringify(o));}
+function toggleTask(id,el){const s=stGet();s[id]=!s[id];stSet(s);el.classList.toggle('done',!!s[id]);const n=document.getElementById('ptsNow');if(n)n.textContent=myPoints();const b=document.getElementById('ptsBar');if(b)b.style.width=Math.min(100,myPoints())+'%';}
+function myPoints(){const s=stGet();let p=0;Object.keys(s).forEach(k=>{if(s[k])p+=k.startsWith('d_')?15:10;});return p;}
+
+/* ========== مصدر البيانات: جدول Google Sheets المنشور (يُملأ فور تجهيزه) ========== */
+const CFG={SHEET_CSV:''};
+let SHEETROWS=null;
+async function loadSheet(){
+  if(!CFG.SHEET_CSV)return null;
+  try{
+    const t=await (await fetch(CFG.SHEET_CSV,{cache:'no-store'})).text();
+    const rows=t.trim().split(/\r?\n/).map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
+    const head=rows.shift().map(h=>h.toLowerCase());
+    SHEETROWS=rows.map(r=>{const o={};head.forEach((h,i)=>o[h]=r[i]);return o;});
+    return SHEETROWS;
+  }catch(e){return null}
+}
+/* أرقام الأسبوع — توضيحية حتى ربط الجدول، ثم تُقرأ منه مباشرة */
+const WEEKLY={
+  raghad:{commit:92,speed:68,quality:95,leads:6},
+  fajr:{commit:88,speed:74,quality:90,leads:4},
+  haya:{commit:85,speed:81,quality:93,leads:5}
+};
+function scoreOf(m){return Math.round(m.commit*.35+m.speed*.25+m.quality*.2+Math.min(20,m.leads*2));}
+
+/* ========== لوحة الصدارة ========== */
+function boardPage(){
+  const live=!!SHEETROWS;
+  const rows=['raghad','fajr','haya'].map(r=>{
+    let m=WEEKLY[r];
+    if(SHEETROWS){const f=SHEETROWS.find(x=>(x['الموظفة']||x.name||'').toLowerCase()===r);
+      if(f)m={commit:+f['الالتزام']||0,speed:+f['سرعة الرد']||0,quality:+f['الجودة']||0,leads:+f['leads']||0};}
+    return {r,name:ROLES[r].name,m,s:scoreOf(m)};
+  }).sort((a,b)=>b.s-a.s);
+  const medals=['🥇','🥈','🥉'];
+  const top=rows[0],grow=rows.slice().sort((a,b)=>b.m.leads-a.m.leads)[0],cmt=rows.slice().sort((a,b)=>b.m.commit-a.m.commit)[0];
+  return `
+ <div class="row cols3">
+  <div class="card"><h3>🏆 أفضل موظفة الأسبوع</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${top.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2)">أعلى مجموع نقاط: <b style="color:var(--s4)">${top.s}</b> من 100</div></div>
+  <div class="card"><h3>📈 أعلى تحويل إلى عملاء</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${grow.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2)">${grow.m.leads} استفسار جاد محوَّل هذا الأسبوع</div></div>
+  <div class="card"><h3>⭐ الأكثر التزاماً</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${cmt.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2)">التزام بالتقويم ${cmt.m.commit}%</div></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>📊 ترتيب الأسبوع ${live?'<span class="pill pg">أرقام حية من الجدول</span>':'<span class="pill pw">أرقام توضيحية — تتحول لحقيقية فور ربط جدول البيانات</span>'}</h3>
+   <table class="lb"><thead><tr><th></th><th>الموظفة</th><th>الالتزام</th><th>سرعة الرد</th><th>الجودة</th><th>Leads</th><th>النقاط</th></tr></thead><tbody>
+   ${rows.map((x,i)=>`<tr class="${x.r===ROLE?'me2':''}"><td class="rk">${medals[i]||''}</td><td class="nm">${x.name}</td><td>${x.m.commit}%</td><td>${x.m.speed}%</td><td>${x.m.quality}%</td><td>${x.m.leads}</td><td class="sc">${x.s}</td></tr>`).join('')}
+   </tbody></table>
+   <div class="foot">يُحدَّث كل سبت 7:00ص مع التقارير الأسبوعية. الترتيب معلن للجميع — الشفافية هي ما يرفع الأداء.</div></div>
+  <div class="card"><h3>⚖️ كيف تُحسب النقاط — معيار معلن ولا يتغير</h3>
+   <div class="insight o">الالتزام بالتقويم × 0.35 — النشر في موعده بلا استثناء هو الأساس.</div>
+   <div class="insight">سرعة الرد خلال ساعتين × 0.25 — العميل يسأل ثلاث جهات، ومن يرد أولاً يكسبه.</div>
+   <div class="insight">جودة من أول مرة × 0.20 — ما يُعتمد بلا تعديل من شهد.</div>
+   <div class="insight w">كل استفسار جاد محوَّل = نقطتان (بحد أقصى 20) — هذا ما يدفع فاتورة الشركة فعلاً.</div>
+   <div class="foot">المجموع من 100. من تتجاوز 85 ثلاثة أسابيع متتالية تُرشَّح لمسؤولية قناة كاملة.</div></div>
+ </div>`;
+}
+pages.board={t:'🏆 لوحة الصدارة',h:boardPage};
+
+/* ========== بنك الخطافات وقوالب الردود ========== */
+const HOOKS={
+ 'بالرقم':['٩٠٪ من دراسات الجدوى التي تُرفض تُرفض لهذا السبب وحده.','٣ أرقام لو غابت عن دراستك رُفض تمويلك فوراً.','مشروع بـ ٢٠٠ ألف ريال خسر ٨٠٪ من رأس ماله في ٦ أشهر — والسبب سطر واحد.','٧ من كل ١٠ مشاريع جديدة تُغلق قبل السنة الثالثة.','٤٥ يوماً هي المدة الحقيقية لدراسة جدوى محترفة — من يعدك بأسبوع يبيعك ورقاً.','١٢ ألف ريال فرق بين دراسة تُقبل ودراسة تُرفض.','٥ برامج تمويل حكومية لا يعرفها ٨٠٪ من رواد الأعمال.','٣٠ دقيقة كافية لتعرف هل مشروعك مجدٍ أم لا.','٦ مصاريف يغفلها كل مبتدئ في حساب التكاليف.','رقم واحد يحدد إن كان مشروعك سينجح: نقطة التعادل.'],
+ 'سؤال مباشر':['هل تعرف كم يكلفك مشروعك فعلاً قبل أول ريال دخل؟','لماذا رُفض طلب تمويلك رغم أن فكرتك ممتازة؟','هل مشروعك مجدٍ فعلاً... أم أنك تحب الفكرة فقط؟','متى تعرف أن الوقت قد حان لإغلاق المشروع؟','كم تحتاج من رأس المال قبل أن تبدأ؟ الجواب يصدمك.','هل تعلم أن البنك لا يقرأ دراستك كاملة؟ يقرأ ٣ صفحات فقط.','ما الفرق بين خطة العمل ودراسة الجدوى؟ الخلط بينهما يكلفك التمويل.','لو خُيّرت بين فكرة ممتازة وتنفيذ ممتاز — أيهما تختار؟'],
+ 'تحذير وخطأ':['لا تفتح مشروعك قبل أن تقرأ هذا.','أكبر خطأ يرتكبه رائد الأعمال السعودي في أول سنة.','توقف — لا ترفع طلب التمويل قبل هذه الخطوة.','هذه العبارة في دراستك سبب رفضك المباشر.','إن كنت تحسب الإيرادات بهذه الطريقة فأنت تخدع نفسك.','احذر من مكتب يعدك بقبول التمويل — القبول ليس بيده.','لا تنسخ دراسة جاهزة من الإنترنت — البنوك تعرفها.','المشروع الذي ينجح عند غيرك قد يفلس عندك — وهذا السبب.'],
+ 'قصة وإثبات':['عميل جاءنا بعد رفضين... وقُبل تمويله من المحاولة الثالثة.','صاحب مطعم كان سيخسر مليوناً — أوقفناه بسطر في التحليل.','بدأ بـ ٥٠ ألفاً واليوم لديه ٣ فروع — بدأ بخطوة واحدة صحيحة.','مشروع اعتقد صاحبه أنه فاشل — الأرقام قالت العكس.','رفضنا العمل مع مشروع لأن أرقامه قالت لا — وشكرنا صاحبه بعد سنة.','قصة أغرب دراسة جدوى مرت علينا في ٩ سنوات.','كيف حوّلنا فكرة مقهى عادي إلى مشروع بعائد ٣٤٪.','عميل سألنا سؤالاً واحداً وفّر عليه ٣ سنوات.'],
+ 'فضول وتناقض':['أنجح المشاريع ليست أفضلها فكرة — بل أدقها حساباً.','التمويل ليس المشكلة... المشكلة أنك تطلبه بالطريقة الخاطئة.','قد يكون رفض البنك أفضل شيء حدث لمشروعك.','مشروع بلا منافسين ليس فرصة — بل إنذار.','ليست كل فكرة مربحة تستحق التنفيذ.','الدراسة الصادقة قد تقول لك: لا تبدأ. وهذا أثمن ما تشتريه.','رأس المال الكبير سبب فشل كثير من المشاريع لا سبب نجاحها.','أخطر رقم في دراستك هو الرقم الذي أعجبك.'],
+ 'قائمة وعرض':['٤ مستندات تحتاجها قبل التقديم على أي تمويل.','خطوات دراسة الجدوى من الفكرة إلى القرار في دقيقتين.','قائمة تحقق قبل توقيع عقد الإيجار التجاري.','٣ أسئلة اسألها لأي مكتب استشاري قبل أن تدفع له.','دليلك المختصر لبرامج الدعم في السعودية ٢٠٢٦.','٥ قطاعات واعدة برؤية ٢٠٣٠ وأرقامها الحقيقية.','كيف تقرأ دراسة الجدوى إن لم تكن محاسباً.','٦ مؤشرات تنذر بتعثر منشأتك قبل أن يظهر في الحساب البنكي.']
+};
+const REPLIES=[
+ ['الاستفسار عن السعر','أهلاً بك 🌿 تختلف تكلفة الدراسة باختلاف حجم المشروع وقطاعه والجهة التمويلية المستهدفة. أعطنا فكرة مختصرة عن مشروعك ونرسل لك عرضاً دقيقاً خلال ٢٤ ساعة: wa.me/966554443569'],
+ ['مدة الإنجاز','عادة من ١٠ إلى ٢١ يوم عمل حسب حجم المشروع وتوفر البيانات. نعطيك جدولاً زمنياً واضحاً مع العرض، ونلتزم به.'],
+ ['خارج الرياض','نخدم جميع مناطق المملكة 🇸🇦 والعمل يتم عن بُعد بالكامل مع اجتماعات مرئية، ولا فرق في الجودة ولا في السعر.'],
+ ['هل تضمنون قبول التمويل؟','لا يملك أي مكتب ضمان القبول — القرار للجهة التمويلية. لكن ما نضمنه أن ملفك يُقدَّم مستوفياً لمعاييرها المعلنة، وهذا ما يرفع فرصتك فعلياً.'],
+ ['طلب خصم','نقدّر ذلك 🌷 أسعارنا مبنية على ساعات عمل فريق متخصص، لكن لدينا خيارات نطاق مختلفة تناسب الميزانيات. أخبرنا بميزانيتك ونرشح لك الأنسب.'],
+ ['شكوى أو تأخير','نعتذر لك بصدق، وهذا لا يمثل مستوانا 🙏 أعطنا رقم الطلب وسنتابعه شخصياً ونعود لك خلال ساعة بحل واضح.'],
+ ['المستندات المطلوبة','نحتاج مبدئياً: وصف المشروع، الموقع المقترح، رأس المال المتوقع، والسجل التجاري إن وُجد. والباقي نبنيه معك خطوة بخطوة.'],
+ ['ما الفرق بين خطة العمل ودراسة الجدوى؟','دراسة الجدوى تجيب: هل المشروع مجدٍ؟ وخطة العمل تجيب: كيف ننفذه؟ الأولى قرار، والثانية طريق. ونوضح لك أيهما تحتاج حسب هدفك.'],
+ ['رد آلي خارج الدوام','شكراً لتواصلك مع مدارج 🌿 وصلتنا رسالتك وسيعود لك الفريق خلال ساعات العمل (٩ص – ٩م). ولاستعجال الرد: wa.me/966554443569'],
+ ['تحويل إلى واتساب','لتفاصيل أدق ومناقشة مشروعك مع مستشار مختص، تفضل عبر واتساب مباشرة 👇 wa.me/966554443569']
+];
+function bankPage(){
+  const cats=Object.keys(HOOKS);
+  return `
+ <div class="row cols2e">
+  <div class="card"><h3>🪝 بنك الخطافات — ${cats.reduce((a,c)=>a+HOOKS[c].length,0)} خطافاً معتمداً</h3>
+   <div class="insight o">القاعدة: لا يُنشر ريلز أو تغريدة بخطاف خارج هذا البنك إلا بموافقة شهد. أول ٣ ثوانٍ تحدد ٨٠٪ من الوصول.</div>
+   <div class="tabs" id="hkTabs">${cats.map((c,i)=>`<button class="${i?'':'on'}" onclick="showHooks('${c}',this)">${c}</button>`).join('')}</div>
+   <div id="hkList">${hookList(cats[0])}</div></div>
+  <div class="card"><h3>💬 قوالب الردود المعتمدة — ${REPLIES.length} قوالب</h3>
+   <div class="insight w">انسخي القالب وعدّلي الاسم فقط. الرد خلال ساعتين (٩ص–٩م) التزام لا خيار.</div>
+   ${REPLIES.map((x,i)=>`<div class="hk" style="border-right-color:var(--s3)"><div><b style="color:var(--ink)">${x[0]}</b><br>${x[1]}</div><button class="cp" onclick="cp(this,REPLIES[${i}][1])">نسخ</button></div>`).join('')}</div>
+ </div>`;
+}
+function hookList(c){return HOOKS[c].map((h,i)=>`<div class="hk"><div>${h}</div><button class="cp" onclick="cp(this,HOOKS['${c}'][${i}])">نسخ</button></div>`).join('');}
+function showHooks(c,b){document.getElementById('hkList').innerHTML=hookList(c);document.querySelectorAll('#hkTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}
+function cp(btn,txt){
+  const done=()=>{const o=btn.textContent;btn.textContent='✓ نُسخ';btn.classList.add('ok');setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok')},1400);};
+  try{navigator.clipboard.writeText(txt).then(done,()=>fb())}catch(e){fb()}
+  function fb(){const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(e){}t.remove();done();}
+}
+pages.bank={t:'🪝 بنك الخطافات وقوالب الردود',h:bankPage};
+
 /* ---------- nav & render ---------- */
-const order=[['me','👤','صفحتي'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
+const order=[['me','👤','صفحتي'],['board','🏆','لوحة الصدارة'],['bank','🪝','بنك الخطافات والردود'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
 'مؤشرات المنصات — كل قناة على حدة',
 ...PLATS.map(cf=>[cf.key,cf.icon,cf.name])];
 
@@ -749,7 +889,8 @@ function loginForm(){
 function showPass(cb){document.getElementById('lpass').type=cb.checked?'text':'password';}
 let ROLE='admin';
 const nav=document.getElementById('nav'),main=document.getElementById('main');
-const allowed=k=>ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k);
+const OPEN=['board','bank'];
+const allowed=k=>OPEN.includes(k)||ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k);
 function buildNav(){
   nav.innerHTML='';
   const badge=document.createElement('div');badge.className='rolebadge';
@@ -792,6 +933,7 @@ function render(k){
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-p]').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
 buildNav();
 render('overview');
+loadSheet().then(r=>{if(r&&document.getElementById('pageTitle').textContent.indexOf('الصدارة')>-1)render('board');});
 /* روابط مستقلة لكل موظف: #video / #b2b / #conv / #admin */
 const hashRole=location.hash.replace('#','');
 if(ROLES[hashRole])loginAs(hashRole);
