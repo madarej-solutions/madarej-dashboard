@@ -327,8 +327,35 @@ function kpiCards(){return `<div class="row cols8">`+kpis.map(k=>`
   <div class="card kpi"><div class="l">${k.l}</div><div class="v">${k.v}</div>
   <div class="d ${k.u?'up':'dn'}">${k.u?'▲':'▼'} ${k.d} <span style="color:var(--muted);font-weight:400">مقابل الفترة السابقة</span></div>${spark(k.s,k.c)}</div>`).join('')+`</div>`;}
 
+/* مؤشر الهيمنة: رقم واحد يدمج حصة الصوت + قوة التفاعل + نمو الإيراد — أول شيء يراه المدير */
+const SOV_PCT=34; /* نفس رقم حصة الصوت في صفحة ذكاء المنافسين — مصدر واحد */
+function dominationScore(){
+  const engRate=parseFloat((kpis.find(k=>k.l==='معدل التفاعل')||{}).v)||0;
+  const revGrowth=parseFloat((kpis.find(k=>k.l==='الإيراد المنسوب')||{}).d)||0;
+  const engIdx=Math.min(100,(engRate/8)*100);
+  const revIdx=Math.min(100,(revGrowth/20)*100);
+  const score=Math.round(SOV_PCT*0.4+engIdx*0.3+revIdx*0.3);
+  return {score,engIdx,revIdx,engRate,revGrowth};
+}
+function dominationCard(){
+  const {score,engIdx,revIdx,engRate,revGrowth}=dominationScore();
+  const tier=score>=70?{c:C.good,t:'نتصدر السوق'}:score>=40?{c:C.warn,t:'تنافسية — لم تُحسم بعد'}:{c:C.crit,t:'خطر فقدان الريادة'};
+  return `<div class="row">
+   <div class="card"><h3>🧭 مؤشر الهيمنة (Domination Score) <small>— أول رقم يجب أن يراه المدير خلال 10 ثوانٍ</small></h3>
+    <div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap">
+     <div style="text-align:center">${gauge(score/100,tier.c)}<div style="font-size:26px;font-weight:800;margin-top:-4px">${score}<span style="font-size:13px;color:var(--muted)">/100</span></div><div style="color:${tier.c};font-weight:700;font-size:13px">${tier.t}</div></div>
+     <div style="flex:1;min-width:220px">
+      <div class="okr"><div class="t"><span>حصة الصوت (وزن 40%)</span><span class="b">${SOV_PCT}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${SOV_PCT}%;background:${C.s1}"></div></div></div>
+      <div class="okr"><div class="t"><span>قوة التفاعل (وزن 30%)</span><span class="b">${engRate}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(100,engIdx)}%;background:${C.s3}"></div></div></div>
+      <div class="okr"><div class="t"><span>نمو الإيراد (وزن 30%)</span><span class="b">${revGrowth>0?'+':''}${revGrowth}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(100,revIdx)}%;background:${C.s4}"></div></div></div>
+     </div>
+    </div>
+    <div class="foot">الصيغة: (حصة الصوت×0.4) + (مؤشر قوة التفاعل×0.3 — سقفه معدل تفاعل 8%) + (مؤشر نمو الإيراد×0.3 — سقفه نمو 20%). رقم واحد يلخّص: هل نسيطر، نتنافس، أم نتراجع — لا حاجة لقراءة عشرين مؤشراً لمعرفة الاتجاه العام.</div></div>
+  </div>`;
+}
 const pages={
 overview:{t:'النظرة التنفيذية',h:()=>`
+ ${dominationCard()}
  ${kpiCards()}
  <div class="row cols2">
   <div class="card"><h3>الوصول والتفاعل عبر الزمن <small>— جميع المنصات، 6 أشهر</small></h3>
@@ -883,6 +910,28 @@ function whatIfLeads(extraPostsPerWeek){
   const leadsPerPost=Math.max(0.05,(curLeads-prevLeads)/Math.max(1,curPosts*0.15))||curLeads/curPosts;
   return Math.max(0,Math.round(extraPostsPerWeek*leadsPerPost*10)/10);
 }
+/* تشبع الجمهور (Content Fatigue): نفس الموضوع 3 مرات+ لنفس الموظفة خلال 14 يوماً */
+function contentFatigue(){
+  const posts=getPosts();const now=Date.now();
+  const recent=posts.filter(p=>{const d=new Date(p.date+'T12:00:00').getTime();return !isNaN(d)&&(now-d)<=14*86400000;});
+  const out=[];
+  ['raghad','fajr','haya'].forEach(r=>{
+    const mine=recent.filter(p=>p.emp===r);
+    const byTopic=groupBy(mine,'topic');
+    const worst=Object.keys(byTopic).map(t=>({t,n:byTopic[t].length})).sort((a,b)=>b.n-a.n)[0];
+    if(worst&&worst.n>=3)out.push({emp:r,topic:worst.t,n:worst.n});
+  });
+  return out;
+}
+/* توقف النمو الخفي (Silent Growth Killer): متوسط الوصول في النصف الأخير من السجل لم يتحسن عن النصف الأول رغم استمرار النشر */
+function growthStagnation(){
+  const posts=getPosts().slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(posts.length<6)return null;
+  const mid=Math.floor(posts.length/2);
+  const older=posts.slice(0,mid),recent=posts.slice(mid);
+  const oR=avg(older,x=>x.reach||0),rR=avg(recent,x=>x.reach||0);
+  return {d:pctDelta(rR,oR)};
+}
 /* ========== محرك التنبيهات الذكية — قواعد IF/THEN صريحة، لا تخمين ========== */
 function computeAlerts(){
   const A=[];const posts=getPosts();
@@ -911,6 +960,9 @@ function computeAlerts(){
     const worst=scored[scored.length-1];
     if(worst.score<35)A.push({lvl:'warn',emp:worst.emp,name:ROLES[worst.emp]?.name||worst.emp,text:`منشور "${worst.topic}" (${worst.type}) بأداء ضعيف: ${worst.score}/100.`,action:'لا تكرري هذه الصيغة/الموضوع قبل مراجعة السبب مع شهد.'});
   }
+  contentFatigue().forEach(f=>{A.push({lvl:'warn',emp:f.emp,name:ROLES[f.emp].name,text:`تكرار موضوع "${f.topic}" ${f.n} مرات خلال أسبوعين من ${ROLES[f.emp].name} — خطر تشبع الجمهور (Content Fatigue).`,action:'بدّلي الزاوية أو الموضوع تماماً للمنشور القادم بدل تكرار نفس الفكرة.'});});
+  const gs=growthStagnation();
+  if(gs&&gs.d<=0)A.push({lvl:'warn',emp:null,name:'الفريق',text:`نمو الوصول متوقف بصمت: متوسط الوصول في النصف الأخير من سجل المحتوى ${gs.d}% مقارنة بالنصف الأول رغم استمرار النشر.`,action:'هذا "Silent Growth Killer" — غيّري الصيغة أو التوقيت هذا الأسبوع بدل تكرار نفس النمط بأمل تحسّن عضوي.'});
   const order2=['crit','warn','good'];
   return A.sort((a,b)=>order2.indexOf(a.lvl)-order2.indexOf(b.lvl));
 }
@@ -992,15 +1044,55 @@ function intelPage(){
    ${scored.slice(0,8).map(p=>`<tr><td class="nm">${ROLES[p.emp]?.name||p.emp}</td><td>${p.topic}</td><td>${p.type}</td><td>${p.eng}%</td><td>${p.leads}</td><td class="sc" style="color:${p.score>=70?'var(--good)':p.score>=40?'var(--warn)':'var(--crit)'}">${p.score}</td></tr>`).join('')}
    </tbody></table></div>
  </div>
- <div class="row">
+ <div class="row cols2e">
   <div class="card"><h3>🎲 محاكي القرار — ماذا لو زدنا وتيرة النشر؟</h3>
    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
    ${[1,2,3,5].map(n=>`<div class="pill pb" style="font-size:13px;padding:8px 14px">+${n} منشورات/أسبوع → <b>+${whatIfLeads(n)}</b> Lead تقريباً</div>`).join('')}
    </div>
    <div class="foot">تقدير أولي من فارق منشورات وLeads بين الأسبوعين الحالي والماضي — يتحسن تلقائياً مع كل أسبوع بيانات إضافي، وليس بديلاً عن نموذج إحصائي كامل قبل قرارات ميزانية كبيرة.</div></div>
+  <div class="card"><h3>🧪 قيّمي المحتوى قبل النشر <small>— Pre-Publish Score</small></h3>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="ppType" style="background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">${['ريلز','كاروسيل','فيديو','صورة','قصة','نص'].map(t=>`<option>${t}</option>`).join('')}</select>
+    <select id="ppDay" style="background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">${DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select>
+    <select id="ppHour" style="background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">${TIME_LABELS.map((l,i)=>`<option value="${i}">${l}</option>`).join('')}</select>
+    <input id="ppTopic" placeholder="الموضوع (مثال: قصص نجاح)" style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">
+    <button class="chip" onclick="runPreScore()">قيّم الآن</button>
+   </div>
+   <div id="ppResult" style="margin-top:12px"></div>
+   <div class="foot">تقدير قبل النشر من قواعد إحصائية على سجلكم الفعلي (الصيغة الأعلى أداءً + التوقيت الأفضل + تكرار الموضوع مؤخراً) — وليس نموذج ذكاء اصطناعي تنبؤي حقيقي، فاستخدميه كمرشد سريع لا كقرار نهائي.</div></div>
  </div>`;
 }
 pages.intel={t:'🧠 محرك ذكاء المحتوى',h:intelPage};
+
+/* Pre-Publish Score: تقدير قبل النشر من نفس بيانات المحرك (لا رقم مطلق، بل قواعد شفافة) */
+function sameTopicRecentCount(topic){
+  const posts=getPosts();const now=Date.now();
+  return posts.filter(p=>{const d=new Date((p.date||'')+'T12:00:00').getTime();return topic&&p.topic&&p.topic.trim()===topic.trim()&&!isNaN(d)&&(now-d)<=14*86400000;}).length;
+}
+function preScore(type,dayIdx,hourIdx,topic){
+  const fmts=topFormats();const {best}=bestTimeMatrix();
+  let s=50;
+  if(fmts[0]&&type===fmts[0].type)s+=25;else if(fmts.find(f=>f.type===type))s+=10;
+  if(dayIdx===best.d&&hourIdx===best.h)s+=20;else if(dayIdx===best.d||hourIdx===best.h)s+=10;
+  const rep=sameTopicRecentCount(topic);
+  if(rep>=2)s-=20;else if(rep>=1)s-=8;
+  return Math.max(0,Math.min(100,Math.round(s)));
+}
+function runPreScore(){
+  const type=document.getElementById('ppType').value;
+  const dayIdx=+document.getElementById('ppDay').value;
+  const hourIdx=+document.getElementById('ppHour').value;
+  const topic=document.getElementById('ppTopic').value.trim();
+  const s=preScore(type,dayIdx,hourIdx,topic);
+  const fmts=topFormats();const {best}=bestTimeMatrix();
+  const advice=[];
+  if(fmts[0]&&type!==fmts[0].type)advice.push(`جرّبي صيغة "${fmts[0].type}" — الأعلى أداءً في سجلكم.`);
+  if(!(dayIdx===best.d&&hourIdx===best.h))advice.push(`أقرب وقت مثالي فعلياً: ${DAYS[best.d]} ${TIME_LABELS[best.h]}.`);
+  const rep=sameTopicRecentCount(topic);
+  if(rep>=1)advice.push(`نُشر موضوع مشابه ${rep} مرة خلال أسبوعين — بدّلي الزاوية لتفادي التشبع.`);
+  const cls=s>=70?'o':s>=40?'w':'r';
+  document.getElementById('ppResult').innerHTML=`<div class="insight ${cls}"><b>Pre-Publish Score: ${s}/100</b>${advice.length?'<br>'+advice.join('<br>'):'<br>توليفة قوية بناءً على أدائكم السابق — انشري بثقة.'}</div>`;
+}
 
 /* ========== التنبيهات الذكية ========== */
 function alertsPage(){
@@ -1032,6 +1124,41 @@ function alertsPage(){
  </div>`;
 }
 pages.alerts={t:'🔔 التنبيهات الذكية',h:alertsPage};
+
+/* ========== رادار الفرص — سجل يدوي أسبوعي لكل فرصة لم تُستغل بعد ========== */
+const OPPORTUNITY_LOG=[
+ {title:'ترند «برنامج دعم المنشآت الجديد» — نمو +180% خلال 48 ساعة',source:'رصد سوشيال ميديا',window:'نافذة 2-3 أسابيع',priority:'عالية',status:'مفتوحة'},
+ {title:'سؤال متكرر بلا إجابة موحدة: «هل تخدمون المنشآت الناشئة؟» (23 مرة هذا الشهر)',source:'استفسارات الجمهور',window:'فوري',priority:'عالية',status:'مفتوحة'},
+ {title:'منافس ب بلا محتوى كاروسيل تعليمي مرجعي — فجوة صيغة مفتوحة',source:'تحليل المنافسين',window:'شهر',priority:'متوسطة',status:'قيد التنفيذ'},
+ {title:'قناة يوتيوب لدراسات الجدوى شبه خالية من المنافسين بالعربية',source:'الاستراتيجية طويلة المدى',window:'ربع سنوي',priority:'عالية',status:'مخطط لها'},
+];
+function opportunityPage(){
+  const open=OPPORTUNITY_LOG.filter(o=>o.status!=='مغلقة');
+  const high=OPPORTUNITY_LOG.filter(o=>o.priority==='عالية');
+  const autoGood=computeAlerts().filter(x=>x.lvl==='good');
+  return `
+ <div class="row cols3">
+  <div class="card kpi"><div class="l">فرص مسجَّلة</div><div class="v">${OPPORTUNITY_LOG.length}</div><div class="d">سجل يدوي أسبوعي</div></div>
+  <div class="card kpi"><div class="l">أولوية عالية</div><div class="v">${high.length}</div><div class="d up">تحتاج تحركاً هذا الأسبوع</div></div>
+  <div class="card kpi"><div class="l">مفتوحة الآن</div><div class="v">${open.length}</div><div class="d">لم تُستغل بعد</div></div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>📡 رادار الفرص <small>— كل فرصة لم تُستغل بعد بعد</small></h3>
+   <table class="lb"><thead><tr><th>الفرصة</th><th>المصدر</th><th>النافذة الزمنية</th><th>الأولوية</th><th>الحالة</th></tr></thead><tbody>
+   ${OPPORTUNITY_LOG.map(o=>`<tr><td class="b">${o.title}</td><td>${o.source}</td><td>${o.window}</td><td><span class="pill ${o.priority==='عالية'?'pc':o.priority==='متوسطة'?'pw':'pb'}">${o.priority}</span></td><td>${o.status}</td></tr>`).join('')}
+   </tbody></table>
+   <div class="foot">أضيفي كل فرصة فور رصدها في اجتماع الأحد (سجل يدوي حالياً — يمكن ربطه بورقة Google Sheets مستقلة مثل جدول الأسبوع تماماً متى رغبتم). القاعدة: فرصة بلا تاريخ استغلال تتحول لتهديد يستغله منافس أولاً.</div></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>🎯 أعلى فرصة الآن</h3>
+   ${high[0]?`<div class="insight o"><b>${high[0].title}</b><br><span style="color:var(--muted)">المصدر: ${high[0].source} — النافذة: ${high[0].window}</span></div>`:'<div class="insight">لا فرص عالية الأولوية مسجَّلة حالياً.</div>'}
+   <div class="foot">حوّليها فوراً إلى مهمة باسم موظفة داخل بطاقة "افتتاحية اليوم" في صفحتها.</div></div>
+  <div class="card"><h3>🔗 فرص تلقائية من بيانات الفريق نفسها</h3>
+   ${autoGood.length?autoGood.slice(0,3).map(x=>`<div class="insight o"><b>${x.name}:</b> ${x.text}</div>`).join(''):'<div class="insight">لا فرص تلقائية إضافية من محرك التنبيهات حالياً.</div>'}
+   <div class="foot">أي تنبيه "إيجابي 🟢" في صفحة التنبيهات الذكية هو فرصة فعلية قابلة للتكرار فوراً.</div></div>
+ </div>`;
+}
+pages.opportunity={t:'🛰️ رادار الفرص',h:opportunityPage};
 
 /* ========== بنك الخطافات وقوالب الردود ========== */
 const HOOKS={
@@ -1077,7 +1204,7 @@ function cp(btn,txt){
 pages.bank={t:'🪝 بنك الخطافات وقوالب الردود',h:bankPage};
 
 /* ---------- nav & render ---------- */
-const order=[['me','👤','صفحتي'],['board','🏆','لوحة الصدارة'],['intel','🧠','ذكاء المحتوى (AI)'],['alerts','🔔','التنبيهات الذكية'],['bank','🪝','بنك الخطافات والردود'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
+const order=[['me','👤','صفحتي'],['board','🏆','لوحة الصدارة'],['intel','🧠','ذكاء المحتوى (AI)'],['alerts','🔔','التنبيهات الذكية'],['opportunity','🛰️','رادار الفرص'],['bank','🪝','بنك الخطافات والردود'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
 'مؤشرات المنصات — كل قناة على حدة',
 ...PLATS.map(cf=>[cf.key,cf.icon,cf.name])];
 
@@ -1110,7 +1237,7 @@ function loginForm(){
 function showPass(cb){document.getElementById('lpass').type=cb.checked?'text':'password';}
 let ROLE='admin';
 const nav=document.getElementById('nav'),main=document.getElementById('main');
-const OPEN=['board','bank','intel','alerts'];
+const OPEN=['board','bank','intel','alerts','opportunity'];
 const allowed=k=>OPEN.includes(k)||ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k);
 function buildNav(){
   nav.innerHTML='';
@@ -1143,7 +1270,7 @@ function loginAs(r){
 }
 function logout(){document.getElementById('login').style.display='flex';}
 let CURRENT='overview';
-const LIVE_PAGES=['board','intel','alerts','me'];
+const LIVE_PAGES=['board','intel','alerts','me','opportunity'];
 function render(k){
   if(!allowed(k))k=ROLES[ROLE].home;
   CURRENT=k;
