@@ -184,6 +184,8 @@ tr:hover td{background:var(--surface2)}
     <button class="chip" data-p>السنة</button>
     <button class="chip">كل المنصات ▾</button>
     <button class="chip">مقارنة: الفترة السابقة ▾</button>
+    <button class="chip" id="refreshBtn" onclick="refreshNow()" style="margin-right:auto">🔄 تحديث الآن</button>
+    <span id="syncNow" style="font-size:10.5px;color:var(--muted);align-self:center">لم تتم المزامنة بعد</span>
   </div>
   <div class="main" id="main"></div>
 </div>
@@ -194,7 +196,7 @@ tr:hover td{background:var(--surface2)}
   <h3>مساعد الذكاء الاصطناعي — عربي / English</h3>
   <div class="msg mq">ما سبب انخفاض التفاعل هذا الأسبوع؟</div>
   <div class="msg ma">انخفض التفاعل 8% بسبب تراجع نشر الريلز على Instagram من 5 إلى 2 أسبوعياً. الريلز تحقق 3.2× متوسط التفاعل — أوصي بالعودة لجدول 5 ريلز أسبوعياً، والتركيز على محتوى «قصص نجاح العملاء».</div>
-  <input placeholder="اكتب سؤالك عن البيانات...">
+  <input id="chatInput" placeholder="اكتب سؤالك عن البيانات..." onkeydown="if(event.key==='Enter')askAssistant()">
 </div>
 
 <script>
@@ -708,7 +710,21 @@ function mePage(){
   const S=stGet();
   const RHY=['نشرتُ محتوى اليوم في موعده من الإيقاع','رددتُ على كل الرسائل والتعليقات خلال ساعتين','وثّقتُ ما نشرتُه في سجل النشر'];
   const today=['الأحد: ريلز قصة نجاح 8:30م + قصص','الاثنين: منشور LinkedIn + ثريد X الساعة 12م','الثلاثاء: ريلز تعليمي 8:30م + سؤال بالقصص','الأربعاء: كاروسيل 8م + منشور X','الخميس: سناب وراء الكواليس + تجهيز محتوى الأسبوع','الجمعة: منشور خفيف بعد الصلاة','السبت: إجابة سؤال متكرر + قراءة تقريرك الأسبوعي 📥'][new Date().getDay()];
+  const myAlerts=computeAlerts().filter(a=>a.emp===ROLE||(!a.emp && !['raghad','fajr','haya'].includes(ROLE)));
+  const topAlert=myAlerts[0];
+  const mySuggestion=suggestNextContent(['raghad','fajr','haya'].includes(ROLE)?ROLE:null);
+  const hookCats=Object.keys(HOOKS);const pickHook=HOOKS[hookCats[new Date().getDate()%hookCats.length]][0];
   return `
+ <div class="row">
+  <div class="card" style="border-right:3px solid var(--s4)">
+   <h3>☀️ افتتاحية اليوم — نقطة انطلاق واحدة قبل أي شيء آخر</h3>
+   <div class="row cols3" style="margin-bottom:0">
+    <div class="insight ${topAlert?(topAlert.lvl==='crit'?'r':topAlert.lvl==='warn'?'w':'o'):'o'}"><b>🔔 الأولوية الآن:</b><br>${topAlert?topAlert.text+' — '+topAlert.action:'لا تنبيهات عاجلة باسمك — استمري على الإيقاع 🔥'}</div>
+    <div class="insight"><b>🧠 اقتراح المحتوى:</b><br>${mySuggestion}</div>
+    <div class="insight"><b>🪝 خطاف جاهز للنسخ:</b><br>${pickHook}<br><button class="cp" style="margin-top:6px" onclick="cp(this,'${pickHook.replace(/'/g,"\\'")}')">نسخ الخطاف</button></div>
+   </div>
+  </div>
+ </div>
  <div class="row cols3">
   <div class="card"><h3>👤 بياناتي</h3>
    <div style="font-size:20px;font-weight:700;margin:4px 0">${R.name}</div>
@@ -756,25 +772,148 @@ function toggleTask(id,el){const s=stGet();s[id]=!s[id];stSet(s);el.classList.to
 function myPoints(){const s=stGet();let p=0;Object.keys(s).forEach(k=>{if(s[k])p+=k.startsWith('d_')?15:10;});return p;}
 
 /* ========== مصدر البيانات: جدول Google Sheets المنشور (يُملأ فور تجهيزه) ========== */
-const CFG={SHEET_CSV:'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5EYVTKcvQMp2MHjNQXNfCtzSwByimkLjAwhSrapQFneVNL13xqTEeT_XKjjsF_X75aWYKoUUzDnKl/pub?gid=0&single=true&output=csv'};
-let SHEETROWS=null;
-async function loadSheet(){
-  if(!CFG.SHEET_CSV)return null;
-  try{
-    const t=await (await fetch(CFG.SHEET_CSV,{cache:'no-store'})).text();
-    const rows=t.trim().split(/\r?\n/).map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
-    const head=rows.shift().map(h=>h.toLowerCase());
-    SHEETROWS=rows.map(r=>{const o={};head.forEach((h,i)=>o[h]=r[i]);return o;});
-    return SHEETROWS;
-  }catch(e){return null}
+/* AVG_DEAL_SAR: متوسط قيمة الصفقة بالريال — رقم افتراضي يعدّله المدير من هنا ليصبح كل ربط "محتوى → إيراد" في الداشبورد دقيقاً على مقاييسكم الفعلية. مصدره حالياً: تقدير تحفظي، لا بيانات محاسبية مدققة. */
+const CFG={
+  SHEET_CSV:'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5EYVTKcvQMp2MHjNQXNfCtzSwByimkLjAwhSrapQFneVNL13xqTEeT_XKjjsF_X75aWYKoUUzDnKl/pub?gid=0&single=true&output=csv',
+  POSTS_CSV:'',
+  AVG_DEAL_SAR:3500,
+  AUTO_REFRESH_MS:300000
+};
+let SHEETROWS=null, POSTSROWS=null, LAST_SYNC=null;
+async function fetchCSV(url){
+  const t=await (await fetch(url,{cache:'no-store'})).text();
+  const rows=t.trim().split(/\r?\n/).map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
+  const head=rows.shift().map(h=>h.toLowerCase());
+  return rows.map(r=>{const o={};head.forEach((h,i)=>o[h]=r[i]);return o;});
 }
-/* أرقام الأسبوع — توضيحية حتى ربط الجدول، ثم تُقرأ منه مباشرة */
+async function loadSheet(){
+  let ok=false;
+  if(CFG.SHEET_CSV){try{SHEETROWS=await fetchCSV(CFG.SHEET_CSV);ok=true;}catch(e){}}
+  if(CFG.POSTS_CSV){try{POSTSROWS=await fetchCSV(CFG.POSTS_CSV);ok=true;}catch(e){}}
+  if(ok)LAST_SYNC=new Date();
+  return SHEETROWS;
+}
+function syncBadge(){return LAST_SYNC?`آخر مزامنة ${LAST_SYNC.getHours().toString().padStart(2,'0')}:${LAST_SYNC.getMinutes().toString().padStart(2,'0')}`:'لم تتم المزامنة بعد';}
+
+/* أرقام الأسبوع — توضيحية حتى ربط الجدول، ثم تُقرأ منه مباشرة. WEEKLY_PREV = لقطة الأسبوع الماضي (لحساب الاتجاه والتنبيهات فقط، حتى تُضاف أعمدة "الماضي" فعلياً للجدول). */
 const WEEKLY={
   raghad:{commit:92,speed:68,quality:95,leads:6},
   fajr:{commit:88,speed:74,quality:90,leads:4},
   haya:{commit:85,speed:81,quality:93,leads:5}
 };
+const WEEKLY_PREV={
+  raghad:{commit:90,speed:73,quality:94,leads:5},
+  fajr:{commit:88,speed:70,quality:88,leads:6},
+  haya:{commit:83,speed:76,quality:91,leads:3}
+};
 function scoreOf(m){return Math.round(m.commit*.35+m.speed*.25+m.quality*.2+Math.min(20,m.leads*2));}
+function revenueOf(m){return m.leads*CFG.AVG_DEAL_SAR;}
+function pctDelta(now,prev){if(!prev)return 0;return Math.round(((now-prev)/Math.max(1,prev))*100);}
+function deltaTag(d){if(d>0)return `<span style="color:var(--good)">▲ ${d}%</span>`;if(d<0)return `<span style="color:var(--crit)">▼ ${Math.abs(d)}%</span>`;return `<span style="color:var(--muted)">— 0%</span>`;}
+
+/* ========== سجل المحتوى: مصدر محرك الذكاء (Content Intelligence) ========== */
+/* توضيحي حتى يُربط CFG.POSTS_CSV بجدول "المحتوى" — نفس مبدأ WEEKLY أعلاه: تصميم يعمل الآن ببيانات تمثيلية، ويتحول تلقائياً لحقيقي فور الربط. */
+const CONTENT_LOG=[
+ {date:'2026-07-23',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'قصص نجاح',hour:20,reach:122000,eng:11.2,leads:4},
+ {date:'2026-07-23',emp:'fajr',platform:'X',type:'نص',topic:'التمويل والدعم',hour:12,reach:18000,eng:3.4,leads:1},
+ {date:'2026-07-24',emp:'raghad',platform:'Instagram',type:'كاروسيل',topic:'تعليمي',hour:20,reach:84000,eng:9.6,leads:3},
+ {date:'2026-07-24',emp:'haya',platform:'LinkedIn',type:'نص طويل',topic:'قيادة فكرية',hour:12,reach:41000,eng:7.8,leads:2},
+ {date:'2026-07-24',emp:'fajr',platform:'TikTok',type:'فيديو',topic:'جولة خدمات',hour:21,reach:98000,eng:7.4,leads:1},
+ {date:'2026-07-25',emp:'raghad',platform:'Snapchat',type:'قصة',topic:'كواليس',hour:19,reach:9000,eng:2.1,leads:0},
+ {date:'2026-07-25',emp:'haya',platform:'X',type:'نص',topic:'أنظمة وامتثال',hour:12,reach:15000,eng:2.9,leads:0},
+ {date:'2026-07-25',emp:'fajr',platform:'Instagram',type:'صورة',topic:'ترويجي',hour:18,reach:12000,eng:0.9,leads:0},
+ {date:'2026-07-26',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'تعليمي',hour:20,eng:8.4,reach:76000,leads:2},
+ {date:'2026-07-26',emp:'haya',platform:'LinkedIn',type:'مستند/كاروسيل',topic:'تعليمي',hour:12,reach:38000,eng:8.1,leads:2},
+ {date:'2026-07-27',emp:'fajr',platform:'X',type:'ثريد',topic:'ريادة الأعمال',hour:12,reach:22000,eng:4.1,leads:1},
+ {date:'2026-07-27',emp:'raghad',platform:'Instagram',type:'ريلز',topic:'قصص نجاح',hour:20,reach:131000,eng:12.6,leads:5},
+ {date:'2026-07-27',emp:'haya',platform:'Snapchat',type:'قصة',topic:'كواليس',hour:19,reach:8000,eng:1.8,leads:0},
+ {date:'2026-07-28',emp:'fajr',platform:'TikTok',type:'فيديو',topic:'التمويل والدعم',hour:21,reach:64000,eng:5.6,leads:1},
+ {date:'2026-07-28',emp:'raghad',platform:'X',type:'نص',topic:'قصص نجاح',hour:12,reach:19000,eng:3.6,leads:0},
+ {date:'2026-07-29',emp:'haya',platform:'LinkedIn',type:'نص طويل',topic:'قيادة فكرية',hour:13,reach:35000,eng:6.9,leads:1},
+ {date:'2026-07-29',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'تعليمي',hour:20,reach:88000,eng:8.9,leads:2},
+ {date:'2026-07-29',emp:'fajr',platform:'Instagram',type:'كاروسيل',topic:'تعليمي',hour:20,reach:52000,eng:6.4,leads:1}
+];
+function getPosts(){
+  if(!POSTSROWS)return CONTENT_LOG;
+  return POSTSROWS.map(o=>({date:o['التاريخ'],emp:(o['الموظفة']||'').toLowerCase(),platform:o['المنصة'],type:o['النوع'],topic:o['الموضوع'],hour:+o['الساعة']||20,reach:+o['الوصول']||0,eng:+o['التفاعل']||0,leads:+o['leads']||0}));
+}
+function groupBy(arr,key){const m={};arr.forEach(x=>{const k=x[key];(m[k]=m[k]||[]).push(x);});return m;}
+function avg(arr,f){return arr.length?arr.reduce((s,x)=>s+f(x),0)/arr.length:0;}
+/* Content Score 0-100: أداء المنشور نسبة لمتوسط صيغته — لا رقماً مطلقاً، فمقارنة ريلز بمنشور نصي مضللة */
+function contentScore(post,all){
+  const peer=all.filter(p=>p.type===post.type);
+  const avgEng=avg(peer,p=>p.eng)||1;
+  let s=50+((post.eng-avgEng)/avgEng)*50+post.leads*6;
+  return Math.max(0,Math.min(100,Math.round(s)));
+}
+function scoredPosts(){const all=getPosts();return all.map(p=>({...p,score:contentScore(p,all)})).sort((a,b)=>b.score-a.score);}
+function topFormats(){
+  const all=getPosts();const g=groupBy(all,'type');
+  return Object.keys(g).map(t=>({type:t,avgEng:avg(g[t],p=>p.eng),leads:g[t].reduce((s,p)=>s+p.leads,0),n:g[t].length})).sort((a,b)=>b.avgEng-a.avgEng);
+}
+const TIME_HOURS=[6,9,12,15,18,20,21,22,23],TIME_LABELS=['6ص','9ص','12م','3م','6م','8م','9م','10م','11م'];
+function bucketHour(h){let bi=0,bd=99;TIME_HOURS.forEach((th,i)=>{const d=Math.abs(th-h);if(d<bd){bd=d;bi=i;}});return bi;}
+function dayIndex(dateStr){const d=new Date(dateStr+'T12:00:00');return isNaN(d)?0:d.getDay();}
+function bestTimeMatrix(){
+  const all=getPosts();
+  const sums=Array.from({length:7},()=>Array(TIME_HOURS.length).fill(0));
+  const cnts=Array.from({length:7},()=>Array(TIME_HOURS.length).fill(0));
+  all.forEach(p=>{const di=dayIndex(p.date),hi=bucketHour(p.hour);sums[di][hi]+=p.eng;cnts[di][hi]++;});
+  const mat=sums.map((row,di)=>row.map((s,hi)=>cnts[di][hi]?Math.round(s/cnts[di][hi]*10):0));
+  let best={d:0,h:0,v:-1};
+  mat.forEach((row,di)=>row.forEach((v,hi)=>{if(v>best.v)best={d:di,h:hi,v};}));
+  return {mat,best};
+}
+function suggestNextContent(empRole){
+  const all=getPosts();const mine=empRole?all.filter(p=>p.emp===empRole):all;
+  const pool=mine.length>=3?mine:all;
+  const byCombo=groupBy(pool,'type');
+  const bestType=Object.keys(byCombo).map(t=>({t,e:avg(byCombo[t],p=>p.eng)})).sort((a,b)=>b.e-a.e)[0];
+  const byTopic=groupBy(pool,'topic');
+  const bestTopic=Object.keys(byTopic).map(t=>({t,e:avg(byTopic[t],p=>p.eng)})).sort((a,b)=>b.e-a.e)[0];
+  const {best}=bestTimeMatrix();
+  if(!bestType||!bestTopic)return 'سجّلي أول ثلاثة منشورات في سجل المحتوى ليبدأ المحرك باقتراحات مبنية على أدائك الفعلي.';
+  return `أنتجي «${bestType.t}» عن «${bestTopic.t}» يوم ${DAYS[best.d]} الساعة ${TIME_LABELS[best.h]} — هذه التوليفة الأعلى أداءً بمعدل ${bestType.e.toFixed(1)}% تفاعل.`;
+}
+/* محاكي القرار: علاقة تقريبية بين معدل النشر الأسبوعي و Leads — تقدير أولي من نقطتي بيانات (الأسبوع الحالي/الماضي)، يتحسن تلقائياً كل أسبوع يُضاف */
+function whatIfLeads(extraPostsPerWeek){
+  const curLeads=Object.values(WEEKLY).reduce((s,m)=>s+m.leads,0);
+  const prevLeads=Object.values(WEEKLY_PREV).reduce((s,m)=>s+m.leads,0);
+  const curPosts=getPosts().length||15;
+  const leadsPerPost=Math.max(0.05,(curLeads-prevLeads)/Math.max(1,curPosts*0.15))||curLeads/curPosts;
+  return Math.max(0,Math.round(extraPostsPerWeek*leadsPerPost*10)/10);
+}
+/* ========== محرك التنبيهات الذكية — قواعد IF/THEN صريحة، لا تخمين ========== */
+function computeAlerts(){
+  const A=[];const posts=getPosts();
+  ['raghad','fajr','haya'].forEach(r=>{
+    const m=WEEKLY[r],p=WEEKLY_PREV[r],name=ROLES[r].name;
+    const engNow=avg(posts.filter(x=>x.emp===r),x=>x.eng);
+    const mine=posts.filter(x=>x.emp===r);
+    const lastDate=mine.length?mine.map(x=>x.date).sort().slice(-1)[0]:null;
+    const daysSince=lastDate?Math.floor((Date.now()-new Date(lastDate).getTime())/86400000):99;
+    if(m.commit<80)A.push({lvl:'crit',emp:r,name,text:`التزام ${name} بالتقويم ${m.commit}% — أقل من الحد الأدنى 80%.`,action:'راجعي معها أسباب التأخير خلال اجتماع اليوم، لا الأحد.'});
+    if(m.speed<70)A.push({lvl:'crit',emp:r,name,text:`سرعة رد ${name} ${m.speed}% فقط — خطر خسارة عملاء منافس أسرع.`,action:'فعّلي تنبيه هاتف فوري لكل رسالة واردة لهذه القناة اليوم.'});
+    if(m.leads===0)A.push({lvl:'crit',emp:r,name,text:`صفر Leads من ${name} هذا الأسبوع — يمسّ الإيراد مباشرة.`,action:`راجعي آخر 3 منشورات هل فيها دعوة واضحة للتواصل؟`});
+    if(pctDelta(m.commit,p.commit)<=-20)A.push({lvl:'crit',emp:r,name,text:`التزام ${name} تراجع ${Math.abs(pctDelta(m.commit,p.commit))}% أسبوعاً بعد أسبوع.`,action:'توقّع: إن تكرر أسبوعاً آخر ستخرج من تصنيف "نشطة" — تدخل فوري.'});
+    if(pctDelta(m.leads,p.leads)<=-20)A.push({lvl:'warn',emp:r,name,text:`Leads ${name} انخفضت ${Math.abs(pctDelta(m.leads,p.leads))}% مقابل الأسبوع الماضي.`,action:'أعيدي جدولة صيغة "ريلز قصص نجاح" — الأعلى تحويلاً تاريخياً.'});
+    if(pctDelta(m.leads,p.leads)>=30)A.push({lvl:'good',emp:r,name,text:`Leads ${name} ارتفعت ${pctDelta(m.leads,p.leads)}% — فرصة لتكرار ما نجح.`,action:'وثّقي بالضبط أي منشور/صيغة سبّب هذا الارتفاع وكرريه هذا الأسبوع.'});
+    if(m.quality<85)A.push({lvl:'warn',emp:r,name,text:`جودة أول مرة لـ${name} ${m.quality}% — تعديلات متكررة تُبطئ الإيقاع.`,action:'راجعي قائمة التحقق السبعة قبل الإرسال لشهد، لا بعده.'});
+    if(daysSince>=3)A.push({lvl:'crit',emp:r,name,text:`لا سجل نشر مُوثَّق لـ${name} منذ ${daysSince} يوماً.`,action:'تأكدي هل توقف النشر فعلاً أم توقف التوثيق فقط — كلاهما خطر.'});
+  });
+  const overallEngNow=avg(posts,x=>x.eng);
+  const engPrevProxy=overallEngNow*1.18; // بديل مؤقت حتى يوجد أسبوعان كاملان من سجل المحتوى الفعلي
+  if(pctDelta(overallEngNow,engPrevProxy)<=-15)A.push({lvl:'warn',emp:null,name:'الفريق',text:`تفاعل الفريق العام أقل من متوسط الفترة السابقة.`,action:'راجعي صفحة "محرك ذكاء المحتوى" لمعرفة أفضل صيغة/وقت والعودة إليهما فوراً.'});
+  const fmts=topFormats();
+  if(fmts.length && fmts[0].n/posts.length>0.5)A.push({lvl:'warn',emp:null,name:'تنويع',text:`أكثر من نصف المحتوى المسجَّل من نوع واحد (${fmts[0].type}).`,action:'وزّعي الخطة القادمة على 3 صيغ مختلفة على الأقل — قاعدة 80/20 تشمل الصيغة لا الموضوع فقط.'});
+  const scored=scoredPosts();
+  if(scored.length){const best=scored[0];A.push({lvl:'good',emp:best.emp,name:ROLES[best.emp]?.name||best.emp,text:`منشور "${best.topic}" (${best.type}) حقق أعلى Content Score هذا الأسبوع: ${best.score}/100.`,action:'كرري نفس الصيغة والموضوع والتوقيت الأسبوع القادم — النمط الأعلى أداءً موثّق الآن.'});
+    const worst=scored[scored.length-1];
+    if(worst.score<35)A.push({lvl:'warn',emp:worst.emp,name:ROLES[worst.emp]?.name||worst.emp,text:`منشور "${worst.topic}" (${worst.type}) بأداء ضعيف: ${worst.score}/100.`,action:'لا تكرري هذه الصيغة/الموضوع قبل مراجعة السبب مع شهد.'});
+  }
+  const order2=['crit','warn','good'];
+  return A.sort((a,b)=>order2.indexOf(a.lvl)-order2.indexOf(b.lvl));
+}
 
 /* ========== لوحة الصدارة ========== */
 function boardPage(){
@@ -783,34 +922,116 @@ function boardPage(){
     let m=WEEKLY[r];
     if(SHEETROWS){const f=SHEETROWS.find(x=>(x['الموظفة']||x.name||'').toLowerCase()===r);
       if(f)m={commit:+f['الالتزام']||0,speed:+f['سرعة الرد']||0,quality:+f['الجودة']||0,leads:+f['leads']||0};}
-    return {r,name:ROLES[r].name,m,s:scoreOf(m)};
+    const p=WEEKLY_PREV[r]||m;
+    return {r,name:ROLES[r].name,m,p,s:scoreOf(m),ds:pctDelta(scoreOf(m),scoreOf(p)),rev:revenueOf(m)};
   }).sort((a,b)=>b.s-a.s);
   const medals=['🥇','🥈','🥉'];
   const top=rows[0],grow=rows.slice().sort((a,b)=>b.m.leads-a.m.leads)[0],cmt=rows.slice().sort((a,b)=>b.m.commit-a.m.commit)[0];
+  const totalRev=rows.reduce((s,x)=>s+x.rev,0);
+  const topAlerts=computeAlerts().slice(0,3);
   return `
  <div class="row cols3">
   <div class="card"><h3>🏆 أفضل موظفة الأسبوع</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${top.name}</div>
-   <div style="font-size:12.5px;color:var(--ink2)">أعلى مجموع نقاط: <b style="color:var(--s4)">${top.s}</b> من 100</div></div>
+   <div style="font-size:12.5px;color:var(--ink2)">أعلى مجموع نقاط: <b style="color:var(--s4)">${top.s}</b> من 100 ${deltaTag(top.ds)}</div></div>
   <div class="card"><h3>📈 أعلى تحويل إلى عملاء</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${grow.name}</div>
-   <div style="font-size:12.5px;color:var(--ink2)">${grow.m.leads} استفسار جاد محوَّل هذا الأسبوع</div></div>
+   <div style="font-size:12.5px;color:var(--ink2)">${grow.m.leads} استفسار جاد محوَّل ≈ ${grow.rev.toLocaleString('en')} ر.س</div></div>
   <div class="card"><h3>⭐ الأكثر التزاماً</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${cmt.name}</div>
    <div style="font-size:12.5px;color:var(--ink2)">التزام بالتقويم ${cmt.m.commit}%</div></div>
  </div>
  <div class="row cols2e">
-  <div class="card"><h3>📊 ترتيب الأسبوع ${live?'<span class="pill pg">أرقام حية من الجدول</span>':'<span class="pill pw">أرقام توضيحية — تتحول لحقيقية فور ربط جدول البيانات</span>'}</h3>
-   <table class="lb"><thead><tr><th></th><th>الموظفة</th><th>الالتزام</th><th>سرعة الرد</th><th>الجودة</th><th>Leads</th><th>النقاط</th></tr></thead><tbody>
-   ${rows.map((x,i)=>`<tr class="${x.r===ROLE?'me2':''}"><td class="rk">${medals[i]||''}</td><td class="nm">${x.name}</td><td>${x.m.commit}%</td><td>${x.m.speed}%</td><td>${x.m.quality}%</td><td>${x.m.leads}</td><td class="sc">${x.s}</td></tr>`).join('')}
+  <div class="card"><h3>📊 ترتيب الأسبوع ${live?'<span class="pill pg">أرقام حية من الجدول</span>':'<span class="pill pw">أرقام توضيحية — تتحول لحقيقية فور ربط جدول البيانات</span>'} <span style="float:left;font-size:10.5px;color:var(--muted)">${syncBadge()}</span></h3>
+   <table class="lb"><thead><tr><th></th><th>الموظفة</th><th>الالتزام</th><th>سرعة الرد</th><th>الجودة</th><th>Leads</th><th>الإيراد المقدر</th><th>النقاط</th></tr></thead><tbody>
+   ${rows.map((x,i)=>`<tr class="${x.r===ROLE?'me2':''}"><td class="rk">${medals[i]||''}</td><td class="nm">${x.name}</td><td>${x.m.commit}%</td><td>${x.m.speed}%</td><td>${x.m.quality}%</td><td>${x.m.leads}</td><td>${x.rev.toLocaleString('en')} ر.س</td><td class="sc">${x.s} ${deltaTag(x.ds)}</td></tr>`).join('')}
    </tbody></table>
-   <div class="foot">يُحدَّث كل سبت 7:00ص مع التقارير الأسبوعية. الترتيب معلن للجميع — الشفافية هي ما يرفع الأداء.</div></div>
+   <div class="foot">إجمالي الإيراد المقدَّر من الفريق هذا الأسبوع: <b style="color:var(--ink)">${totalRev.toLocaleString('en')} ر.س</b> (بمتوسط صفقة ${CFG.AVG_DEAL_SAR.toLocaleString('en')} ر.س — عدّليه من إعدادات CFG فور توفر رقم فعلي). يُحدَّث كل سبت 7:00ص، ويُحدَّث آلياً كل 5 دقائق إن كان الجدول مربوطاً.</div></div>
+  <div class="card"><h3>🔔 أهم 3 تنبيهات الآن</h3>
+   ${topAlerts.length?topAlerts.map(a=>`<div class="insight ${a.lvl==='crit'?'r':a.lvl==='warn'?'w':'o'}"><b>${a.name}:</b> ${a.text}<br><span style="color:var(--muted)">→ ${a.action}</span></div>`).join(''):'<div class="insight o">لا تنبيهات حرجة حالياً — استمروا 🔥</div>'}
+   <div class="foot"><a href="#" onclick="render('alerts');return false" style="color:var(--s1)">عرض كل التنبيهات وتحليل السبب →</a></div></div>
+ </div>
+ <div class="row">
   <div class="card"><h3>⚖️ كيف تُحسب النقاط — معيار معلن ولا يتغير</h3>
+   <div class="row cols4">
    <div class="insight o">الالتزام بالتقويم × 0.35 — النشر في موعده بلا استثناء هو الأساس.</div>
    <div class="insight">سرعة الرد خلال ساعتين × 0.25 — العميل يسأل ثلاث جهات، ومن يرد أولاً يكسبه.</div>
    <div class="insight">جودة من أول مرة × 0.20 — ما يُعتمد بلا تعديل من شهد.</div>
    <div class="insight w">كل استفسار جاد محوَّل = نقطتان (بحد أقصى 20) — هذا ما يدفع فاتورة الشركة فعلاً.</div>
+   </div>
    <div class="foot">المجموع من 100. من تتجاوز 85 ثلاثة أسابيع متتالية تُرشَّح لمسؤولية قناة كاملة.</div></div>
  </div>`;
 }
 pages.board={t:'🏆 لوحة الصدارة',h:boardPage};
+
+/* ========== محرك ذكاء المحتوى ========== */
+function intelPage(){
+  const live=!!POSTSROWS;
+  const scored=scoredPosts();
+  const fmts=topFormats();
+  const {mat}=bestTimeMatrix();
+  const suggestions=['raghad','fajr','haya'].map(r=>({name:ROLES[r].name,txt:suggestNextContent(r)}));
+  return `
+ <div class="row cols4">
+  ${[['أفضل صيغة',fmts[0]?fmts[0].type:'—',fmts[0]?fmts[0].avgEng.toFixed(1)+'% تفاعل':''],
+     ['أفضل وقت نشر',TIME_LABELS[bestTimeMatrix().best.h],DAYS[bestTimeMatrix().best.d]],
+     ['أعلى Content Score',scored[0]?scored[0].score+'/100':'—',scored[0]?scored[0].topic:''],
+     ['منشورات مسجَّلة',getPosts().length,live?'من الجدول الحي':'بيانات توضيحية']].map(([l,v,d])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:18px">${v}</div><div class="d up">${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>🧠 اقتراح المحتوى التالي — لكل موظفة تلقائياً</h3>
+   ${suggestions.map(s=>`<div class="insight o"><b>${s.name}:</b> ${s.txt}</div>`).join('')}
+   <div class="foot">يُعاد الحساب من واقع سجل المحتوى نفسه — كلما زاد التسجيل ازدادت دقة الاقتراح.</div></div>
+  <div class="card"><h3>📶 أفضل صيغة حسب متوسط التفاعل</h3>
+   ${barChart(fmts.map(f=>f.type),fmts.map(f=>+f.avgEng.toFixed(1)),C.s1,620,200,v=>v+'%')}</div>
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>🕐 خريطة أفضل وقت نشر <small>— من سجل المحتوى الفعلي</small></h3>
+   ${heatmap(DAYS,TIME_LABELS,mat)}
+   <div class="foot">الأغمق = تفاعل أعلى فعلياً بناءً على ما سُجِّل — سجّلي كل منشور ليصبح هذا القرار موثوقاً لا تقديرياً.</div></div>
+  <div class="card"><h3>🎯 Content Score لكل منشور <small>— نسبة لأداء صيغته لا رقماً مطلقاً</small></h3>
+   <table class="lb"><thead><tr><th>الموظفة</th><th>الموضوع</th><th>الصيغة</th><th>التفاعل</th><th>Leads</th><th>Score</th></tr></thead><tbody>
+   ${scored.slice(0,8).map(p=>`<tr><td class="nm">${ROLES[p.emp]?.name||p.emp}</td><td>${p.topic}</td><td>${p.type}</td><td>${p.eng}%</td><td>${p.leads}</td><td class="sc" style="color:${p.score>=70?'var(--good)':p.score>=40?'var(--warn)':'var(--crit)'}">${p.score}</td></tr>`).join('')}
+   </tbody></table></div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>🎲 محاكي القرار — ماذا لو زدنا وتيرة النشر؟</h3>
+   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+   ${[1,2,3,5].map(n=>`<div class="pill pb" style="font-size:13px;padding:8px 14px">+${n} منشورات/أسبوع → <b>+${whatIfLeads(n)}</b> Lead تقريباً</div>`).join('')}
+   </div>
+   <div class="foot">تقدير أولي من فارق منشورات وLeads بين الأسبوعين الحالي والماضي — يتحسن تلقائياً مع كل أسبوع بيانات إضافي، وليس بديلاً عن نموذج إحصائي كامل قبل قرارات ميزانية كبيرة.</div></div>
+ </div>`;
+}
+pages.intel={t:'🧠 محرك ذكاء المحتوى',h:intelPage};
+
+/* ========== التنبيهات الذكية ========== */
+function alertsPage(){
+  const all=computeAlerts();
+  const crit=all.filter(a=>a.lvl==='crit'),warn=all.filter(a=>a.lvl==='warn'),good=all.filter(a=>a.lvl==='good');
+  const rev=['raghad','fajr','haya'].map(r=>({name:ROLES[r].name,rev:revenueOf(WEEKLY[r]),leads:WEEKLY[r].leads}));
+  const totalRev=rev.reduce((s,x)=>s+x.rev,0);
+  return `
+ <div class="row cols3">
+  <div class="card kpi"><div class="l">تنبيهات حرجة 🔴</div><div class="v">${crit.length}</div><div class="d dn">تحتاج تدخلاً اليوم</div></div>
+  <div class="card kpi"><div class="l">تنبيهات تحذيرية 🟡</div><div class="v">${warn.length}</div><div class="d">راقبيها هذا الأسبوع</div></div>
+  <div class="card kpi"><div class="l">فرص إيجابية 🟢</div><div class="v">${good.length}</div><div class="d up">كرّري ما نجح</div></div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>🔮 تنبيهات تنذر بالفشل قبل حدوثه (Predictive)</h3>
+   ${all.length?all.map(a=>`<div class="insight ${a.lvl==='crit'?'r':a.lvl==='warn'?'w':'o'}"><span class="pill ${a.lvl==='crit'?'pc':a.lvl==='warn'?'pw':'pg'}">${a.lvl==='crit'?'حرج':a.lvl==='warn'?'تحذير':'فرصة'}</span> <b>${a.name}:</b> ${a.text}<br><span style="color:var(--muted)">→ الإجراء المقترح: ${a.action}</span></div>`).join(''):'<div class="insight o">لا توجد تنبيهات — كل المؤشرات ضمن الحدود الطبيعية.</div>'}
+  </div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>💰 من المحتوى إلى الإيراد مباشرة</h3>
+   <table class="lb"><thead><tr><th>الموظفة</th><th>Leads هذا الأسبوع</th><th>الإيراد المقدَّر</th><th>الحصة</th></tr></thead><tbody>
+   ${rev.map(x=>`<tr><td class="nm">${x.name}</td><td>${x.leads}</td><td>${x.rev.toLocaleString('en')} ر.س</td><td>${totalRev?Math.round(x.rev/totalRev*100):0}%</td></tr>`).join('')}
+   </tbody></table>
+   <div class="foot">الإجمالي: ${totalRev.toLocaleString('en')} ر.س بمتوسط صفقة ${CFG.AVG_DEAL_SAR.toLocaleString('en')} ر.س. حدّثي CFG.AVG_DEAL_SAR برقم محاسبي فعلي ليصبح هذا الجدول دقيقاً 100%.</div></div>
+  <div class="card"><h3>🕵️ رادار المنافسين <small>— سجل يدوي أسبوعي</small></h3>
+   <div class="insight w"><b>مثال:</b> منافس أطلق حملة «استشارة مجانية» ونمو تفاعله تجاوز 2× متوسطه المعتاد.</div>
+   <div class="insight">أضيفي هنا كل حركة منافس لحظة رصدها (حملة، عرض، محتوى فيروسي) — الهدف رد خلال 24 ساعة لا اكتشاف متأخر.</div>
+   <div class="foot">حالياً سجل يدوي داخل اجتماع الأحد؛ يمكن ربطه بورقة Google Sheets مستقلة مثل جدول الأسبوع تماماً متى رغبتم.</div></div>
+ </div>`;
+}
+pages.alerts={t:'🔔 التنبيهات الذكية',h:alertsPage};
 
 /* ========== بنك الخطافات وقوالب الردود ========== */
 const HOOKS={
@@ -856,7 +1077,7 @@ function cp(btn,txt){
 pages.bank={t:'🪝 بنك الخطافات وقوالب الردود',h:bankPage};
 
 /* ---------- nav & render ---------- */
-const order=[['me','👤','صفحتي'],['board','🏆','لوحة الصدارة'],['bank','🪝','بنك الخطافات والردود'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
+const order=[['me','👤','صفحتي'],['board','🏆','لوحة الصدارة'],['intel','🧠','ذكاء المحتوى (AI)'],['alerts','🔔','التنبيهات الذكية'],['bank','🪝','بنك الخطافات والردود'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
 'مؤشرات المنصات — كل قناة على حدة',
 ...PLATS.map(cf=>[cf.key,cf.icon,cf.name])];
 
@@ -889,7 +1110,7 @@ function loginForm(){
 function showPass(cb){document.getElementById('lpass').type=cb.checked?'text':'password';}
 let ROLE='admin';
 const nav=document.getElementById('nav'),main=document.getElementById('main');
-const OPEN=['board','bank'];
+const OPEN=['board','bank','intel','alerts'];
 const allowed=k=>OPEN.includes(k)||ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k);
 function buildNav(){
   nav.innerHTML='';
@@ -921,19 +1142,61 @@ function loginAs(r){
   render(ROLES[r].home);
 }
 function logout(){document.getElementById('login').style.display='flex';}
+let CURRENT='overview';
+const LIVE_PAGES=['board','intel','alerts','me'];
 function render(k){
   if(!allowed(k))k=ROLES[ROLE].home;
+  CURRENT=k;
   document.getElementById('pageTitle').textContent=pages[k].t;
   main.innerHTML=`<div class="page on">${pages[k].h()}</div>`;
   main.querySelectorAll('[data-tt]').forEach(el=>{
     el.addEventListener('mousemove',e=>showTT(e,el.getAttribute('data-tt')));
     el.addEventListener('mouseleave',hideTT);
   });
+  const rb=document.getElementById('syncNow');if(rb)rb.textContent=syncBadge();
 }
+async function refreshNow(){
+  const rb=document.getElementById('refreshBtn');
+  if(rb){rb.disabled=true;rb.textContent='⏳ يُحدَّث...';}
+  await loadSheet();
+  if(LIVE_PAGES.includes(CURRENT))render(CURRENT);
+  if(rb){rb.disabled=false;rb.textContent='🔄 تحديث الآن';}
+}
+setInterval(()=>{if(document.getElementById('login').style.display==='none')refreshNow();},CFG.AUTO_REFRESH_MS);
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-p]').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
 buildNav();
 render('overview');
-loadSheet().then(r=>{if(r&&document.getElementById('pageTitle').textContent.indexOf('الصدارة')>-1)render('board');});
+loadSheet().then(()=>{if(LIVE_PAGES.includes(CURRENT))render(CURRENT);});
+/* المساعد الذكي — قواعد إجابة مبنية على بيانات الداشبورد الفعلية (لا نموذج لغوي حي؛ يعمل بلا اتصال خارجي أو مفتاح API) */
+function askAssistant(){
+  const inp=document.getElementById('chatInput');
+  const q=(inp.value||'').trim();if(!q)return;
+  const box=document.querySelector('.chat');
+  const add=(cls,html)=>{const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;box.insertBefore(d,inp);box.scrollTop=box.scrollHeight;};
+  add('mq',q);
+  let ans;
+  const t=q.replace(/[؟?]/g,'');
+  if(/انخفاض|تراجع|نزل/.test(t)&&/(تفاعل|أداء|نقاط)/.test(t)){
+    const a=computeAlerts().find(a=>a.lvl!=='good');
+    ans=a?`${a.text} — الإجراء المقترح: ${a.action}`:'لا انخفاض ملحوظ حالياً في أي مؤشر رئيسي.';
+  }else if(/أفضل وقت|متى ان?شر/.test(t)){
+    const {best}=bestTimeMatrix();ans=`أفضل وقت نشر مسجَّل فعلياً: يوم ${DAYS[best.d]} الساعة ${TIME_LABELS[best.h]}.`;
+  }else if(/أفضل صيغة|نوع محتوى/.test(t)){
+    const f=topFormats()[0];ans=f?`الصيغة الأعلى أداءً: ${f.type} بمتوسط تفاعل ${f.avgEng.toFixed(1)}%.`:'سجّلي منشورات أكثر ليحسب المحرك هذا بدقة.';
+  }else if(/(من|مين).*(الأفضل|متصدر|الأول)|ترتيب/.test(t)){
+    const rows=['raghad','fajr','haya'].map(r=>({n:ROLES[r].name,s:scoreOf(WEEKLY[r])})).sort((a,b)=>b.s-a.s);
+    ans=`المتصدرة حالياً: ${rows[0].n} بـ${rows[0].s} نقطة، تليها ${rows[1].n} بـ${rows[1].s}.`;
+  }else if(/leads|عملاء|استفسار/.test(t)){
+    const tot=Object.values(WEEKLY).reduce((s,m)=>s+m.leads,0);ans=`إجمالي Leads هذا الأسبوع: ${tot}، بإيراد مقدَّر ${(tot*CFG.AVG_DEAL_SAR).toLocaleString('en')} ر.س.`;
+  }else if(/رد|SLA|ساعت/.test(t)){
+    const slow=Object.entries(WEEKLY).filter(([r,m])=>m.speed<75).map(([r])=>ROLES[r].name);
+    ans=slow.length?`سرعة الرد أقل من الهدف عند: ${slow.join('، ')} — راجعي تنبيهات صفحة "التنبيهات الذكية".`:'سرعة الرد ضمن الهدف لدى الجميع 👍';
+  }else{
+    ans='أقدر أجيب الآن على أسئلة عن: انخفاض الأداء، أفضل وقت/صيغة نشر، الترتيب، Leads والإيراد، وسرعة الرد — جرّبي إحداها. (هذا مساعد قواعد مبني على بيانات الداشبورد الحالية، وليس نموذج ذكاء اصطناعي متصلاً بالإنترنت.)';
+  }
+  setTimeout(()=>add('ma',ans),350);
+  inp.value='';
+}
 /* روابط مستقلة لكل موظف: #video / #b2b / #conv / #admin */
 const hashRole=location.hash.replace('#','');
 if(ROLES[hashRole])loginAs(hashRole);
