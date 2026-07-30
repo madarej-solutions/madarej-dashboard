@@ -772,11 +772,11 @@ function toggleTask(id,el){const s=stGet();s[id]=!s[id];stSet(s);el.classList.to
 function myPoints(){const s=stGet();let p=0;Object.keys(s).forEach(k=>{if(s[k])p+=k.startsWith('d_')?15:10;});return p;}
 
 /* ========== مصدر البيانات: جدول Google Sheets المنشور (يُملأ فور تجهيزه) ========== */
-/* AVG_DEAL_SAR: متوسط قيمة الصفقة بالريال — رقم افتراضي يعدّله المدير من هنا ليصبح كل ربط "محتوى → إيراد" في الداشبورد دقيقاً على مقاييسكم الفعلية. مصدره حالياً: تقدير تحفظي، لا بيانات محاسبية مدققة. */
+/* AVG_DEAL_SAR: متوسط قيمة الصفقة بالريال = 4500 ر.س — قيمة فعلية أكّدها المدير العام بتاريخ 2026-07-30. */
 const CFG={
   SHEET_CSV:'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5EYVTKcvQMp2MHjNQXNfCtzSwByimkLjAwhSrapQFneVNL13xqTEeT_XKjjsF_X75aWYKoUUzDnKl/pub?gid=0&single=true&output=csv',
   POSTS_CSV:'',
-  AVG_DEAL_SAR:3500,
+  AVG_DEAL_SAR:4500,
   AUTO_REFRESH_MS:300000
 };
 let SHEETROWS=null, POSTSROWS=null, LAST_SYNC=null;
