@@ -778,15 +778,80 @@ async function renderApplicationsTab(main) {
   `;
 }
 
-function openNewApplicationModal() {
+// ===== قوائم مرجعية (جامعات/تخصصات/أقسام) مع خيار "إضافة جديد" =====
+// تُستخدم في نموذج إضافة الطلب اليدوي وشاشة قبول الطلب. القوائم تبدأ فارغة ويضيف
+// إليها الموظفون تدريجياً؛ القيمة النهائية المُرسَلة تبقى نصاً حراً (بدون قيد مفتاح أجنبي)
+// حفاظاً على توافقها مع الأعمدة الحالية دون أي تعديل على البيانات القديمة.
+async function fetchLookupOptions(tableName) {
+  const { data, error } = await sb.from(tableName).select('id, name').order('name');
+  if (error) { console.error(`تعذر تحميل قائمة ${tableName}:`, error.message); return []; }
+  return data || [];
+}
+
+function lookupFieldHtml(fieldId, labelText, options) {
+  const opts = options.map(o => `<option value="${esc(o.name)}">${esc(o.name)}</option>`).join('');
+  return `
+    <label>${labelText}</label>
+    <select id="${fieldId}_select" onchange="onLookupSelectChange('${fieldId}')">
+      <option value="">— اختر —</option>
+      ${opts}
+      <option value="__new__">+ إضافة جديد...</option>
+    </select>
+    <input id="${fieldId}_new" type="text" placeholder="اكتب الاسم الجديد" style="display:none;margin-top:6px">
+  `;
+}
+
+function onLookupSelectChange(fieldId) {
+  const sel = document.getElementById(`${fieldId}_select`);
+  const newInput = document.getElementById(`${fieldId}_new`);
+  if (!sel || !newInput) return;
+  if (sel.value === '__new__') {
+    newInput.style.display = '';
+    newInput.focus();
+  } else {
+    newInput.style.display = 'none';
+    newInput.value = '';
+  }
+}
+
+// يُرجع القيمة النصية النهائية (موجودة أو مُضافة حديثاً). عند إضافة قيمة جديدة، يتحقق أولاً
+// من عدم وجود تطابق شبه مطابق (case-insensitive) قبل الإدراج لتفادي تكرار قريب الشبه.
+async function resolveLookupValue(fieldId, tableName, required) {
+  const sel = document.getElementById(`${fieldId}_select`);
+  const newInput = document.getElementById(`${fieldId}_new`);
+  if (sel.value === '__new__') {
+    const value = (newInput.value || '').trim();
+    if (!value) {
+      if (required) throw new Error('يرجى إدخال القيمة الجديدة.');
+      return null;
+    }
+    const { data: existing } = await sb.from(tableName).select('id, name').ilike('name', value).maybeSingle();
+    if (existing) return existing.name;
+    const { error: insErr } = await sb.from(tableName).insert({ name: value });
+    if (insErr && insErr.code !== '23505') throw new Error(insErr.message);
+    return value;
+  }
+  const value = sel.value;
+  if (!value) {
+    if (required) throw new Error('هذا الحقل مطلوب.');
+    return null;
+  }
+  return value;
+}
+
+async function openNewApplicationModal() {
+  const [universities, majors] = await Promise.all([
+    fetchLookupOptions('universities'),
+    fetchLookupOptions('majors'),
+  ]);
   openModal(`
     <h3>إضافة طلب تدريب يدوياً</h3>
     <label>الاسم الكامل</label><input id="napFullName" type="text">
     <label>الإيميل</label><input id="napEmail" type="email">
     <label>رقم الهوية (اختياري)</label><input id="napNationalId" type="text">
     <label>الجوال (اختياري)</label><input id="napPhone" type="text">
-    <label>الجامعة (اختياري)</label><input id="napUniversity" type="text">
-    <label>التخصص (اختياري)</label><input id="napMajor" type="text">
+    ${lookupFieldHtml('napUniversity', 'الجامعة (اختياري)', universities)}
+    ${lookupFieldHtml('napMajor', 'التخصص (اختياري)', majors)}
     <div id="napMsg"></div>
     <div class="modal-actions">
       <button class="gold" onclick="submitNewApplication()">إضافة</button>
@@ -801,12 +866,21 @@ async function submitNewApplication() {
   const msgEl = document.getElementById('napMsg');
   if (!full_name || !email) { msgEl.innerHTML = `<div class="msg-box msg-error">الاسم والإيميل مطلوبان.</div>`; return; }
 
+  let university, major;
+  try {
+    university = await resolveLookupValue('napUniversity', 'universities', false);
+    major = await resolveLookupValue('napMajor', 'majors', false);
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">${esc(e.message)}</div>`;
+    return;
+  }
+
   const { error } = await sb.rpc('submit_application_manual', {
     p_full_name: full_name, p_email: email,
     p_national_id: document.getElementById('napNationalId').value.trim() || null,
     p_phone: document.getElementById('napPhone').value.trim() || null,
-    p_university: document.getElementById('napUniversity').value.trim() || null,
-    p_major: document.getElementById('napMajor').value.trim() || null,
+    p_university: university,
+    p_major: major,
   });
   if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
   closeModal();
@@ -821,9 +895,10 @@ async function reviewApplicationAction(appId, status) {
 }
 
 async function openAcceptModal(appId) {
-  const [{ data: tracks }, { data: supervisors }] = await Promise.all([
+  const [{ data: tracks }, { data: supervisors }, departments] = await Promise.all([
     sb.from('training_tracks').select('id, name').eq('is_active', true),
     sb.from('profiles').select('id, full_name').not('role', 'is', null).in('role', ['supervisor', 'training_manager', 'admin']),
+    fetchLookupOptions('departments'),
   ]);
   const trackOptions = (tracks || []).map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
   const supOptions = (supervisors || []).map(s => `<option value="${s.id}">${esc(s.full_name)}</option>`).join('');
@@ -832,7 +907,7 @@ async function openAcceptModal(appId) {
     <h3>قبول الطلب وتحويله لمتدرب</h3>
     <label>المسار التدريبي</label><select id="accTrack"><option value="">— بدون —</option>${trackOptions}</select>
     <label>المشرف</label><select id="accSupervisor"><option value="">— بدون —</option>${supOptions}</select>
-    <label>القسم</label><input id="accDept" type="text">
+    ${lookupFieldHtml('accDept', 'القسم', departments)}
     <div class="split">
       <div><label>تاريخ البداية</label><input id="accStart" type="date"></div>
       <div><label>تاريخ النهاية</label><input id="accEnd" type="date"></div>
@@ -848,11 +923,18 @@ async function openAcceptModal(appId) {
 async function acceptApplicationAction(appId) {
   const track = document.getElementById('accTrack').value || null;
   const supervisor = document.getElementById('accSupervisor').value || null;
-  const dept = document.getElementById('accDept').value.trim() || null;
   const start = document.getElementById('accStart').value || null;
   const end = document.getElementById('accEnd').value || null;
   const msgEl = document.getElementById('accMsg');
   if (!start || !end) { msgEl.innerHTML = `<div class="msg-box msg-error">تاريخ البداية والنهاية مطلوبان.</div>`; return; }
+
+  let dept;
+  try {
+    dept = await resolveLookupValue('accDept', 'departments', false);
+  } catch (e) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">${esc(e.message)}</div>`;
+    return;
+  }
 
   const { error } = await sb.rpc('accept_application', {
     p_application_id: appId, p_track_id: track, p_supervisor_id: supervisor,
