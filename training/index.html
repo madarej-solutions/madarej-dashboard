@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>منصة تدريب مدارج</title>
+<title>مدارج</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
@@ -157,6 +157,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
 const state = {
   session: null,
   isAdminOrManager: false,
+  isAdmin: false,
   isStaff: false,
   myTraineeId: null,
   myTrainee: null,
@@ -223,7 +224,7 @@ function renderLogin(errorMsg) {
     <div class="login-wrap">
       <div class="login-card">
         <div class="login-header">
-          <h1>منصة تدريب <span>مدارج</span></h1>
+          <h1>مدارج</h1>
           <p>سجّل دخولك للمتابعة</p>
         </div>
         <div class="login-body">
@@ -262,19 +263,23 @@ async function doLogin() {
 
 async function logout() {
   await sb.auth.signOut();
-  Object.assign(state, { session: null, isAdminOrManager: false, isStaff: false, myTraineeId: null, myTrainee: null });
+  Object.assign(state, { session: null, isAdminOrManager: false, isAdmin: false, isStaff: false, myTraineeId: null, myTrainee: null });
   renderLogin();
 }
 
 async function postLogin() {
   document.getElementById('app').innerHTML = `<div class="loading">جارِ تجهيز حسابك...</div>`;
 
-  const [{ data: isManager }, { data: isStaffRes }] = await Promise.all([
+  sb.rpc('log_login_event', { p_user_agent: navigator.userAgent }).catch(() => {});
+
+  const [{ data: isManager }, { data: isStaffRes }, { data: roleName }] = await Promise.all([
     sb.rpc('is_admin_or_manager'),
     sb.rpc('is_staff'),
+    sb.rpc('current_role_name'),
   ]);
   state.isAdminOrManager = !!isManager;
   state.isStaff = !!isStaffRes;
+  state.isAdmin = roleName === 'admin';
 
   const { data: taRow } = await sb.from('temp_accounts')
     .select('trainee_id, account_status, trainees(id, full_name, status)')
@@ -309,6 +314,7 @@ function renderShell(kind) {
       <button class="tab-btn" data-tab="applications" onclick="renderStaffTab('applications')">طلبات التدريب</button>
       <button class="tab-btn" data-tab="trainees" onclick="renderStaffTab('trainees')">المتدربون</button>
       <button class="tab-btn" data-tab="tracks" onclick="renderStaffTab('tracks')">المسارات التدريبية</button>
+      <button class="tab-btn" data-tab="exams" onclick="renderStaffTab('exams')">الاختبارات</button>
     `
     : `
       <button class="tab-btn" data-tab="tasks" onclick="renderTraineeTab('tasks')">مهامي</button>
@@ -318,15 +324,57 @@ function renderShell(kind) {
 
   document.getElementById('app').innerHTML = `
     <div class="topbar">
-      <div class="brand">منصة تدريب <span>مدارج</span></div>
+      <div class="brand">مدارج</div>
       <div class="topbar-right">
         <span class="who">${esc(email)}</span>
+        <button class="small" style="background:#c0392b;color:#fff" onclick="openEmergencyReportModal()">🚨 بلاغ أمني طارئ</button>
         <button class="small secondary" onclick="logout()">تسجيل خروج</button>
       </div>
     </div>
     <div class="tabs" id="tabsBar">${tabsHtml}</div>
     <div class="main" id="mainContent"><div class="loading">جارِ التحميل...</div></div>
   `;
+}
+
+function openEmergencyReportModal() {
+  openModal(`
+    <h3 style="color:#c0392b">🚨 بلاغ أمني طارئ</h3>
+    <div class="msg-box msg-warn">استخدم هذا فقط لحالة طارئة فعلية (اشتباه اختراق حسابك، تسريب، وصول غير مصرح به). سيؤدي اختيار "حسابي مخترق" إلى تجميد حسابك فوراً وإلغاء جلستك الحالية كإجراء وقائي.</div>
+    <label for="emCategory">نوع الحالة</label>
+    <select id="emCategory">
+      <option value="account_compromised">أشتبه أن حسابي مخترق — جمّد حسابي الآن</option>
+      <option value="data_leak">تسريب بيانات</option>
+      <option value="unauthorized_access">وصول غير مصرح به</option>
+      <option value="suspicious_activity">نشاط مشبوه</option>
+      <option value="other">أخرى</option>
+    </select>
+    <label for="emDescription">صف ما حدث بالتفصيل</label>
+    <textarea id="emDescription" rows="4" placeholder="مثال: لاحظت تسجيل دخول من جهاز لا أعرفه..."></textarea>
+    <div id="emMsg"></div>
+    <div class="modal-actions">
+      <button style="background:#c0392b;color:#fff" onclick="submitEmergencyReport()">إرسال البلاغ الآن</button>
+      <button class="secondary" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+
+async function submitEmergencyReport() {
+  const category = document.getElementById('emCategory').value;
+  const description = document.getElementById('emDescription').value.trim();
+  const msgEl = document.getElementById('emMsg');
+  if (description.length < 5) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">اكتب وصفاً كافياً (5 أحرف على الأقل).</div>`;
+    return;
+  }
+  try {
+    const data = await authedFetch('security-incident-response', { category, description });
+    msgEl.innerHTML = `<div class="msg-box" style="background:#eaf6ec;border:1px solid #1e7e34;color:#1e7e34">تم استلام البلاغ (رقم ${esc(data.report_id)}). ${esc(data.note)}</div>`;
+    if (data.account_frozen) {
+      setTimeout(() => logout(), 4000);
+    }
+  } catch (err) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">فشل إرسال البلاغ: ${esc(err.message)}</div>`;
+  }
 }
 
 function setActiveTabBtn(tabKey) {
@@ -342,8 +390,141 @@ async function checkNdaAndRenderTrainee() {
   if (!valid) {
     await renderNdaGate();
   } else {
-    await renderTraineeTab('tasks');
+    await checkExamGatesAndRenderTrainee();
   }
+}
+
+// ============================================================================
+// نظام الاختبارات التكيفي — بوابات الدخول (اختبار الوعي الأمني الإلزامي + المفاجئ)
+// ============================================================================
+
+async function checkExamGatesAndRenderTrainee() {
+  // ١) أي جلسة اختبار قيد التنفيذ (مفاجئة أو أمنية لم تكتمل) تُعرض فوراً وتحجب باقي الواجهة
+  const { data: activeSession } = await sb.from('exam_sessions')
+    .select('*').eq('status', 'in_progress').order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (activeSession) {
+    await renderExamFlow(activeSession);
+    return;
+  }
+
+  // ٢) بوابة اختبار الوعي الأمني الإلزامي (مغلقة افتراضياً حتى يفعّلها المالك)
+  const { data: gateOn } = await sb.rpc('exam_gate_enabled');
+  if (gateOn) {
+    const { data: passed } = await sb.rpc('has_passed_mandatory_security_exam');
+    if (!passed) {
+      await renderExamIntro('security_awareness');
+      return;
+    }
+  }
+
+  document.getElementById('tabsBar').classList.remove('hidden');
+  await renderTraineeTab('tasks');
+}
+
+function renderExamIntro(scope) {
+  document.getElementById('tabsBar').classList.add('hidden');
+  const main = document.getElementById('mainContent');
+  const title = scope === 'security_awareness' ? 'اختبار الوعي الأمني الإلزامي' : 'اختبار';
+  main.innerHTML = `
+    <div class="panel">
+      <h2>${esc(title)}</h2>
+      <div class="msg-box msg-warn">يجب اجتياز هذا الاختبار قبل الوصول لمهامك. الأسئلة تُولَّد حياً وتختبر فهمك الفعلي لتعهد السرية — لا تتوقع أسئلة سهلة أو مكررة.</div>
+      <button class="full gold" id="startExamBtn" onclick="startExamFlow('${scope}')">بدء الاختبار</button>
+      <div id="examIntroMsg"></div>
+    </div>
+  `;
+}
+
+async function startExamFlow(scope) {
+  const btn = document.getElementById('startExamBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'جارِ التحضير...'; }
+  try {
+    const data = await authedFetch('exam-generate-question', { scope });
+    await renderExamQuestion(data);
+  } catch (err) {
+    const msgEl = document.getElementById('examIntroMsg');
+    if (msgEl) msgEl.innerHTML = `<div class="msg-box msg-error">${esc(err.message)}</div>`;
+    else alert('تعذّر بدء الاختبار: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'بدء الاختبار'; }
+  }
+}
+
+async function renderExamFlow(session) {
+  document.getElementById('tabsBar').classList.add('hidden');
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `<div class="loading">جارِ تحميل السؤال...</div>`;
+  try {
+    const data = await authedFetch('exam-generate-question', { scope: session.scope, exam_session_id: session.id });
+    await renderExamQuestion(data);
+  } catch (err) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل سؤال الاختبار: ${esc(err.message)}</div></div>`;
+  }
+}
+
+function renderExamQuestion(data) {
+  const main = document.getElementById('mainContent');
+  let answerInput = '';
+  if (data.question_type === 'mcq' && Array.isArray(data.options)) {
+    answerInput = data.options.map((opt, i) => `
+      <div class="ack-row"><input type="radio" name="examAnswer" id="examOpt${i}" value="${esc(opt)}"><label style="margin:0" for="examOpt${i}">${esc(opt)}</label></div>
+    `).join('');
+  } else if (data.question_type === 'true_false') {
+    answerInput = `
+      <div class="ack-row"><input type="radio" name="examAnswer" id="examOptTrue" value="صح"><label style="margin:0" for="examOptTrue">صح</label></div>
+      <div class="ack-row"><input type="radio" name="examAnswer" id="examOptFalse" value="خطأ"><label style="margin:0" for="examOptFalse">خطأ</label></div>
+    `;
+  } else {
+    answerInput = `<textarea id="examShortAnswer" rows="3" placeholder="اكتب إجابتك..."></textarea>`;
+  }
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>سؤال ${data.question_order} من ${data.questions_total_target}</h2>
+      <p style="font-size:13px;color:var(--muted)">مستوى الصعوبة: ${esc(data.difficulty_label || '—')}</p>
+      <p style="font-weight:600;font-size:16px">${esc(data.question_text)}</p>
+      ${answerInput}
+      <div id="examQMsg"></div>
+      <button class="full gold" style="margin-top:12px" onclick="submitExamAnswerAction('${data.question_id}', '${data.question_type}')">إرسال الإجابة</button>
+    </div>
+  `;
+}
+
+async function submitExamAnswerAction(questionId, questionType) {
+  let answer = '';
+  if (questionType === 'short_answer') {
+    answer = document.getElementById('examShortAnswer').value.trim();
+  } else {
+    const checked = document.querySelector('input[name="examAnswer"]:checked');
+    answer = checked ? checked.value : '';
+  }
+  const msgEl = document.getElementById('examQMsg');
+  if (!answer) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">اختر أو اكتب إجابة قبل الإرسال.</div>`;
+    return;
+  }
+  try {
+    const result = await authedFetch('exam-submit-answer', { question_id: questionId, answer });
+    const main = document.getElementById('mainContent');
+    const resultBox = result.is_correct
+      ? `<div class="msg-box" style="background:#eaf6ec;border:1px solid #1e7e34;color:#1e7e34">إجابة صحيحة ✓${result.explanation ? '<br>' + esc(result.explanation) : ''}</div>`
+      : `<div class="msg-box msg-error">إجابة غير صحيحة. الإجابة الصحيحة: ${esc(result.correct_answer)}${result.explanation ? '<br>' + esc(result.explanation) : ''}</div>`;
+
+    if (!result.session_complete) {
+      main.innerHTML = `<div class="panel">${resultBox}<button class="full gold" style="margin-top:12px" onclick="continueExamFlow()">السؤال التالي</button></div>`;
+    } else {
+      const passed = result.passed;
+      const summary = passed
+        ? `<div class="msg-box" style="background:#eaf6ec;border:1px solid #1e7e34;color:#1e7e34">اجتزت الاختبار! النتيجة: ${result.score_percent}% (${result.correct_count}/${result.total_questions})</div>`
+        : `<div class="msg-box msg-error">لم تجتز الاختبار هذه المرة. النتيجة: ${result.score_percent}% (${result.correct_count}/${result.total_questions}). سيتم إتاحة محاولة جديدة لاحقاً.</div>`;
+      main.innerHTML = `<div class="panel">${resultBox}${summary}<button class="full gold" style="margin-top:12px" onclick="checkExamGatesAndRenderTrainee()">متابعة</button></div>`;
+    }
+  } catch (err) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">${esc(err.message)}</div>`;
+  }
+}
+
+async function continueExamFlow() {
+  await checkExamGatesAndRenderTrainee();
 }
 
 async function renderNdaGate() {
@@ -363,17 +544,34 @@ async function renderNdaGate() {
     <div class="panel">
       <h2>قبل المتابعة — اتفاقية عدم الإفشاء (NDA)</h2>
       <div class="msg-box msg-warn">يجب توقيع هذه الاتفاقية قبل الوصول لأي جزء آخر من المنصة.</div>
-      <div class="nda-text">${esc(ndaVersion.full_text)}</div>
-      <div class="ack-row"><input type="checkbox" id="ack1"><label style="margin:0" for="ack1">قرأت النص وفهمته بالكامل</label></div>
-      <div class="ack-row"><input type="checkbox" id="ack2"><label style="margin:0" for="ack2">ألتزم بسرية كل المعلومات التي سأطّلع عليها</label></div>
-      <div class="ack-row"><input type="checkbox" id="ack3"><label style="margin:0" for="ack3">لن أشارك أو أنشر أي معلومة أو مستند دون إذن كتابي</label></div>
-      <div class="ack-row"><input type="checkbox" id="ack4"><label style="margin:0" for="ack4">أتحمّل المسؤولية الكاملة عن أي مخالفة لهذه الاتفاقية</label></div>
+      <div class="msg-box msg-warn" id="ndaScrollHint">مرّر النص كاملاً إلى الأسفل لتفعيل خانات الإقرار.</div>
+      <div class="nda-text" id="ndaTextBox">${esc(ndaVersion.full_text)}</div>
+      <div class="ack-row"><input type="checkbox" id="ack1" disabled><label style="margin:0" for="ack1">قرأت النص وفهمته بالكامل</label></div>
+      <div class="ack-row"><input type="checkbox" id="ack2" disabled><label style="margin:0" for="ack2">ألتزم بسرية كل المعلومات التي سأطّلع عليها</label></div>
+      <div class="ack-row"><input type="checkbox" id="ack3" disabled><label style="margin:0" for="ack3">لن أشارك أو أنشر أي معلومة أو مستند دون إذن كتابي</label></div>
+      <div class="ack-row"><input type="checkbox" id="ack4" disabled><label style="margin:0" for="ack4">أتحمّل المسؤولية الكاملة عن أي مخالفة لهذه الاتفاقية</label></div>
       <label for="ndaFullName">اكتب اسمك الكامل تأكيداً لتوقيعك</label>
       <input id="ndaFullName" type="text" placeholder="الاسم الكامل">
-      <button class="full gold" onclick="submitNda('${ndaVersion.id}')">توقيع وموافقة</button>
+      <button class="full gold" id="ndaSubmitBtn" disabled onclick="submitNda('${ndaVersion.id}')">توقيع وموافقة (مرّر النص للنهاية أولاً)</button>
       <div id="ndaMsg"></div>
     </div>
   `;
+  const box = document.getElementById('ndaTextBox');
+  const hint = document.getElementById('ndaScrollHint');
+  const submitBtn = document.getElementById('ndaSubmitBtn');
+  function checkScrolledToEnd() {
+    const reachedEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 4;
+    if (reachedEnd) {
+      ['ack1','ack2','ack3','ack4'].forEach(id => document.getElementById(id).disabled = false);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'توقيع وموافقة';
+      hint.textContent = 'تم — يمكنك الآن تعبئة الإقرارات والتوقيع.';
+      box.removeEventListener('scroll', checkScrolledToEnd);
+    }
+  }
+  box.addEventListener('scroll', checkScrolledToEnd);
+  // نص قصير لا يحتاج تمريراً — فعّل مباشرة إن كان المحتوى بأكمله ظاهراً أصلاً
+  requestAnimationFrame(checkScrolledToEnd);
 }
 
 async function submitNda(versionId) {
@@ -393,7 +591,7 @@ async function submitNda(versionId) {
     return;
   }
 
-  const { error } = await sb.rpc('sign_nda', {
+  const { data: signResult, error } = await sb.rpc('sign_nda', {
     p_full_name_entered: fullName,
     p_ack_read_understood: ack1,
     p_ack_confidentiality: ack2,
@@ -407,8 +605,12 @@ async function submitNda(versionId) {
     return;
   }
 
-  document.getElementById('tabsBar').classList.remove('hidden');
-  await renderTraineeTab('tasks');
+  const signatureId = Array.isArray(signResult) ? signResult[0]?.signature_id : signResult?.signature_id;
+  if (signatureId) {
+    state.myNdaSignatureId = signatureId;
+  }
+
+  await checkExamGatesAndRenderTrainee();
 }
 
 async function renderTraineeTab(tab) {
@@ -420,7 +622,11 @@ async function renderTraineeTab(tab) {
 
   if (tab === 'tasks') {
     const { data: tasks } = await sb.from('tasks').select('*').eq('trainee_id', state.myTraineeId).order('created_at', { ascending: false });
-    main.innerHTML = `<div class="panel"><h2>مهامي</h2>${renderTasksTable(tasks || [], true)}</div>`;
+    main.innerHTML = `
+      <div class="panel"><h2>مهامي</h2>${renderTasksTable(tasks || [], true)}</div>
+      <div class="panel" id="ndaPdfPanel"></div>
+    `;
+    renderMyNdaPdfLink();
   } else if (tab === 'evaluations') {
     const { data: evals } = await sb.from('evaluations').select('*').eq('trainee_id', state.myTraineeId).order('evaluated_at', { ascending: false });
     main.innerHTML = `<div class="panel"><h2>تقييماتي</h2>${renderEvaluationsTable(evals || [])}</div>`;
@@ -428,6 +634,18 @@ async function renderTraineeTab(tab) {
     const { data: certs } = await sb.from('certificates').select('*').eq('trainee_id', state.myTraineeId).order('issued_at', { ascending: false });
     main.innerHTML = `<div class="panel"><h2>شهاداتي</h2>${renderCertificatesTable(certs || [], false)}</div>`;
   }
+}
+
+async function renderMyNdaPdfLink() {
+  const panel = document.getElementById('ndaPdfPanel');
+  if (!panel) return;
+  const { data: sig } = await sb.from('nda_signatures').select('id, signed_at').order('signed_at', { ascending: false }).limit(1).maybeSingle();
+  if (!sig) { panel.innerHTML = ''; return; }
+  panel.innerHTML = `
+    <h3 style="margin-top:0">تعهد السرية الموقّع</h3>
+    <p style="font-size:13px;color:var(--muted)">وقّعته بتاريخ ${fmtDate(sig.signed_at)}</p>
+    <button class="small gold" onclick="downloadNdaPdf('${sig.id}', this)">تحميل نسخة PDF</button>
+  `;
 }
 
 function renderTasksTable(tasks, mine) {
@@ -502,6 +720,20 @@ async function downloadCertificate(certId) {
   }
 }
 
+async function downloadNdaPdf(signatureId, btnEl) {
+  const btn = btnEl || null;
+  const originalText = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'جارِ التحضير...'; }
+  try {
+    const data = await authedFetch('nda-pdf', { nda_signature_id: signatureId });
+    window.open(data.download_url, '_blank');
+  } catch (err) {
+    alert('تعذّر تحميل نسخة التعهد الموقّع: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = originalText; }
+  }
+}
+
 // ============================================================================
 // واجهة الإداري / الموظف
 // ============================================================================
@@ -515,6 +747,7 @@ async function renderStaffTab(tab) {
   if (tab === 'applications') await renderApplicationsTab(main);
   else if (tab === 'trainees') await renderTraineesTab(main);
   else if (tab === 'tracks') await renderTracksTab(main);
+  else if (tab === 'exams') await renderExamsSettingsTab(main);
 }
 
 async function renderApplicationsTab(main) {
@@ -655,12 +888,13 @@ async function viewTraineeDetail(traineeId) {
   const panel = document.getElementById('traineeDetailPanel');
   panel.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
 
-  const [{ data: trainee }, { data: tasks }, { data: evals }, { data: certs }, { data: tempAcc }] = await Promise.all([
+  const [{ data: trainee }, { data: tasks }, { data: evals }, { data: certs }, { data: tempAcc }, { data: ndaSig }] = await Promise.all([
     sb.from('trainees').select('*, training_tracks(name)').eq('id', traineeId).single(),
     sb.from('tasks').select('*').eq('trainee_id', traineeId).order('created_at', { ascending: false }),
     sb.from('evaluations').select('*').eq('trainee_id', traineeId).order('evaluated_at', { ascending: false }),
     sb.from('certificates').select('*').eq('trainee_id', traineeId).order('issued_at', { ascending: false }),
     sb.from('temp_accounts').select('*').eq('trainee_id', traineeId).maybeSingle(),
+    sb.from('nda_signatures').select('id, signed_at').eq('trainee_id', traineeId).order('signed_at', { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   if (!trainee) { panel.innerHTML = `<div class="msg-box msg-error">تعذّر تحميل بيانات المتدرب.</div>`; return; }
@@ -676,10 +910,18 @@ async function viewTraineeDetail(traineeId) {
           <div><label>بداية الحساب</label><input id="taStart" type="date" value="${trainee.start_date || ''}"></div>
           <div><label>نهاية الحساب</label><input id="taEnd" type="date" value="${trainee.end_date || ''}"></div>
         </div>
+        <label for="taUsername">اسم المستخدم (اختياري — اتركه فارغاً للتوليد التلقائي)</label>
+        <input id="taUsername" type="text" placeholder="مثال: ali.cyber01" style="direction:ltr;text-align:left">
         <button class="gold" onclick="createTempAccountAction('${trainee.id}')">إنشاء حساب دخول مؤقت</button>
         <div id="taMsg"></div>
       </div>
     ` : ''}
+
+    <h3>تعهد السرية (NDA)</h3>
+    ${ndaSig
+      ? `<p style="font-size:13px;color:var(--muted)">موقّع بتاريخ ${fmtDate(ndaSig.signed_at)}</p>
+         <button class="small gold" onclick="downloadNdaPdf('${ndaSig.id}', this)">تحميل نسخة PDF</button>`
+      : `<div class="msg-box msg-warn">لم يوقّع المتدرب على تعهد السرية بعد.</div>`}
 
     <h3>المهام</h3>
     ${renderTasksTable(tasks || [], false)}
@@ -698,17 +940,30 @@ async function viewTraineeDetail(traineeId) {
 async function createTempAccountAction(traineeId) {
   const starts = document.getElementById('taStart').value;
   const ends = document.getElementById('taEnd').value;
+  const username = document.getElementById('taUsername').value.trim();
   const msgEl = document.getElementById('taMsg');
   if (!starts || !ends) { msgEl.innerHTML = `<div class="msg-box msg-error">التواريخ مطلوبة.</div>`; return; }
   try {
-    const data = await authedFetch('create-temp-account', { trainee_id: traineeId, starts_at: starts, ends_at: ends });
+    const payload = { trainee_id: traineeId, starts_at: starts, ends_at: ends };
+    if (username) payload.username = username;
+    const data = await authedFetch('create-temp-account', payload);
+    const credsText = `اسم المستخدم: ${data.username}\nكلمة المرور: ${data.temporary_password}`;
     msgEl.innerHTML = `
       <div class="credential-box">
         <b>تم إنشاء الحساب! سلّم هذه البيانات للمتدرب خارج النظام فوراً — لن تظهر مرة أخرى:</b><br>
         اسم المستخدم: <code>${esc(data.username)}</code><br>
-        كلمة المرور: <code>${esc(data.temporary_password)}</code>
+        كلمة المرور: <code>${esc(data.temporary_password)}</code><br>
+        <button class="small" style="margin-top:8px" id="copyCredsBtn">نسخ بيانات الدخول</button>
       </div>`;
-    setTimeout(() => viewTraineeDetail(traineeId), 4000);
+    document.getElementById('copyCredsBtn').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(credsText);
+        const b = document.getElementById('copyCredsBtn');
+        b.textContent = 'تم النسخ ✓';
+        setTimeout(() => { b.textContent = 'نسخ بيانات الدخول'; }, 2000);
+      } catch { alert('تعذّر النسخ التلقائي — انسخ النص يدوياً.'); }
+    });
+    setTimeout(() => viewTraineeDetail(traineeId), 8000);
   } catch (err) {
     msgEl.innerHTML = `<div class="msg-box msg-error">${esc(err.message)}</div>`;
   }
@@ -799,8 +1054,13 @@ async function issueCertAction(traineeId) {
 async function renderTracksTab(main) {
   const { data: tracks } = await sb.from('training_tracks').select('*').order('created_at', { ascending: false });
   const rows = (tracks || []).map(t => `
-    <tr><td>${esc(t.name)}</td><td>${esc(t.description || '—')}</td><td>${t.is_active ? badge('active') : badge('archived')}</td></tr>
-  `).join('') || `<tr><td class="empty-row" colspan="3">لا توجد مسارات بعد</td></tr>`;
+    <tr>
+      <td>${esc(t.name)}</td>
+      <td>${esc(t.description || '—')}</td>
+      <td>${t.is_active ? badge('active') : badge('archived')}</td>
+      <td>${state.isAdminOrManager ? `<button class="small secondary" onclick="openTrackExamNotesModal('${t.id}', '${esc(t.name).replace(/'/g, "\\'")}')">محتوى الاختبار</button>` : '—'}</td>
+    </tr>
+  `).join('') || `<tr><td class="empty-row" colspan="4">لا توجد مسارات بعد</td></tr>`;
 
   main.innerHTML = `
     <div class="panel">
@@ -812,7 +1072,7 @@ async function renderTracksTab(main) {
         </div>
         <div id="trackMsg"></div>
       ` : ''}
-      <table><thead><tr><th>الاسم</th><th>الوصف</th><th>الحالة</th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>الاسم</th><th>الوصف</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>
   `;
 }
@@ -824,6 +1084,78 @@ async function addTrackAction() {
   const { error } = await sb.from('training_tracks').insert({ name });
   if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
   await renderStaffTab('tracks');
+}
+
+async function openTrackExamNotesModal(trackId, trackName) {
+  const { data: track } = await sb.from('training_tracks').select('exam_content_notes').eq('id', trackId).single();
+  openModal(`
+    <h3>محتوى اختبار مسار: ${esc(trackName)}</h3>
+    <p style="font-size:13px;color:var(--muted)">اكتب نقاطاً مختصرة عن محتوى هذا المسار المهني — تُستخدم لتوجيه توليد أسئلة الاختبار التكيفي الخاصة بهذا المسار. اتركها فارغة لاعتماد اسم المسار فقط.</p>
+    <textarea id="trackNotesInput" rows="6" placeholder="مثال: أساسيات SEO، إدارة الحملات الإعلانية على منصات التواصل، تحليل بيانات الأداء...">${esc(track?.exam_content_notes || '')}</textarea>
+    <div id="trackNotesMsg"></div>
+    <div class="modal-actions">
+      <button class="gold" onclick="saveTrackExamNotes('${trackId}')">حفظ</button>
+      <button class="secondary" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+
+async function saveTrackExamNotes(trackId) {
+  const notes = document.getElementById('trackNotesInput').value.trim();
+  const msgEl = document.getElementById('trackNotesMsg');
+  const { error } = await sb.from('training_tracks').update({ exam_content_notes: notes || null }).eq('id', trackId);
+  if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
+  closeModal();
+}
+
+// ============================================================================
+// إعدادات نظام الاختبارات التكيفي (للمدير العام / مدير التدريب)
+// ============================================================================
+
+async function renderExamsSettingsTab(main) {
+  const { data: cfg } = await sb.from('exam_system_config').select('*').maybeSingle();
+  if (!cfg) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل إعدادات نظام الاختبارات.</div></div>`;
+    return;
+  }
+  main.innerHTML = `
+    <div class="panel">
+      <h2>نظام الاختبارات التكيفي بالذكاء الاصطناعي</h2>
+      <div class="msg-box msg-warn">
+        هذا النظام يولّد أسئلة حية عبر نموذج ذكاء اصطناعي خارجي. لن يعمل حتى تُضيف السرّين
+        <code>EXAM_LLM_API_KEY</code> و<code>EXAM_LLM_MODEL</code> كأسرار Edge Function في لوحة تحكم Supabase
+        (Project Settings → Edge Functions → Secrets) — لا تُدخل المفتاح هنا ولا في الدردشة أبداً.
+        اختبر التدفق فعلياً بحساب متدرب تجريبي قبل التفعيل على متدربين حقيقيين.
+      </div>
+
+      <h3>بوابة اختبار الوعي الأمني الإلزامي قبل أول مهمة</h3>
+      <p style="font-size:13px;color:var(--muted)">عند التفعيل، لن يصل أي متدرب لمهامه أو تقييماته حتى يجتاز اختبار الوعي الأمني. الحالة الحالية: ${cfg.security_gate_enabled ? badge('active') : '<span class="badge">معطّلة</span>'}</p>
+      ${state.isAdmin ? `
+        <button class="${cfg.security_gate_enabled ? 'secondary' : 'gold'}" onclick="toggleExamGate(${!cfg.security_gate_enabled})">${cfg.security_gate_enabled ? 'تعطيل البوابة' : 'تفعيل البوابة'}</button>
+      ` : `<p style="font-size:12px;color:var(--muted)">هذا التبديل متاح للمدير العام فقط.</p>`}
+
+      <h3 style="margin-top:20px">الاختبارات الدورية المفاجئة</h3>
+      <p style="font-size:13px;color:var(--muted)">عند التفعيل، يُنشئ النظام تلقائياً اختبارات مفاجئة عشوائية للمتدربين النشطين (احتمالية ${Math.round((cfg.periodic_surprise_daily_probability || 0) * 100)}% يومياً لكل متدرب مؤهّل). الحالة الحالية: ${cfg.periodic_surprise_enabled ? badge('active') : '<span class="badge">معطّلة</span>'}</p>
+      ${state.isAdminOrManager ? `
+        <button class="${cfg.periodic_surprise_enabled ? 'secondary' : 'gold'}" onclick="togglePeriodicSurprise(${!cfg.periodic_surprise_enabled})">${cfg.periodic_surprise_enabled ? 'تعطيل الاختبارات المفاجئة' : 'تفعيل الاختبارات المفاجئة'}</button>
+      ` : ''}
+      <div id="examSettingsMsg" style="margin-top:12px"></div>
+    </div>
+  `;
+}
+
+async function toggleExamGate(enable) {
+  const msgEl = document.getElementById('examSettingsMsg');
+  const { error } = await sb.rpc('set_exam_gate_enabled', { p_enabled: enable });
+  if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
+  await renderStaffTab('exams');
+}
+
+async function togglePeriodicSurprise(enable) {
+  const msgEl = document.getElementById('examSettingsMsg');
+  const { error } = await sb.rpc('set_periodic_surprise_enabled', { p_enabled: enable });
+  if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
+  await renderStaffTab('exams');
 }
 
 init();
