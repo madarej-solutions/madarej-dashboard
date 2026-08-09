@@ -270,7 +270,7 @@ async function logout() {
 async function postLogin() {
   document.getElementById('app').innerHTML = `<div class="loading">جارِ تجهيز حسابك...</div>`;
 
-  sb.rpc('log_login_event', { p_user_agent: navigator.userAgent }).catch(() => {});
+  sb.rpc('log_login_event', { p_user_agent: navigator.userAgent }).then(() => {}, () => {});
 
   const [{ data: isManager }, { data: isStaffRes }, { data: roleName }] = await Promise.all([
     sb.rpc('is_admin_or_manager'),
