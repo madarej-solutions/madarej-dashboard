@@ -132,7 +132,105 @@
   .hidden { display: none !important; }
   .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 640px) { .split { grid-template-columns: 1fr; } .main { padding: 14px; } }
+
+  /* ===== صفحة الهبوط — التصميم الجديد (معزولة: كل الأصناف تبدأ بـ lp-) ===== */
+  .lp { position: relative; height: 100svh; min-height: 100svh; background: #131A22; color: #fff;
+        font-family: 'IBM Plex Sans Arabic', Tahoma, sans-serif; overflow: hidden;
+        display: flex; flex-direction: column; justify-content: space-between; -webkit-font-smoothing: antialiased; }
+  .lp a { color: inherit; text-decoration: none; }
+  .lp-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .lp-headwrap { position: absolute; z-index: 50; top: 0; right: 0; width: 100%; padding-top: 56px; pointer-events: none; }
+  .lp-header { display: flex; align-items: center; justify-content: space-between;
+               max-width: 1440px; margin-inline: auto; padding-inline: 48px; pointer-events: auto; }
+  .lp-logo { display: block; flex: none; }
+  .lp-logo img { width: 76px; height: 76px; border-radius: 9999px; display: block; }
+  .lp-nav { position: absolute; right: 50%; transform: translateX(50%); display: flex; align-items: center;
+            gap: 40px; font-size: 14px; font-weight: 400; letter-spacing: .06em; }
+  .lp-nav a { color: rgba(255,255,255,.6); transition: color .15s ease-out; }
+  .lp-nav a:hover { color: #fff; }
+  .lp-signin { font-size: 14px; font-weight: 500; letter-spacing: .06em; color: #9FB6CE;
+               background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;
+               transition: color .15s ease-out; }
+  .lp-signin:hover:not(:disabled) { background: none; color: rgba(159,182,206,.75); }
+
+  .lp-hero { position: relative; z-index: 10; margin-top: auto; padding-bottom: 64px; padding-inline: 24px; text-align: center; }
+
+  .lp-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 32px;
+              padding-inline: 12px; margin-bottom: 24px; background: rgba(44,58,75,.55); backdrop-filter: blur(4px);
+              border: 1px solid #38465A; font-size: 14px; font-weight: 500; color: rgba(255,255,255,.5);
+              clip-path: polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px); }
+  .lp-badge .c { position: absolute; width: 12px; height: 2px; background: #38465A; }
+  .lp-badge .c1 { top: 1.5px; left: 1.5px; transform: rotate(-45deg) translateX(-50%); transform-origin: top; }
+  .lp-badge .c2 { top: 1.5px; right: 1.5px; transform: rotate(45deg) translateX(50%); }
+  .lp-badge .c3 { bottom: 1.5px; left: 1.5px; transform: rotate(45deg) translateX(-50%); }
+  .lp-badge .c4 { bottom: 1.5px; right: 1.5px; transform: rotate(-45deg) translateX(50%); }
+  .lp-dot { display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background: #9FB6CE;
+            margin-left: 8px; box-shadow: 0 0 8px 2px rgba(159,182,206,.55); }
+
+  .lp-h1 { margin: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 200;
+           font-size: clamp(34px, 7vw, 72px); line-height: 1.25; letter-spacing: -.01em; }
+  .lp-h1 em { font-family: Amiri, serif; font-weight: 400; font-style: italic; }
+  .lp-sub { margin: 32px auto 0; max-width: 460px; font-size: 16px; font-weight: 300; line-height: 1.7;
+            color: rgba(255,255,255,.6); text-wrap: balance; }
+
+  .lp-cta { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            height: 91px; width: 264px; max-width: 100%; margin-top: 56px; padding-inline: 24px;
+            font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: .04em;
+            color: #fff; background: #131A22; border: 1px solid #9FB6CE; border-radius: 0; cursor: pointer;
+            transition: all .3s ease-out; box-shadow: inset 0 0 54px 0 rgba(96,124,155,.9);
+            clip-path: polygon(16px 0,calc(100% - 16px) 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 calc(100% - 16px),0 16px); }
+  .lp-cta:hover:not(:disabled) { background: #131A22; box-shadow: inset 0 0 54px 0 rgba(126,157,190,.95); }
+  .lp-cta .c { position: absolute; width: 32px; height: 2px; background: #9FB6CE; }
+  .lp-cta .c1 { top: 6.5px; left: 6.5px; transform: rotate(-45deg) translateX(-50%); transform-origin: top; }
+  .lp-cta .c2 { bottom: 6.5px; right: 6.5px; transform: rotate(-45deg) translateX(50%); }
+
+  /* لوحة الدخول فوق الهيرو */
+  .lp-auth { position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center;
+             padding: 24px; background: rgba(10,14,19,.72); backdrop-filter: blur(6px); }
+  .lp-auth.open { display: flex; }
+  .lp-authcard { position: relative; width: 100%; max-width: 420px; background: rgba(19,26,34,.96);
+                 border: 1px solid #38465A; padding: 36px 32px 32px;
+                 clip-path: polygon(16px 0,calc(100% - 16px) 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 calc(100% - 16px),0 16px); }
+  .lp-authcard .c { position: absolute; width: 32px; height: 2px; background: #9FB6CE; }
+  .lp-authcard .c1 { top: 6.5px; left: 6.5px; transform: rotate(-45deg) translateX(-50%); transform-origin: top; }
+  .lp-authcard .c2 { bottom: 6.5px; right: 6.5px; transform: rotate(-45deg) translateX(50%); }
+  .lp-authcard h2 { margin: 0 0 6px; font-size: 24px; font-weight: 300; letter-spacing: -.01em; color: #fff; }
+  .lp-authcard .lp-authsub { margin: 0 0 26px; font-size: 14px; font-weight: 300; color: rgba(255,255,255,.55); }
+  .lp-authcard label { display: block; font-size: 13px; font-weight: 400; letter-spacing: .04em;
+                       margin-bottom: 8px; color: rgba(255,255,255,.6); }
+  .lp-authcard input { width: 100%; padding: 12px 14px; margin-bottom: 18px; background: rgba(44,58,75,.45);
+                       border: 1px solid #38465A; border-radius: 0; color: #fff; font-size: 14px;
+                       font-family: 'IBM Plex Sans Arabic', sans-serif; transition: border-color .15s ease-out; }
+  .lp-authcard input::placeholder { color: rgba(255,255,255,.3); }
+  .lp-authcard input:focus { outline: none; border-color: #9FB6CE; }
+  .lp-submit { width: 100%; height: 56px; margin-top: 6px; background: #131A22; color: #fff;
+               border: 1px solid #9FB6CE; border-radius: 0; cursor: pointer;
+               font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 15px; font-weight: 500; letter-spacing: .04em;
+               box-shadow: inset 0 0 40px 0 rgba(96,124,155,.85); transition: all .3s ease-out;
+               clip-path: polygon(12px 0,calc(100% - 12px) 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 calc(100% - 12px),0 12px); }
+  .lp-submit:hover:not(:disabled) { background: #131A22; box-shadow: inset 0 0 40px 0 rgba(126,157,190,.95); }
+  .lp-submit:disabled { opacity: .55; cursor: not-allowed; }
+  .lp-close { position: absolute; top: 14px; left: 16px; background: none; border: none; color: rgba(255,255,255,.45);
+              font-size: 22px; line-height: 1; cursor: pointer; padding: 4px 8px; font-family: inherit; }
+  .lp-close:hover:not(:disabled) { background: none; color: #fff; }
+  .lp .msg-box { border-radius: 0; font-size: 13px; }
+  .lp .msg-error { background: rgba(192,57,43,.14); border: 1px solid rgba(192,57,43,.55); color: #ffb4ab; }
+
+  @media (max-width: 900px) {
+    .lp-header { padding-inline: 24px; }
+    .lp-headwrap { padding-top: 28px; }
+    .lp-nav { display: none; }
+    .lp-logo img { width: 56px; height: 56px; }
+    .lp-hero { padding-bottom: 48px; }
+    .lp-cta { height: 72px; margin-top: 40px; }
+  }
+
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=Amiri:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<script src="./particles.js"></script>
 </head>
 <body>
 <div id="app">
@@ -220,25 +318,80 @@ async function init() {
 }
 
 function renderLogin(errorMsg) {
+  if (window.__lpStop) { try { window.__lpStop(); } catch (e) {} window.__lpStop = null; }
   document.getElementById('app').innerHTML = `
-    <div class="login-wrap">
-      <div class="login-card">
-        <div class="login-header">
-          <h1>مدارج</h1>
-          <p>سجّل دخولك للمتابعة</p>
+    <div class="lp" dir="rtl">
+      <canvas class="lp-canvas" id="lpCanvas"></canvas>
+
+      <div class="lp-headwrap">
+        <header class="lp-header">
+          <a class="lp-logo" href="#" onclick="return false"><img src="./logo-madarij.jpg" alt="مدارج للاستشارات الإدارية والمالية"></a>
+          <nav class="lp-nav">
+            <a href="#" onclick="return false">المنصة</a>
+            <a href="#" onclick="return false">المسارات</a>
+            <a href="#" onclick="return false">التحقق من شهادة</a>
+            <a href="#" onclick="return false">تواصل</a>
+          </nav>
+          <button type="button" class="lp-signin" onclick="lpOpenLogin()">تسجيل الدخول</button>
+        </header>
+      </div>
+
+      <div class="lp-hero">
+        <div class="lp-badge">
+          <span class="c c1"></span><span class="c c2"></span><span class="c c3"></span><span class="c c4"></span>
+          <span class="lp-dot"></span>إصدار تجريبي
         </div>
-        <div class="login-body">
+
+        <h1 class="lp-h1">افتح آفاق نموّك<br><em>المستقبلي</em></h1>
+
+        <p class="lp-sub">منصة تدريب مدارج — من التقديم إلى الشهادة، بمسار واحد موثّق</p>
+
+        <button type="button" class="lp-cta" onclick="lpOpenLogin()">
+          <span class="c c1"></span><span class="c c2"></span>
+          [ ابدأ الآن ]
+        </button>
+      </div>
+
+      <div class="lp-auth" id="lpAuth">
+        <div class="lp-authcard">
+          <span class="c c1"></span><span class="c c2"></span>
+          <button type="button" class="lp-close" onclick="lpCloseLogin()" aria-label="إغلاق">&times;</button>
+          <h2>تسجيل الدخول</h2>
+          <p class="lp-authsub">سجّل دخولك للمتابعة</p>
           <label for="loginEmail">الإيميل</label>
           <input id="loginEmail" type="email" placeholder="name@example.com" autocomplete="username">
           <label for="loginPassword">كلمة المرور</label>
           <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
-          <button class="full" id="loginBtn" onclick="doLogin()">تسجيل الدخول</button>
+          <button type="button" class="lp-submit" id="loginBtn" onclick="doLogin()">تسجيل الدخول</button>
           <div id="loginMsg">${errorMsg ? `<div class="msg-box msg-error">${esc(errorMsg)}</div>` : ''}</div>
         </div>
       </div>
     </div>
   `;
+
+  const cv = document.getElementById('lpCanvas');
+  if (cv && window.SkalParticles) {
+    try { window.__lpStop = window.SkalParticles.start(cv); } catch (e) {}
+  }
+
   document.getElementById('loginPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+  document.addEventListener('keydown', lpEscHandler);
+  if (errorMsg) lpOpenLogin();
+}
+
+function lpEscHandler(e) { if (e.key === 'Escape') lpCloseLogin(); }
+
+function lpOpenLogin() {
+  const el = document.getElementById('lpAuth');
+  if (!el) return;
+  el.classList.add('open');
+  const f = document.getElementById('loginEmail');
+  if (f) setTimeout(() => f.focus(), 30);
+}
+
+function lpCloseLogin() {
+  const el = document.getElementById('lpAuth');
+  if (el) el.classList.remove('open');
 }
 
 async function doLogin() {
@@ -268,6 +421,8 @@ async function logout() {
 }
 
 async function postLogin() {
+  if (window.__lpStop) { try { window.__lpStop(); } catch (e) {} window.__lpStop = null; }
+  document.removeEventListener('keydown', lpEscHandler);
   document.getElementById('app').innerHTML = `<div class="loading">جارِ تجهيز حسابك...</div>`;
 
   sb.rpc('log_login_event', { p_user_agent: navigator.userAgent }).then(() => {}, () => {});
