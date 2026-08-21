@@ -218,6 +218,15 @@
   .lp-close:hover:not(:disabled) { background: none; color: #fff; }
   .lp .msg-box { border-radius: 0; font-size: 13px; }
   .lp .msg-error { background: rgba(192,57,43,.14); border: 1px solid rgba(192,57,43,.55); color: #ffb4ab; }
+  .lp-authcard.lp-wide { max-width: 720px; max-height: 82vh; overflow-y: auto; }
+  .lp-trainer { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid rgba(56,70,90,.6); }
+  .lp-trainer:first-child { border-top: none; padding-top: 4px; }
+  .lp-tr-photo { flex: none; width: 56px; height: 56px; border-radius: 9999px; object-fit: cover;
+                 background: rgba(44,58,75,.6); display: flex; align-items: center; justify-content: center;
+                 font-size: 18px; font-weight: 300; color: #9FB6CE; }
+  .lp-tr-name { font-size: 16px; font-weight: 500; color: #fff; margin: 0 0 2px; }
+  .lp-tr-title { font-size: 13px; color: #9FB6CE; margin: 0 0 6px; }
+  .lp-tr-bio { font-size: 13px; font-weight: 300; line-height: 1.7; color: rgba(255,255,255,.6); margin: 0; }
   .lp .msg-success { background: rgba(30,126,52,.16); border: 1px solid rgba(46,160,67,.5); color: #8ee5a1; }
   .lp-code { direction: ltr; text-align: left; letter-spacing: .08em; text-transform: uppercase; }
   .lp-cert-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
@@ -347,6 +356,7 @@ function renderLogin(errorMsg) {
           <nav class="lp-nav">
             <a href="#" onclick="return false">المنصة</a>
             <a href="#" onclick="return false">المسارات</a>
+            <a href="#" onclick="lpOpenTrainers(); return false;">المدربون</a>
             <a href="#" onclick="lpOpenVerify(); return false;">التحقق من شهادة</a>
             <a href="https://wa.me/966554443569" target="_blank" rel="noopener noreferrer">تواصل</a>
           </nav>
@@ -382,6 +392,16 @@ function renderLogin(errorMsg) {
           <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
           <button type="button" class="lp-submit" id="loginBtn" onclick="doLogin()">تسجيل الدخول</button>
           <div id="loginMsg">${errorMsg ? `<div class="msg-box msg-error">${esc(errorMsg)}</div>` : ''}</div>
+        </div>
+      </div>
+
+      <div class="lp-auth" id="lpTrainers" role="dialog" aria-modal="true" aria-labelledby="lpTrainersTitle" onclick="lpBackdrop(event)">
+        <div class="lp-authcard lp-wide">
+          <span class="c c1"></span><span class="c c2"></span>
+          <button type="button" class="lp-close" onclick="lpCloseAny()" aria-label="إغلاق">&times;</button>
+          <h2 id="lpTrainersTitle">المدربون</h2>
+          <p class="lp-authsub">فريق التدريب في مدارج</p>
+          <div id="lpTrainersBody"><div style="color:rgba(255,255,255,.5);font-size:14px">جارِ التحميل...</div></div>
         </div>
       </div>
 
@@ -444,6 +464,40 @@ function lpCloseAny() {
   open.classList.remove('open');
   const back = document.querySelector('.lp-signin');
   if (back) back.focus();
+}
+
+async function lpOpenTrainers() {
+  lpCloseAny();
+  const el = document.getElementById('lpTrainers');
+  if (!el) return;
+  el.classList.add('open');
+  const body = document.getElementById('lpTrainersBody');
+  body.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:14px">جارِ التحميل...</div>';
+  const closeBtn = el.querySelector('.lp-close');
+  if (closeBtn) setTimeout(() => closeBtn.focus(), 30);
+  try {
+    const { data, error } = await sb.rpc('public_trainers');
+    if (error) throw new Error(error.message);
+    const list = data || [];
+    if (!list.length) {
+      body.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:14px;line-height:1.8">لم تُنشر بيانات المدربين بعد.</div>';
+      return;
+    }
+    body.innerHTML = list.map(t => {
+      const initial = (t.full_name || '؟').trim().charAt(0);
+      const photo = t.photo_url
+        ? '<img class="lp-tr-photo" src="' + esc(t.photo_url) + '" alt="" loading="lazy">'
+        : '<div class="lp-tr-photo">' + esc(initial) + '</div>';
+      const line = [t.title, t.specialization].filter(Boolean).map(esc).join(' · ');
+      return '<div class="lp-trainer">' + photo +
+        '<div><p class="lp-tr-name">' + esc(t.full_name) + '</p>' +
+        (line ? '<p class="lp-tr-title">' + line + '</p>' : '') +
+        (t.bio ? '<p class="lp-tr-bio">' + esc(t.bio) + '</p>' : '') +
+        '</div></div>';
+    }).join('');
+  } catch (e) {
+    body.innerHTML = '<div class="msg-box msg-error">تعذّر تحميل بيانات المدربين. حاول مرة أخرى.</div>';
+  }
 }
 
 function lpOpenVerify() {
@@ -583,6 +637,7 @@ function renderShell(kind) {
       <button class="tab-btn" data-tab="applications" onclick="renderStaffTab('applications')">طلبات التدريب</button>
       <button class="tab-btn" data-tab="trainees" onclick="renderStaffTab('trainees')">المتدربون</button>
       <button class="tab-btn" data-tab="certificates" onclick="renderStaffTab('certificates')">الشهادات</button>
+      <button class="tab-btn" data-tab="trainers" onclick="renderStaffTab('trainers')">المدربون</button>
       <button class="tab-btn" data-tab="tracks" onclick="renderStaffTab('tracks')">المسارات التدريبية</button>
       <button class="tab-btn" data-tab="exams" onclick="renderStaffTab('exams')">الاختبارات</button>
     `
@@ -1017,6 +1072,7 @@ async function renderStaffTab(tab) {
   if (tab === 'applications') await renderApplicationsTab(main);
   else if (tab === 'trainees') await renderTraineesTab(main);
   else if (tab === 'certificates') await renderStaffCertificatesTab(main);
+  else if (tab === 'trainers') await renderTrainersTab(main);
   else if (tab === 'tracks') await renderTracksTab(main);
   else if (tab === 'exams') await renderExamsSettingsTab(main);
 }
@@ -1355,6 +1411,111 @@ async function renderStaffCertificatesTab(main) {
       </div>
     </div>
   `;
+}
+
+async function renderTrainersTab(main) {
+  main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
+  const { data: trainers, error } = await sb.from('trainers')
+    .select('*').order('display_order', { ascending: true }).order('full_name', { ascending: true });
+
+  if (error) { main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل المدربين: ${esc(error.message)}</div></div>`; return; }
+
+  state.trainersCache = trainers || [];
+  const canEdit = state.isAdminOrManager;
+
+  const rows = state.trainersCache.map(t => `
+    <tr>
+      <td>${esc(t.full_name)}</td>
+      <td>${esc(t.title || '—')}</td>
+      <td>${esc(t.specialization || '—')}</td>
+      <td style="text-align:center">${t.display_order}</td>
+      <td>${t.is_published ? '<span class="badge badge-active">منشور</span>' : '<span class="badge badge-archived">مخفي</span>'}</td>
+      <td class="actions-row">
+        ${canEdit ? `
+          <button class="small secondary" onclick="openTrainerModal('${t.id}')">تعديل</button>
+          <button class="small ${t.is_published ? '' : 'gold'}" onclick="toggleTrainerPublish('${t.id}', ${t.is_published ? 'false' : 'true'})">${t.is_published ? 'إخفاء' : 'نشر'}</button>
+        ` : ''}
+      </td>
+    </tr>`).join('') || `<tr><td class="empty-row" colspan="6">لا يوجد مدربون بعد</td></tr>`;
+
+  const published = state.trainersCache.filter(t => t.is_published).length;
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>المدربون <span style="font-size:12px;font-weight:normal;color:var(--muted)">— ${published} منشور من ${state.trainersCache.length}</span></h2>
+      <div class="msg-box msg-warn" style="margin-bottom:12px">
+        المنشورون فقط يظهرون في قسم «المدربون» بصفحة الهبوط العامة. المخفي يبقى محفوظاً ولا يُحذف.
+      </div>
+      ${canEdit ? `<div class="actions-row" style="margin-bottom:14px"><button onclick="openTrainerModal()">+ إضافة مدرب</button></div>` : ''}
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>الاسم</th><th>المسمّى</th><th>التخصص</th><th style="text-align:center">الترتيب</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      </div>
+    </div>
+  `;
+}
+
+function openTrainerModal(id) {
+  const t = id ? (state.trainersCache || []).find(x => x.id === id) : null;
+  const v = (x) => esc(x ?? '');
+  openModal(`
+    <h3>${t ? 'تعديل مدرب' : 'إضافة مدرب'}</h3>
+    <label>الاسم الكامل *</label>
+    <input id="trName" type="text" value="${v(t?.full_name)}" placeholder="مثال: أ. علي الجليدي">
+    <label>المسمّى</label>
+    <input id="trTitle" type="text" value="${v(t?.title)}" placeholder="مثال: مستشار إدارة المخاطر">
+    <label>التخصص</label>
+    <input id="trSpec" type="text" value="${v(t?.specialization)}" placeholder="مثال: الحوكمة والامتثال">
+    <label>نبذة</label>
+    <textarea id="trBio" placeholder="سطران عن الخبرة">${v(t?.bio)}</textarea>
+    <label>رابط الصورة</label>
+    <input id="trPhoto" type="url" dir="ltr" value="${v(t?.photo_url)}" placeholder="https://...">
+    <label>ترتيب العرض</label>
+    <input id="trOrder" type="number" value="${t ? t.display_order : 0}">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px">
+      <input id="trPub" type="checkbox" style="width:auto;margin:0" ${t?.is_published ? 'checked' : ''}>
+      <span>منشور في الصفحة العامة</span>
+    </label>
+    <div id="trMsg"></div>
+    <div class="modal-actions">
+      <button class="gold" onclick="saveTrainer(${t ? "'" + t.id + "'" : 'null'})">حفظ</button>
+      <button class="secondary" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+
+async function saveTrainer(id) {
+  const msg = document.getElementById('trMsg');
+  const name = document.getElementById('trName').value.trim();
+  if (!name) { msg.innerHTML = `<div class="msg-box msg-error">الاسم الكامل مطلوب.</div>`; return; }
+
+  const payload = {
+    full_name: name,
+    title: document.getElementById('trTitle').value.trim() || null,
+    specialization: document.getElementById('trSpec').value.trim() || null,
+    bio: document.getElementById('trBio').value.trim() || null,
+    photo_url: document.getElementById('trPhoto').value.trim() || null,
+    display_order: parseInt(document.getElementById('trOrder').value, 10) || 0,
+    is_published: document.getElementById('trPub').checked,
+    updated_at: new Date().toISOString(),
+  };
+
+  const res = id
+    ? await sb.from('trainers').update(payload).eq('id', id)
+    : await sb.from('trainers').insert({ ...payload, created_by: state.session.user.id });
+
+  if (res.error) { msg.innerHTML = `<div class="msg-box msg-error">تعذّر الحفظ: ${esc(res.error.message)}</div>`; return; }
+  closeModal();
+  await renderStaffTab('trainers');
+}
+
+async function toggleTrainerPublish(id, next) {
+  const { error } = await sb.from('trainers')
+    .update({ is_published: next, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) { alert('تعذّر التحديث: ' + error.message); return; }
+  await renderStaffTab('trainers');
 }
 
 function copyVerifyLink(code, btn) {
