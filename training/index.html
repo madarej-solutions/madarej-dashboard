@@ -218,6 +218,11 @@
   .lp-close:hover:not(:disabled) { background: none; color: #fff; }
   .lp .msg-box { border-radius: 0; font-size: 13px; }
   .lp .msg-error { background: rgba(192,57,43,.14); border: 1px solid rgba(192,57,43,.55); color: #ffb4ab; }
+  .lp .msg-success { background: rgba(30,126,52,.16); border: 1px solid rgba(46,160,67,.5); color: #8ee5a1; }
+  .lp-code { direction: ltr; text-align: left; letter-spacing: .08em; text-transform: uppercase; }
+  .lp-cert-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+  .lp-cert-row span:first-child { color: rgba(255,255,255,.45); flex: none; }
+  .lp-cert-row span:last-child { text-align: left; }
 
   @media (max-width: 900px) {
     .lp-header { padding-inline: 24px; }
@@ -341,8 +346,8 @@ function renderLogin(errorMsg) {
           <nav class="lp-nav">
             <a href="#" onclick="return false">المنصة</a>
             <a href="#" onclick="return false">المسارات</a>
-            <a href="#" onclick="return false">التحقق من شهادة</a>
-            <a href="#" onclick="return false">تواصل</a>
+            <a href="#" onclick="lpOpenVerify(); return false;">التحقق من شهادة</a>
+            <a href="https://wa.me/966554443569" target="_blank" rel="noopener noreferrer">تواصل</a>
           </nav>
           <button type="button" class="lp-signin" onclick="lpOpenLogin()">تسجيل الدخول</button>
         </header>
@@ -378,6 +383,19 @@ function renderLogin(errorMsg) {
           <div id="loginMsg">${errorMsg ? `<div class="msg-box msg-error">${esc(errorMsg)}</div>` : ''}</div>
         </div>
       </div>
+
+      <div class="lp-auth" id="lpVerify" role="dialog" aria-modal="true" aria-labelledby="lpVerifyTitle" onclick="lpBackdrop(event)">
+        <div class="lp-authcard">
+          <span class="c c1"></span><span class="c c2"></span>
+          <button type="button" class="lp-close" onclick="lpCloseVerify()" aria-label="إغلاق">&times;</button>
+          <h2 id="lpVerifyTitle">التحقق من شهادة</h2>
+          <p class="lp-authsub">أدخل رمز التحقق المطبوع على الشهادة</p>
+          <label for="lpVerifyCode">رمز التحقق</label>
+          <input id="lpVerifyCode" class="lp-code" type="text" placeholder="MDJ-CERT-XXXXXXXXXXXX" autocomplete="off" spellcheck="false">
+          <button type="button" class="lp-submit" id="lpVerifyBtn" onclick="lpDoVerify()">تحقّق</button>
+          <div id="lpVerifyMsg"></div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -387,16 +405,17 @@ function renderLogin(errorMsg) {
   }
 
   document.getElementById('loginPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('lpVerifyCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') lpDoVerify(); });
   document.addEventListener('keydown', lpEscHandler);
   if (errorMsg) lpOpenLogin();
 }
 
 function lpEscHandler(e) {
-  if (e.key === 'Escape') { lpCloseLogin(); return; }
+  if (e.key === 'Escape') { lpCloseAny(); return; }
   if (e.key !== 'Tab') return;
-  // حصر التركيز داخل نافذة الدخول ما دامت مفتوحة
-  const panel = document.getElementById('lpAuth');
-  if (!panel || !panel.classList.contains('open')) return;
+  // حصر التركيز داخل أي نافذة مفتوحة (الدخول أو التحقق)
+  const panel = document.querySelector('.lp-auth.open');
+  if (!panel) return;
   const f = [...panel.querySelectorAll('input, button')].filter(el => !el.disabled && el.offsetParent !== null);
   if (!f.length) return;
   const first = f[0], last = f[f.length - 1];
@@ -404,9 +423,71 @@ function lpEscHandler(e) {
   else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 }
 
-function lpBackdrop(e) { if (e.target && e.target.id === 'lpAuth') lpCloseLogin(); }
+function lpBackdrop(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('lp-auth')) lpCloseAny();
+}
+
+function lpCloseAny() {
+  const open = document.querySelector('.lp-auth.open');
+  if (!open) return;
+  open.classList.remove('open');
+  const back = document.querySelector('.lp-signin');
+  if (back) back.focus();
+}
+
+function lpOpenVerify() {
+  lpCloseAny();
+  const el = document.getElementById('lpVerify');
+  if (!el) return;
+  const msg = document.getElementById('lpVerifyMsg');
+  if (msg) msg.innerHTML = '';
+  el.classList.add('open');
+  const f = document.getElementById('lpVerifyCode');
+  if (f) setTimeout(() => f.focus(), 30);
+}
+
+function lpCloseVerify() { lpCloseAny(); }
+
+const LP_CERT_LABELS = { completion: 'شهادة إتمام', participation: 'شهادة حضور', excellence: 'شهادة تميّز' };
+
+async function lpDoVerify() {
+  const btn = document.getElementById('lpVerifyBtn');
+  const msg = document.getElementById('lpVerifyMsg');
+  const code = (document.getElementById('lpVerifyCode').value || '').trim();
+  if (!code) { msg.innerHTML = '<div class="msg-box msg-error">اكتب رمز التحقق أولاً.</div>'; return; }
+  btn.disabled = true; btn.textContent = 'جارِ التحقق...'; msg.innerHTML = '';
+  try {
+    const { data, error } = await sb.rpc('verify_certificate', { p_code: code });
+    if (error) throw new Error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || row.valid !== true) {
+      msg.innerHTML = '<div class="msg-box msg-error">لا توجد شهادة بهذا الرمز. تأكد من كتابته كما هو مطبوع على الشهادة.</div>';
+    } else if (row.revoked === true) {
+      msg.innerHTML = '<div class="msg-box msg-error">هذه الشهادة ملغاة ولم تعد سارية.</div>';
+    } else {
+      let issued = '—';
+      try {
+        if (row.issued_at) issued = new Date(row.issued_at).toLocaleDateString('ar-SA-u-ca-gregory', { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch (e) {}
+      const type = LP_CERT_LABELS[row.certificate_type] || row.certificate_type || '—';
+      msg.innerHTML =
+        '<div class="msg-box msg-success">' +
+        '<div style="font-weight:500;margin-bottom:8px">✓ شهادة سارية وموثّقة</div>' +
+        '<div class="lp-cert-row"><span>الاسم</span><span>' + esc(row.trainee_name || '—') + '</span></div>' +
+        '<div class="lp-cert-row"><span>النوع</span><span>' + esc(type) + '</span></div>' +
+        (row.track_name ? '<div class="lp-cert-row"><span>المسار</span><span>' + esc(row.track_name) + '</span></div>' : '') +
+        '<div class="lp-cert-row"><span>تاريخ الإصدار</span><span>' + esc(issued) + '</span></div>' +
+        '</div>';
+    }
+  } catch (e) {
+    msg.innerHTML = '<div class="msg-box msg-error">تعذّر الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.</div>';
+  } finally {
+    btn.disabled = false; btn.textContent = 'تحقّق';
+  }
+}
 
 function lpOpenLogin() {
+  lpCloseAny();
   const el = document.getElementById('lpAuth');
   if (!el) return;
   el.classList.add('open');
@@ -414,13 +495,7 @@ function lpOpenLogin() {
   if (f) setTimeout(() => f.focus(), 30);
 }
 
-function lpCloseLogin() {
-  const el = document.getElementById('lpAuth');
-  if (!el || !el.classList.contains('open')) return;
-  el.classList.remove('open');
-  const back = document.querySelector('.lp-signin');
-  if (back) back.focus();
-}
+function lpCloseLogin() { lpCloseAny(); }
 
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
