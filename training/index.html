@@ -218,6 +218,10 @@
   .lp-close:hover:not(:disabled) { background: none; color: #fff; }
   .lp .msg-box { border-radius: 0; font-size: 13px; }
   .lp .msg-error { background: rgba(192,57,43,.14); border: 1px solid rgba(192,57,43,.55); color: #ffb4ab; }
+  .lp-alt { margin: 16px 0 0; font-size: 13px; font-weight: 300; color: rgba(255,255,255,.5); text-align: center; }
+  .lp-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 13px;
+             color: #9FB6CE; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .lp-link:hover:not(:disabled) { background: none; color: #fff; }
   .lp-authcard.lp-wide { max-width: 720px; max-height: 82vh; overflow-y: auto; }
   .lp-trainer { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid rgba(56,70,90,.6); }
   .lp-trainer:first-child { border-top: none; padding-top: 4px; }
@@ -392,6 +396,29 @@ function renderLogin(errorMsg) {
           <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
           <button type="button" class="lp-submit" id="loginBtn" onclick="doLogin()">تسجيل الدخول</button>
           <div id="loginMsg">${errorMsg ? `<div class="msg-box msg-error">${esc(errorMsg)}</div>` : ''}</div>
+          <p class="lp-alt">ليس لديك حساب؟ <button type="button" class="lp-link" onclick="lpOpenSignup()">أنشئ حسابًا جديدًا</button></p>
+        </div>
+      </div>
+
+      <div class="lp-auth" id="lpSignup" role="dialog" aria-modal="true" aria-labelledby="lpSignupTitle" onclick="lpBackdrop(event)">
+        <div class="lp-authcard">
+          <span class="c c1"></span><span class="c c2"></span>
+          <button type="button" class="lp-close" onclick="lpCloseAny()" aria-label="إغلاق">&times;</button>
+          <h2 id="lpSignupTitle">إنشاء حساب متدرب</h2>
+          <p class="lp-authsub">أنشئ حسابك للدخول إلى المنهج ومسارك التدريبي</p>
+          <label for="suName">الاسم الكامل</label>
+          <input id="suName" type="text" autocomplete="name" placeholder="الاسم الثلاثي">
+          <label for="suEmail">البريد الإلكتروني</label>
+          <input id="suEmail" type="email" autocomplete="email" dir="ltr" placeholder="name@example.com">
+          <label for="suPhone">الجوال <span style="opacity:.5">(اختياري)</span></label>
+          <input id="suPhone" type="tel" autocomplete="tel" dir="ltr" placeholder="05xxxxxxxx">
+          <label for="suPass">كلمة المرور</label>
+          <input id="suPass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل">
+          <label for="suPass2">تأكيد كلمة المرور</label>
+          <input id="suPass2" type="password" autocomplete="new-password" placeholder="أعد كتابتها">
+          <button type="button" class="lp-submit" id="suBtn" onclick="lpDoSignup()">إنشاء الحساب</button>
+          <div id="suMsg"></div>
+          <p class="lp-alt">لديك حساب؟ <button type="button" class="lp-link" onclick="lpOpenLogin()">سجّل الدخول</button></p>
         </div>
       </div>
 
@@ -427,6 +454,7 @@ function renderLogin(errorMsg) {
 
   document.getElementById('loginPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
   document.getElementById('lpVerifyCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') lpDoVerify(); });
+  document.getElementById('suPass2').addEventListener('keydown', (e) => { if (e.key === 'Enter') lpDoSignup(); });
   document.addEventListener('keydown', lpEscHandler);
   if (errorMsg) lpOpenLogin();
 
@@ -464,6 +492,61 @@ function lpCloseAny() {
   open.classList.remove('open');
   const back = document.querySelector('.lp-signin');
   if (back) back.focus();
+}
+
+function lpOpenSignup() {
+  lpCloseAny();
+  const el = document.getElementById('lpSignup');
+  if (!el) return;
+  const m = document.getElementById('suMsg');
+  if (m) m.innerHTML = '';
+  el.classList.add('open');
+  const f = document.getElementById('suName');
+  if (f) setTimeout(() => f.focus(), 30);
+}
+
+async function lpDoSignup() {
+  const btn = document.getElementById('suBtn');
+  const msg = document.getElementById('suMsg');
+  const g = id => (document.getElementById(id).value || '').trim();
+  const name = g('suName'), email = g('suEmail'), phone = g('suPhone');
+  const pass = document.getElementById('suPass').value, pass2 = document.getElementById('suPass2').value;
+
+  const err = t => { msg.innerHTML = '<div class="msg-box msg-error">' + t + '</div>'; };
+  if (name.length < 3) return err('اكتب اسمك الكامل (3 أحرف على الأقل).');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err('البريد الإلكتروني غير صالح.');
+  if (pass.length < 8) return err('كلمة المرور يجب ألا تقل عن 8 أحرف.');
+  if (pass !== pass2) return err('كلمتا المرور غير متطابقتين.');
+
+  btn.disabled = true; btn.textContent = 'جارِ الإنشاء...'; msg.innerHTML = '';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/self-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
+      body: JSON.stringify({ full_name: name, email, phone, password: pass }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return err(esc(data.error || ('تعذّر إنشاء الحساب (HTTP ' + res.status + ').')));
+
+    msg.innerHTML =
+      '<div class="msg-box msg-success">' +
+      '<div style="font-weight:500;margin-bottom:6px">✓ تم إنشاء حسابك</div>' +
+      '<div class="lp-cert-row"><span>رقمك التدريبي</span><span dir="ltr">' + esc(data.trainee_number || '—') + '</span></div>' +
+      '<div style="margin-top:8px">سجّل الدخول ببريدك وكلمة المرور التي اخترتها.</div>' +
+      '</div>';
+    // نهيّئ لوحة الدخول ببريده حتى لا يعيد كتابته
+    setTimeout(() => {
+      lpOpenLogin();
+      const e = document.getElementById('loginEmail');
+      if (e) e.value = email;
+      const pw = document.getElementById('loginPassword');
+      if (pw) pw.focus();
+    }, 1400);
+  } catch (e) {
+    err('تعذّر الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'إنشاء الحساب';
+  }
 }
 
 async function lpOpenTrainers() {
