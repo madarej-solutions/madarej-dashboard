@@ -287,6 +287,7 @@ const STATUS_LABELS = {
   pending_account: 'بانتظار إنشاء حساب', active: 'نشط', suspended: 'موقوف', archived: 'مؤرشف',
   assigned: 'مُكلّف', in_progress: 'قيد التنفيذ', submitted: 'تم التسليم', approved: 'مقبولة', needs_revision: 'تحتاج تعديل',
   completion: 'إتمام', excellence: 'تفوق', participation: 'مشاركة',
+  revoked: 'ملغاة', expired: 'منتهية', passed: 'ناجح', failed: 'راسب',
 };
 function statusLabel(s) { return STATUS_LABELS[s] || s || '—'; }
 function badge(s) { return `<span class="badge badge-${s}">${statusLabel(s)}</span>`; }
@@ -408,6 +409,16 @@ function renderLogin(errorMsg) {
   document.getElementById('lpVerifyCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') lpDoVerify(); });
   document.addEventListener('keydown', lpEscHandler);
   if (errorMsg) lpOpenLogin();
+
+  // رابط تحقق مباشر: ?verify=CODE يفتح النافذة ويتحقق فوراً
+  try {
+    const vc = new URLSearchParams(location.search).get('verify');
+    if (vc) {
+      lpOpenVerify();
+      const f = document.getElementById('lpVerifyCode');
+      if (f) { f.value = vc; lpDoVerify(); }
+    }
+  } catch (e) {}
 }
 
 function lpEscHandler(e) {
@@ -571,6 +582,7 @@ function renderShell(kind) {
     ? `
       <button class="tab-btn" data-tab="applications" onclick="renderStaffTab('applications')">طلبات التدريب</button>
       <button class="tab-btn" data-tab="trainees" onclick="renderStaffTab('trainees')">المتدربون</button>
+      <button class="tab-btn" data-tab="certificates" onclick="renderStaffTab('certificates')">الشهادات</button>
       <button class="tab-btn" data-tab="tracks" onclick="renderStaffTab('tracks')">المسارات التدريبية</button>
       <button class="tab-btn" data-tab="exams" onclick="renderStaffTab('exams')">الاختبارات</button>
     `
@@ -1004,6 +1016,7 @@ async function renderStaffTab(tab) {
 
   if (tab === 'applications') await renderApplicationsTab(main);
   else if (tab === 'trainees') await renderTraineesTab(main);
+  else if (tab === 'certificates') await renderStaffCertificatesTab(main);
   else if (tab === 'tracks') await renderTracksTab(main);
   else if (tab === 'exams') await renderExamsSettingsTab(main);
 }
@@ -1204,23 +1217,159 @@ async function acceptApplicationAction(appId) {
 }
 
 async function renderTraineesTab(main) {
-  const { data: trainees } = await sb.from('trainees').select('*, training_tracks(name)').order('created_at', { ascending: false });
-  const rows = (trainees || []).map(t => `
-    <tr style="cursor:pointer" onclick="viewTraineeDetail('${t.id}')">
+  main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
+
+  // RLS يتكفّل بالنطاق: المشرف يستقبل متدربيه فقط، والمدير الجميع.
+  const [{ data: trainees }, { data: profs }, { data: ndas }, { data: tasks }, { data: evals }, { data: certs }] = await Promise.all([
+    sb.from('trainees').select('*, training_tracks(name)').order('created_at', { ascending: false }),
+    sb.from('profiles').select('id, full_name'),
+    sb.from('nda_signatures').select('trainee_id'),
+    sb.from('tasks').select('trainee_id, status'),
+    sb.from('evaluations').select('trainee_id'),
+    sb.from('certificates').select('trainee_id, revoked'),
+  ]);
+
+  const nameOf = {};
+  (profs || []).forEach(x => { nameOf[x.id] = x.full_name; });
+  const count = (arr, key) => { const m = {}; (arr || []).forEach(r => { m[r[key]] = (m[r[key]] || 0) + 1; }); return m; };
+  const ndaBy = count(ndas, 'trainee_id');
+  const evalBy = count(evals, 'trainee_id');
+  const certBy = count((certs || []).filter(c => !c.revoked), 'trainee_id');
+  const taskAll = count(tasks, 'trainee_id');
+  const taskDone = count((tasks || []).filter(t => t.status === 'completed'), 'trainee_id');
+
+  const tick = ok => ok
+    ? '<span style="color:#1e7e34;font-weight:bold">✓</span>'
+    : '<span style="color:#c0392b">✗</span>';
+
+  const list = trainees || [];
+  const rows = list.map(t => {
+    const all = taskAll[t.id] || 0, dn = taskDone[t.id] || 0;
+    const hay = [t.full_name, t.trainee_number, t.training_tracks?.name, nameOf[t.supervisor_id]].filter(Boolean).join(' ').toLowerCase();
+    return `
+    <tr class="tr-row" data-hay="${esc(hay)}" style="cursor:pointer" onclick="viewTraineeDetail('${t.id}')">
       <td>${esc(t.full_name)}</td>
       <td>${esc(t.trainee_number)}</td>
       <td>${esc(t.training_tracks?.name || '—')}</td>
+      <td>${esc(nameOf[t.supervisor_id] || '—')}</td>
+      <td style="text-align:center">${tick((ndaBy[t.id] || 0) > 0)}</td>
+      <td style="text-align:center">${tick(!!t.security_exam_passed)}</td>
+      <td style="text-align:center">${all ? dn + '/' + all : '—'}</td>
+      <td style="text-align:center">${evalBy[t.id] || 0}</td>
+      <td style="text-align:center">${certBy[t.id] || 0}</td>
       <td>${badge(t.status)}</td>
-    </tr>
-  `).join('') || `<tr><td class="empty-row" colspan="4">لا يوجد متدربون بعد</td></tr>`;
+    </tr>`;
+  }).join('') || `<tr><td class="empty-row" colspan="10">لا يوجد متدربون بعد</td></tr>`;
+
+  const scopeNote = state.isAdminOrManager
+    ? 'تعرض جميع المتدربين'
+    : 'تعرض المتدربين المُسندين إليك فقط';
 
   main.innerHTML = `
     <div class="panel">
-      <h2>المتدربون</h2>
-      <table><thead><tr><th>الاسم</th><th>الرقم التدريبي</th><th>المسار</th><th>الحالة</th></tr></thead><tbody>${rows}</tbody></table>
+      <h2>المتدربون <span style="font-size:12px;font-weight:normal;color:var(--muted)">— ${scopeNote} (${list.length})</span></h2>
+      <input id="traineeSearch" type="search" placeholder="ابحث بالاسم أو الرقم أو المسار أو المشرف..." oninput="lpFilterRows('traineeSearch','tr-row')" style="max-width:420px;margin-bottom:12px">
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>الاسم</th><th>الرقم</th><th>المسار</th><th>المشرف</th>
+          <th style="text-align:center">التعهد</th><th style="text-align:center">الاختبار</th>
+          <th style="text-align:center">المهام</th><th style="text-align:center">التقييمات</th>
+          <th style="text-align:center">الشهادات</th><th>الحالة</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      </div>
     </div>
     <div class="panel" id="traineeDetailPanel"></div>
   `;
+}
+
+// فلترة صفوف جدول محلياً بلا إعادة جلب
+function lpFilterRows(inputId, rowClass) {
+  const q = (document.getElementById(inputId).value || '').trim().toLowerCase();
+  document.querySelectorAll('.' + rowClass).forEach(tr => {
+    tr.style.display = (!q || (tr.dataset.hay || '').includes(q)) ? '' : 'none';
+  });
+}
+
+async function renderStaffCertificatesTab(main) {
+  main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
+
+  // سياسة certificates تمنح كل موظف كل الشهادات؛ نقصر العرض على متدربي المشرف
+  // ليطابق نطاق تبويب المتدربين (RLS يقصر trainees عليه أصلاً).
+  const [{ data: certs }, { data: trainees }, { data: profs }] = await Promise.all([
+    sb.from('certificates').select('*').order('issued_at', { ascending: false }),
+    sb.from('trainees').select('id, full_name, trainee_number'),
+    sb.from('profiles').select('id, full_name'),
+  ]);
+
+  const tById = {};
+  (trainees || []).forEach(t => { tById[t.id] = t; });
+  const nameOf = {};
+  (profs || []).forEach(x => { nameOf[x.id] = x.full_name; });
+
+  const inScope = state.isAdminOrManager
+    ? (certs || [])
+    : (certs || []).filter(c => !!tById[c.trainee_id]);
+
+  const rows = inScope.map(c => {
+    const t = tById[c.trainee_id];
+    const who = t ? t.full_name : (c.trainee_name_snapshot || '—');
+    const hay = [who, c.verification_code, statusLabel(c.certificate_type), c.track_name_snapshot].filter(Boolean).join(' ').toLowerCase();
+    return `
+    <tr class="cert-row" data-hay="${esc(hay)}">
+      <td>${esc(who)}</td>
+      <td>${statusLabel(c.certificate_type)}</td>
+      <td>${esc(c.track_name_snapshot || '—')}</td>
+      <td dir="ltr" style="font-family:monospace;font-size:12px">${esc(c.verification_code || '—')}</td>
+      <td>${fmtDate(c.issued_at)}</td>
+      <td>${esc(nameOf[c.issued_by] || '—')}</td>
+      <td>${c.revoked ? badge('revoked') : badge('active')}</td>
+      <td class="actions-row">
+        <button class="small secondary" onclick="downloadCertificate('${c.id}')">PDF</button>
+        <button class="small secondary" onclick="copyVerifyLink('${esc(c.verification_code || '')}', this)">نسخ رابط التحقق</button>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td class="empty-row" colspan="8">لا توجد شهادات بعد</td></tr>`;
+
+  const active = inScope.filter(c => !c.revoked).length;
+  const scopeNote = state.isAdminOrManager ? 'جميع الشهادات' : 'شهادات متدربيك فقط';
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>الشهادات <span style="font-size:12px;font-weight:normal;color:var(--muted)">— ${scopeNote} (${active} سارية من ${inScope.length})</span></h2>
+      <div class="msg-box msg-warn" style="margin-bottom:12px">
+        الإصدار يتم من صفحة المتدرب: تبويب <b>المتدربون</b> ← اختر المتدرب ← <b>+ إصدار شهادة</b>.
+        إلغاء الشهادات غير مفعّل بعد — يحتاج دالة في قاعدة البيانات.
+      </div>
+      <input id="certSearch" type="search" placeholder="ابحث بالاسم أو رمز التحقق أو النوع..." oninput="lpFilterRows('certSearch','cert-row')" style="max-width:420px;margin-bottom:12px">
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>المتدرب</th><th>النوع</th><th>المسار</th><th>رمز التحقق</th>
+          <th>تاريخ الإصدار</th><th>أصدرها</th><th>الحالة</th><th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      </div>
+    </div>
+  `;
+}
+
+function copyVerifyLink(code, btn) {
+  if (!code) { alert('لا يوجد رمز تحقق لهذه الشهادة.'); return; }
+  const url = location.origin + location.pathname + '?verify=' + encodeURIComponent(code);
+  const done = () => {
+    if (!btn) return;
+    const t = btn.textContent; btn.textContent = 'تم النسخ ✓';
+    setTimeout(() => { btn.textContent = t; }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done, () => prompt('انسخ الرابط:', url));
+  } else {
+    prompt('انسخ الرابط:', url);
+  }
 }
 
 async function viewTraineeDetail(traineeId) {
