@@ -149,8 +149,9 @@
             gap: 40px; font-size: 14px; font-weight: 400; letter-spacing: .06em; }
   .lp-nav a { color: rgba(255,255,255,.6); transition: color .15s ease-out; }
   .lp-nav a:hover { color: #fff; }
-  .lp-signin { font-size: 14px; font-weight: 500; letter-spacing: .06em; color: #9FB6CE;
-               background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;
+  .lp-signin { /* هدف لمس */ font-size: 14px; font-weight: 500; letter-spacing: .06em; color: #9FB6CE;
+               background: none; border: none; cursor: pointer; font-family: inherit;
+               display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px;
                transition: color .15s ease-out; }
   .lp-signin:hover:not(:disabled) { background: none; color: rgba(159,182,206,.75); }
 
@@ -211,8 +212,9 @@
                clip-path: polygon(12px 0,calc(100% - 12px) 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 calc(100% - 12px),0 12px); }
   .lp-submit:hover:not(:disabled) { background: #131A22; box-shadow: inset 0 0 40px 0 rgba(126,157,190,.95); }
   .lp-submit:disabled { opacity: .55; cursor: not-allowed; }
-  .lp-close { position: absolute; top: 14px; left: 16px; background: none; border: none; color: rgba(255,255,255,.45);
-              font-size: 22px; line-height: 1; cursor: pointer; padding: 4px 8px; font-family: inherit; }
+  .lp-close { position: absolute; top: 8px; left: 10px; background: none; border: none; color: rgba(255,255,255,.45);
+              font-size: 22px; line-height: 1; cursor: pointer; font-family: inherit;
+              width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
   .lp-close:hover:not(:disabled) { background: none; color: #fff; }
   .lp .msg-box { border-radius: 0; font-size: 13px; }
   .lp .msg-error { background: rgba(192,57,43,.14); border: 1px solid rgba(192,57,43,.55); color: #ffb4ab; }
@@ -231,6 +233,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=Amiri:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <script src="./particles.js"></script>
+<meta name="description" content="منصة تدريب مدارج — من التقديم إلى الشهادة، بمسار واحد موثّق.">
+<link rel="icon" type="image/jpeg" href="./logo-madarij.jpg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="مدارج">
+<meta property="og:locale" content="ar_SA">
+<meta property="og:title" content="منصة تدريب مدارج">
+<meta property="og:description" content="من التقديم إلى الشهادة، بمسار واحد موثّق.">
+<meta property="og:image" content="https://training.madarej.sa/logo-madarij.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#131A22">
 </head>
 <body>
 <div id="app">
@@ -321,7 +333,7 @@ function renderLogin(errorMsg) {
   if (window.__lpStop) { try { window.__lpStop(); } catch (e) {} window.__lpStop = null; }
   document.getElementById('app').innerHTML = `
     <div class="lp" dir="rtl">
-      <canvas class="lp-canvas" id="lpCanvas"></canvas>
+      <canvas class="lp-canvas" id="lpCanvas" aria-hidden="true"></canvas>
 
       <div class="lp-headwrap">
         <header class="lp-header">
@@ -352,11 +364,11 @@ function renderLogin(errorMsg) {
         </button>
       </div>
 
-      <div class="lp-auth" id="lpAuth">
+      <div class="lp-auth" id="lpAuth" role="dialog" aria-modal="true" aria-labelledby="lpAuthTitle" onclick="lpBackdrop(event)">
         <div class="lp-authcard">
           <span class="c c1"></span><span class="c c2"></span>
           <button type="button" class="lp-close" onclick="lpCloseLogin()" aria-label="إغلاق">&times;</button>
-          <h2>تسجيل الدخول</h2>
+          <h2 id="lpAuthTitle">تسجيل الدخول</h2>
           <p class="lp-authsub">سجّل دخولك للمتابعة</p>
           <label for="loginEmail">الإيميل</label>
           <input id="loginEmail" type="email" placeholder="name@example.com" autocomplete="username">
@@ -379,7 +391,20 @@ function renderLogin(errorMsg) {
   if (errorMsg) lpOpenLogin();
 }
 
-function lpEscHandler(e) { if (e.key === 'Escape') lpCloseLogin(); }
+function lpEscHandler(e) {
+  if (e.key === 'Escape') { lpCloseLogin(); return; }
+  if (e.key !== 'Tab') return;
+  // حصر التركيز داخل نافذة الدخول ما دامت مفتوحة
+  const panel = document.getElementById('lpAuth');
+  if (!panel || !panel.classList.contains('open')) return;
+  const f = [...panel.querySelectorAll('input, button')].filter(el => !el.disabled && el.offsetParent !== null);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
+function lpBackdrop(e) { if (e.target && e.target.id === 'lpAuth') lpCloseLogin(); }
 
 function lpOpenLogin() {
   const el = document.getElementById('lpAuth');
@@ -391,7 +416,10 @@ function lpOpenLogin() {
 
 function lpCloseLogin() {
   const el = document.getElementById('lpAuth');
-  if (el) el.classList.remove('open');
+  if (!el || !el.classList.contains('open')) return;
+  el.classList.remove('open');
+  const back = document.querySelector('.lp-signin');
+  if (back) back.focus();
 }
 
 async function doLogin() {
