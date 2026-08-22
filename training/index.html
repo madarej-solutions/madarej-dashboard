@@ -116,6 +116,19 @@
     align-items: center; justify-content: center; z-index: 50; padding: 16px;
   }
   .modal-overlay.open { display: flex; }
+  .src-self { font-size: 12px; padding: 2px 8px; border-radius: 12px; background: rgba(184,134,10,.16); color: #B8860A; white-space: nowrap; }
+  .src-staff { font-size: 12px; padding: 2px 8px; border-radius: 12px; background: rgba(120,130,145,.16); color: #667; white-space: nowrap; }
+  .det-wrap { max-height: 58vh; overflow-y: auto; margin: 4px 0 8px; }
+  .det-sec { font-size: 12px; letter-spacing: .12em; color: #B8860A; margin: 16px 0 8px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,.08); }
+  .det-sec:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+  .det-row { display: flex; gap: 12px; padding: 5px 0; font-size: 14px; }
+  .det-k { min-width: 160px; color: #6B7A8C; font-size: 13px; }
+  .det-v { flex: 1; }
+  .det-block { padding: 6px 0; }
+  .det-long { white-space: pre-wrap; line-height: 1.7; font-size: 14px; margin-top: 3px; }
+  .det-flag { font-size: 13px; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; }
+  .det-flag.ok { background: rgba(30,126,52,.12); color: #1E7E34; }
+  .det-flag.warn { background: rgba(184,134,10,.14); color: #8A6100; }
   .modal-box { background: #fff; border-radius: 12px; max-width: 480px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; }
   .modal-box h3 { margin-top: 0; color: var(--navy); }
   .modal-actions { display: flex; gap: 10px; margin-top: 10px; }
@@ -223,6 +236,22 @@
              color: #9FB6CE; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .lp-link:hover:not(:disabled) { background: none; color: #fff; }
   .lp-authcard.lp-wide { max-width: 720px; max-height: 82vh; overflow-y: auto; }
+  .lp-authcard textarea { width: 100%; padding: 12px 14px; margin-bottom: 18px; background: rgba(44,58,75,.45);
+    border: 1px solid rgba(80,98,120,.5); border-radius: 4px; color: #fff; font: inherit; font-size: 15px;
+    resize: vertical; min-height: 68px; }
+  .lp-authcard textarea::placeholder { color: rgba(255,255,255,.3); }
+  .lp-authcard textarea:focus { outline: none; border-color: #9FB6CE; }
+  .lp-authcard select { width: 100%; padding: 12px 14px; margin-bottom: 18px; background: rgba(44,58,75,.45);
+    border: 1px solid rgba(80,98,120,.5); border-radius: 4px; color: #fff; font: inherit; font-size: 15px; }
+  .lp-authcard select:focus { outline: none; border-color: #9FB6CE; }
+  .lp-authcard option { background: #131A22; color: #fff; }
+  .lp-fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  @media (max-width: 560px) { .lp-fgrid { grid-template-columns: 1fr; } }
+  .lp-fsec { margin: 20px 0 14px; padding-top: 16px; border-top: 1px solid rgba(56,70,90,.6);
+    font-size: 12px; letter-spacing: .14em; color: #9FB6CE; font-weight: 400; }
+  .lp-fsec.first { margin-top: 0; padding-top: 0; border-top: none; }
+  .lp-fnote { font-size: 12.5px; font-weight: 300; color: rgba(255,255,255,.45); margin: -12px 0 18px; }
+  .lp-req { color: #E8927C; }
   .lp-trainer { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid rgba(56,70,90,.6); }
   .lp-trainer:first-child { border-top: none; padding-top: 4px; }
   .lp-tr-photo { flex: none; width: 56px; height: 56px; border-radius: 9999px; object-fit: cover;
@@ -401,22 +430,100 @@ function renderLogin(errorMsg) {
       </div>
 
       <div class="lp-auth" id="lpSignup" role="dialog" aria-modal="true" aria-labelledby="lpSignupTitle" onclick="lpBackdrop(event)">
-        <div class="lp-authcard">
+        <div class="lp-authcard lp-wide">
           <span class="c c1"></span><span class="c c2"></span>
           <button type="button" class="lp-close" onclick="lpCloseAny()" aria-label="إغلاق">&times;</button>
-          <h2 id="lpSignupTitle">إنشاء حساب متدرب</h2>
-          <p class="lp-authsub">أنشئ حسابك للدخول إلى المنهج ومسارك التدريبي</p>
-          <label for="suName">الاسم الكامل</label>
+          <h2 id="lpSignupTitle">طلب التحاق بالتدريب</h2>
+          <p class="lp-authsub">للطلاب الجامعيين. يراجع فريقنا طلبك، وعند القبول نزوّدك ببيانات الدخول إلى المنصة.</p>
+
+          <div class="lp-fsec first">بياناتك</div>
+          <label for="suName">الاسم الكامل <span class="lp-req">*</span></label>
           <input id="suName" type="text" autocomplete="name" placeholder="الاسم الثلاثي">
-          <label for="suEmail">البريد الإلكتروني</label>
+          <div class="lp-fgrid">
+            <div>
+          <label for="suEmail">البريد الإلكتروني <span class="lp-req">*</span></label>
           <input id="suEmail" type="email" autocomplete="email" dir="ltr" placeholder="name@example.com">
-          <label for="suPhone">الجوال <span style="opacity:.5">(اختياري)</span></label>
+            </div>
+            <div>
+          <label for="suPhone">الجوال</label>
           <input id="suPhone" type="tel" autocomplete="tel" dir="ltr" placeholder="05xxxxxxxx">
-          <label for="suPass">كلمة المرور</label>
-          <input id="suPass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل">
-          <label for="suPass2">تأكيد كلمة المرور</label>
-          <input id="suPass2" type="password" autocomplete="new-password" placeholder="أعد كتابتها">
-          <button type="button" class="lp-submit" id="suBtn" onclick="lpDoSignup()">إنشاء الحساب</button>
+            </div>
+          </div>
+
+          <div class="lp-fsec">دراستك</div>
+          <div class="lp-fgrid">
+            <div>
+          <label for="suUni">الجامعة أو المعهد <span class="lp-req">*</span></label>
+          <input id="suUni" type="text" autocomplete="organization" placeholder="جامعة الملك سعود">
+            </div>
+            <div>
+          <label for="suMajor">التخصص <span class="lp-req">*</span></label>
+          <input id="suMajor" type="text" placeholder="محاسبة، إدارة، هندسة صناعية...">
+            </div>
+          </div>
+          <div class="lp-fgrid">
+            <div>
+              <label for="suLevel">المرحلة الدراسية</label>
+              <select id="suLevel">
+                <option value="">اختر...</option>
+                <option>السنة الأولى</option>
+                <option>السنة الثانية</option>
+                <option>السنة الثالثة</option>
+                <option>السنة الرابعة</option>
+                <option>السنة الخامسة أو أكثر</option>
+                <option>خريج حديث</option>
+              </select>
+            </div>
+            <div>
+          <label for="suGpa">المعدل التراكمي</label>
+          <input id="suGpa" type="text" placeholder="مثال: 4.2 من 5">
+            </div>
+          </div>
+
+          <div class="lp-fsec">تدريبك المطلوب</div>
+          <div class="lp-fgrid">
+            <div>
+              <label for="suDuration">مدة التدريب المطلوبة</label>
+              <select id="suDuration">
+                <option value="">اختر...</option>
+                <option value="1">شهر واحد</option>
+                <option value="3">من شهرين إلى ثلاثة</option>
+                <option value="6">من أربعة إلى ستة أشهر</option>
+                <option value="12">من سبعة إلى اثني عشر شهراً</option>
+              </select>
+            </div>
+            <div>
+              <label for="suHours">الساعات المتاحة أسبوعياً</label>
+              <select id="suHours">
+                <option value="">اختر...</option>
+                <option value="10">حتى 10 ساعات</option>
+                <option value="20">من 11 إلى 20 ساعة</option>
+                <option value="30">من 21 إلى 30 ساعة</option>
+                <option value="40">أكثر من 30 ساعة</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="lp-fsec">خبرتك الحالية</div>
+          <p class="lp-fnote">اكتب ما لديك فعلاً. هذه البيانات تُستخدم لبناء مسارك، وسنتحقق منها أثناء التدريب.</p>
+          <label for="suSkills">المهارات التي تجيدها</label>
+          <textarea id="suSkills" placeholder="التحليل المالي، كتابة التقارير، إدارة المشاريع..."></textarea>
+          <label for="suTools">البرامج والأدوات</label>
+          <textarea id="suTools" placeholder="Excel, Power BI, SAP, Python..."></textarea>
+          <label for="suCourses">الدورات والشهادات</label>
+          <textarea id="suCourses" placeholder="اسم الدورة والجهة والسنة"></textarea>
+          <label for="suProjects">المشروعات التي شاركت فيها</label>
+          <textarea id="suProjects" placeholder="وصف موجز لدورك في كل مشروع"></textarea>
+
+          <div class="lp-fsec">هدفك من التدريب</div>
+          <label for="suRoles">المجالات الوظيفية التي تستهدفها</label>
+          <textarea id="suRoles" placeholder="محلل مخاطر، مستشار إداري، محلل مالي..."></textarea>
+          <label for="suGoals">ما الذي تريد الوصول إليه</label>
+          <textarea id="suGoals" placeholder="اكتب هدفك بوضوح"></textarea>
+          <label for="suChallenges">التحديات التي تواجهك</label>
+          <textarea id="suChallenges" placeholder="ما الذي يعوقك اليوم عن الوصول إلى هدفك"></textarea>
+
+          <button type="button" class="lp-submit" id="suBtn" onclick="lpDoSignup()">إرسال الطلب</button>
           <div id="suMsg"></div>
           <p class="lp-alt">لديك حساب؟ <button type="button" class="lp-link" onclick="lpOpenLogin()">سجّل الدخول</button></p>
         </div>
@@ -452,9 +559,12 @@ function renderLogin(errorMsg) {
     try { window.__lpStop = window.SkalParticles.start(cv); } catch (e) {}
   }
 
-  document.getElementById('loginPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
-  document.getElementById('lpVerifyCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') lpDoVerify(); });
-  document.getElementById('suPass2').addEventListener('keydown', (e) => { if (e.key === 'Enter') lpDoSignup(); });
+  const onEnter = (id, fn) => {
+    const n = document.getElementById(id);
+    if (n) n.addEventListener('keydown', (e) => { if (e.key === 'Enter') fn(); });
+  };
+  onEnter('loginPassword', doLogin);
+  onEnter('lpVerifyCode', lpDoVerify);
   document.addEventListener('keydown', lpEscHandler);
   if (errorMsg) lpOpenLogin();
 
@@ -500,6 +610,8 @@ function lpOpenSignup() {
   if (!el) return;
   const m = document.getElementById('suMsg');
   if (m) m.innerHTML = '';
+  const b = document.getElementById('suBtn');
+  if (b) { b.style.display = ''; b.disabled = false; b.textContent = 'إرسال الطلب'; }
   el.classList.add('open');
   const f = document.getElementById('suName');
   if (f) setTimeout(() => f.focus(), 30);
@@ -508,44 +620,46 @@ function lpOpenSignup() {
 async function lpDoSignup() {
   const btn = document.getElementById('suBtn');
   const msg = document.getElementById('suMsg');
-  const g = id => (document.getElementById(id).value || '').trim();
-  const name = g('suName'), email = g('suEmail'), phone = g('suPhone');
-  const pass = document.getElementById('suPass').value, pass2 = document.getElementById('suPass2').value;
+  const g = id => { const n = document.getElementById(id); return n ? (n.value || '').trim() : ''; };
 
+  const name = g('suName'), email = g('suEmail'), university = g('suUni'), major = g('suMajor');
   const err = t => { msg.innerHTML = '<div class="msg-box msg-error">' + t + '</div>'; };
+
   if (name.length < 3) return err('اكتب اسمك الكامل (3 أحرف على الأقل).');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err('البريد الإلكتروني غير صالح.');
-  if (pass.length < 8) return err('كلمة المرور يجب ألا تقل عن 8 أحرف.');
-  if (pass !== pass2) return err('كلمتا المرور غير متطابقتين.');
+  if (!university) return err('اكتب اسم الجامعة أو المعهد.');
+  if (!major) return err('اكتب تخصصك.');
 
-  btn.disabled = true; btn.textContent = 'جارِ الإنشاء...'; msg.innerHTML = '';
+  btn.disabled = true; btn.textContent = 'جارِ الإرسال...'; msg.innerHTML = '';
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/self-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
-      body: JSON.stringify({ full_name: name, email, phone, password: pass }),
+      body: JSON.stringify({
+        action: 'submit',
+        full_name: name, email, phone: g('suPhone'),
+        university, major,
+        study_level: g('suLevel'), gpa: g('suGpa'),
+        duration_months: g('suDuration'), weekly_hours: g('suHours'),
+        skills: g('suSkills'), tools: g('suTools'),
+        courses: g('suCourses'), projects: g('suProjects'),
+        target_roles: g('suRoles'), goals: g('suGoals'), challenges: g('suChallenges'),
+      }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return err(esc(data.error || ('تعذّر إنشاء الحساب (HTTP ' + res.status + ').')));
+    if (!res.ok) return err(esc(data.error || ('تعذّر إرسال الطلب (HTTP ' + res.status + ').')));
 
     msg.innerHTML =
       '<div class="msg-box msg-success">' +
-      '<div style="font-weight:500;margin-bottom:6px">✓ تم إنشاء حسابك</div>' +
-      '<div class="lp-cert-row"><span>رقمك التدريبي</span><span dir="ltr">' + esc(data.trainee_number || '—') + '</span></div>' +
-      '<div style="margin-top:8px">سجّل الدخول ببريدك وكلمة المرور التي اخترتها.</div>' +
+      '<div style="font-weight:500;margin-bottom:6px">✓ وصلنا طلبك</div>' +
+      '<div class="lp-cert-row"><span>رقم الطلب</span><span dir="ltr">' + esc(data.reference || '—') + '</span></div>' +
+      '<div style="margin-top:8px">يراجع فريقنا طلبك، وعند القبول نتواصل معك على بريدك لتزويدك ببيانات الدخول. احتفظ برقم الطلب للمراجعة.</div>' +
       '</div>';
-    // نهيّئ لوحة الدخول ببريده حتى لا يعيد كتابته
-    setTimeout(() => {
-      lpOpenLogin();
-      const e = document.getElementById('loginEmail');
-      if (e) e.value = email;
-      const pw = document.getElementById('loginPassword');
-      if (pw) pw.focus();
-    }, 1400);
+    btn.style.display = 'none';
   } catch (e) {
     err('تعذّر الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.');
   } finally {
-    btn.disabled = false; btn.textContent = 'إنشاء الحساب';
+    btn.disabled = false; btn.textContent = 'إرسال الطلب';
   }
 }
 
@@ -1162,20 +1276,24 @@ async function renderStaffTab(tab) {
 
 async function renderApplicationsTab(main) {
   const { data: apps } = await sb.from('training_applications').select('*').order('submitted_at', { ascending: false });
+  window.__apps = {};
+  (apps || []).forEach(a => { window.__apps[a.id] = a; });
   const rows = (apps || []).map(a => `
     <tr>
       <td>${esc(a.full_name)}</td>
       <td dir="ltr">${esc(a.email)}</td>
+      <td>${a.source === 'self' ? '<span class="src-self">تسجيل ذاتي</span>' : '<span class="src-staff">إدخال موظف</span>'}</td>
       <td>${fmtDate(a.submitted_at)}</td>
       <td>${badge(a.status)}</td>
       <td class="actions-row">
+        <button class="small secondary" onclick="showApplicationDetails('${a.id}')">التفاصيل</button>
         ${state.isAdminOrManager && !['accepted', 'rejected'].includes(a.status) ? `
           <button class="small gold" onclick="openAcceptModal('${a.id}')">قبول</button>
           <button class="small danger" onclick="reviewApplicationAction('${a.id}', 'rejected')">رفض</button>
         ` : ''}
       </td>
     </tr>
-  `).join('') || `<tr><td class="empty-row" colspan="5">لا توجد طلبات بعد</td></tr>`;
+  `).join('') || `<tr><td class="empty-row" colspan="6">لا توجد طلبات بعد</td></tr>`;
 
   main.innerHTML = `
     <div class="panel">
@@ -1183,11 +1301,72 @@ async function renderApplicationsTab(main) {
       <div class="actions-row" style="margin-bottom:14px">
         <button onclick="openNewApplicationModal()">+ إضافة طلب يدوياً</button>
       </div>
-      <table><thead><tr><th>الاسم</th><th>الإيميل</th><th>تاريخ التقديم</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>الاسم</th><th>الإيميل</th><th>المصدر</th><th>تاريخ التقديم</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>
   `;
 }
 
+// يعرض كل ما قدّمه المتقدّم. القرار بالقبول لا يصح أن يُتخذ على الاسم والبريد وحدهما.
+function showApplicationDetails(appId) {
+  const a = (window.__apps || {})[appId];
+  if (!a) return;
+
+  const row = (label, val) => {
+    if (val === null || val === undefined || String(val).trim() === '') return '';
+    return `<div class="det-row"><span class="det-k">${esc(label)}</span><span class="det-v">${esc(String(val))}</span></div>`;
+  };
+  const block = (label, val) => {
+    if (!val || !String(val).trim()) return '';
+    return `<div class="det-block"><div class="det-k">${esc(label)}</div><div class="det-long">${esc(String(val))}</div></div>`;
+  };
+  const sec = t => `<div class="det-sec">${esc(t)}</div>`;
+
+  const durTxt = a.duration_months ? a.duration_months + ' شهر' : '';
+  const hrsTxt = a.weekly_hours ? a.weekly_hours + ' ساعة أسبوعياً' : '';
+  const verified = a.source !== 'self'
+    ? ''
+    : (a.email_verified_at
+        ? '<div class="det-flag ok">البريد مُتحقَّق منه</div>'
+        : '<div class="det-flag warn">البريد غير مُتحقَّق منه — تأكّد منه قبل القبول</div>');
+
+  openModal(`
+    <h3>تفاصيل الطلب</h3>
+    ${verified}
+    <div class="det-wrap">
+      ${sec('بيانات المتقدّم')}
+      ${row('الاسم الكامل', a.full_name)}
+      ${row('البريد الإلكتروني', a.email)}
+      ${row('الجوال', a.phone)}
+      ${row('الهوية', a.national_id)}
+      ${row('مصدر الطلب', a.source === 'self' ? 'تسجيل ذاتي من الموقع' : 'إدخال موظف')}
+      ${row('تاريخ التقديم', fmtDate(a.submitted_at))}
+
+      ${sec('الدراسة')}
+      ${row('الجامعة أو المعهد', a.university)}
+      ${row('التخصص', a.major)}
+      ${row('المرحلة الدراسية', a.study_level)}
+      ${row('المعدل التراكمي', a.gpa)}
+
+      ${sec('التدريب المطلوب')}
+      ${row('المدة', durTxt)}
+      ${row('الساعات المتاحة', hrsTxt)}
+
+      ${sec('الخبرة')}
+      ${block('المهارات', a.skills)}
+      ${block('البرامج والأدوات', a.tools)}
+      ${block('الدورات والشهادات', a.courses)}
+      ${block('المشروعات', a.projects)}
+
+      ${sec('الهدف')}
+      ${block('المجالات الوظيفية المستهدفة', a.target_roles)}
+      ${block('ما يريد الوصول إليه', a.goals)}
+      ${block('التحديات', a.challenges)}
+    </div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeModal()">إغلاق</button>
+    </div>
+  `);
+}
 // ===== قوائم مرجعية (جامعات/تخصصات/أقسام) مع خيار "إضافة جديد" =====
 // تُستخدم في نموذج إضافة الطلب اليدوي وشاشة قبول الطلب. القوائم تبدأ فارغة ويضيف
 // إليها الموظفون تدريجياً؛ القيمة النهائية المُرسَلة تبقى نصاً حراً (بدون قيد مفتاح أجنبي)
