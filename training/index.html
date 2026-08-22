@@ -252,6 +252,15 @@
   .lp-fsec.first { margin-top: 0; padding-top: 0; border-top: none; }
   .lp-fnote { font-size: 12.5px; font-weight: 300; color: rgba(255,255,255,.45); margin: -12px 0 18px; }
   .lp-req { color: #E8927C; }
+  .lp-coderow { display: flex; gap: 10px; align-items: flex-start; }
+  .lp-coderow input { flex: 1; letter-spacing: 6px; text-align: center; font-size: 18px; }
+  .lp-codebtn { flex: 0 0 auto; padding: 12px 18px; margin-bottom: 18px; background: transparent;
+    border: 1px solid rgba(159,182,206,.55); border-radius: 4px; color: #9FB6CE; font: inherit;
+    font-size: 14px; cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s; }
+  .lp-codebtn:hover:not(:disabled) { background: rgba(159,182,206,.12); border-color: #9FB6CE; }
+  .lp-codebtn:disabled { opacity: .45; cursor: default; }
+  .lp-codebtn:focus-visible { outline: 2px solid #9FB6CE; outline-offset: 2px; }
+  #suCodeMsg .msg-box { margin-top: -8px; margin-bottom: 16px; }
   .lp-trainer { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid rgba(56,70,90,.6); }
   .lp-trainer:first-child { border-top: none; padding-top: 4px; }
   .lp-tr-photo { flex: none; width: 56px; height: 56px; border-radius: 9999px; object-fit: cover;
@@ -450,6 +459,16 @@ function renderLogin(errorMsg) {
             </div>
           </div>
 
+          <div id="suCodeWrap">
+            <label for="suCode">رمز التحقق <span class="lp-req">*</span></label>
+            <p class="lp-fnote">نرسل رمزاً من ستة أرقام إلى بريدك للتأكد من أنه لك. الرمز صالح 15 دقيقة.</p>
+            <div class="lp-coderow">
+              <input id="suCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" placeholder="000000">
+              <button type="button" class="lp-codebtn" id="suCodeBtn" onclick="lpRequestCode()">أرسل الرمز</button>
+            </div>
+            <div id="suCodeMsg"></div>
+          </div>
+
           <div class="lp-fsec">دراستك</div>
           <div class="lp-fgrid">
             <div>
@@ -612,11 +631,64 @@ function lpOpenSignup() {
   if (m) m.innerHTML = '';
   const b = document.getElementById('suBtn');
   if (b) { b.style.display = ''; b.disabled = false; b.textContent = 'إرسال الطلب'; }
+  clearInterval(lpCodeTimer);
+  const cb = document.getElementById('suCodeBtn');
+  if (cb) { cb.disabled = false; cb.textContent = 'أرسل الرمز'; }
+  const cm = document.getElementById('suCodeMsg');
+  if (cm) cm.innerHTML = '';
   el.classList.add('open');
   const f = document.getElementById('suName');
   if (f) setTimeout(() => f.focus(), 30);
 }
 
+// يطلب رمز التحقق. الخادم يفرض حدّي معدّل (3 لكل بريد و120 إجمالاً في الساعة)
+// ولا يدّعي الإرسال: إن فشل المزوّد يُلغى الرمز ويعود خطأ صريح.
+let lpCodeTimer = null;
+async function lpRequestCode() {
+  const btn = document.getElementById('suCodeBtn');
+  const msg = document.getElementById('suCodeMsg');
+  const email = (document.getElementById('suEmail').value || '').trim();
+  const show = (cls, t) => { msg.innerHTML = '<div class="msg-box ' + cls + '">' + t + '</div>'; };
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    return show('msg-error', 'اكتب بريدك الإلكتروني أولاً.');
+  }
+
+  btn.disabled = true; btn.textContent = 'جارِ الإرسال...'; msg.innerHTML = '';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/self-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
+      body: JSON.stringify({ action: 'request_code', email }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      show('msg-error', esc(data.error || ('تعذّر إرسال الرمز (HTTP ' + res.status + ').')));
+      btn.disabled = false; btn.textContent = 'أرسل الرمز';
+      return;
+    }
+    show('msg-success', 'أرسلنا الرمز إلى بريدك. تحقق من صندوق الوارد ومن مجلد الرسائل غير المرغوبة.');
+    const codeInput = document.getElementById('suCode');
+    if (codeInput) codeInput.focus();
+
+    // منع الضغط المتكرر: عدّاد 60 ثانية قبل إعادة الإرسال
+    let left = 60;
+    clearInterval(lpCodeTimer);
+    btn.textContent = 'إعادة الإرسال بعد ' + left;
+    lpCodeTimer = setInterval(() => {
+      left -= 1;
+      if (left <= 0) {
+        clearInterval(lpCodeTimer);
+        btn.disabled = false; btn.textContent = 'أرسل الرمز';
+      } else {
+        btn.textContent = 'إعادة الإرسال بعد ' + left;
+      }
+    }, 1000);
+  } catch (e) {
+    show('msg-error', 'تعذّر الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.');
+    btn.disabled = false; btn.textContent = 'أرسل الرمز';
+  }
+}
 async function lpDoSignup() {
   const btn = document.getElementById('suBtn');
   const msg = document.getElementById('suMsg');
@@ -637,7 +709,7 @@ async function lpDoSignup() {
       headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
       body: JSON.stringify({
         action: 'submit',
-        full_name: name, email, phone: g('suPhone'),
+        full_name: name, email, phone: g('suPhone'), code: g('suCode'),
         university, major,
         study_level: g('suLevel'), gpa: g('suGpa'),
         duration_months: g('suDuration'), weekly_hours: g('suHours'),
