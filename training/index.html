@@ -129,6 +129,9 @@
   .det-flag { font-size: 13px; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; }
   .det-flag.ok { background: rgba(30,126,52,.12); color: #1E7E34; }
   .det-flag.warn { background: rgba(184,134,10,.14); color: #8A6100; }
+  .app-ref { font-family: ui-monospace, "Courier New", monospace; font-size: 12.5px;
+    letter-spacing: .5px; color: #B8860A; white-space: nowrap; }
+  #appSearch { padding: 8px 12px; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 14px; }
   .modal-box { background: #fff; border-radius: 12px; max-width: 480px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; }
   .modal-box h3 { margin-top: 0; color: var(--navy); }
   .modal-actions { display: flex; gap: 10px; margin-top: 10px; }
@@ -1417,6 +1420,7 @@ async function renderApplicationsTab(main) {
   (apps || []).forEach(a => { window.__apps[a.id] = a; });
   const rows = (apps || []).map(a => `
     <tr>
+      <td dir="ltr" class="app-ref">${esc(String(a.id).slice(0,8).toUpperCase())}</td>
       <td>${esc(a.full_name)}</td>
       <td dir="ltr">${esc(a.email)}</td>
       <td>${a.source === 'self' ? '<span class="src-self">تسجيل ذاتي</span>' : '<span class="src-staff">إدخال موظف</span>'}</td>
@@ -1430,19 +1434,37 @@ async function renderApplicationsTab(main) {
         ` : ''}
       </td>
     </tr>
-  `).join('') || `<tr><td class="empty-row" colspan="6">لا توجد طلبات بعد</td></tr>`;
+  `).join('') || `<tr><td class="empty-row" colspan="7">لا توجد طلبات بعد</td></tr>`;
 
   main.innerHTML = `
     <div class="panel">
       <h2>طلبات التدريب</h2>
       <div class="actions-row" style="margin-bottom:14px">
         <button onclick="openNewApplicationModal()">+ إضافة طلب يدوياً</button>
+        <input id="appSearch" type="search" placeholder="ابحث برقم الطلب أو الاسم أو البريد"
+               oninput="filterApplications()" style="flex:1;min-width:220px;margin:0">
       </div>
-      <table><thead><tr><th>الاسم</th><th>الإيميل</th><th>المصدر</th><th>تاريخ التقديم</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>رقم الطلب</th><th>الاسم</th><th>الإيميل</th><th>المصدر</th><th>تاريخ التقديم</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>
   `;
 }
 
+// بحث فوري في الجدول. الرقم المعروض للمتقدّم هو أول ثمانية من المعرّف،
+// فيُطابَق عليه وعلى الاسم والبريد معاً.
+function filterApplications() {
+  const box = document.getElementById('appSearch');
+  const q = (box ? box.value : '').trim().toLowerCase();
+  const rows = document.querySelectorAll('.panel table tbody tr');
+  let shown = 0;
+  rows.forEach(tr => {
+    if (tr.querySelector('.empty-row')) return;
+    const hit = !q || tr.textContent.toLowerCase().includes(q);
+    tr.style.display = hit ? '' : 'none';
+    if (hit) shown++;
+  });
+  const note = document.getElementById('appSearchNote');
+  if (note) note.textContent = q ? (shown + ' نتيجة') : '';
+}
 // يعرض كل ما قدّمه المتقدّم. القرار بالقبول لا يصح أن يُتخذ على الاسم والبريد وحدهما.
 function showApplicationDetails(appId) {
   const a = (window.__apps || {})[appId];
@@ -1471,6 +1493,7 @@ function showApplicationDetails(appId) {
     ${verified}
     <div class="det-wrap">
       ${sec('بيانات المتقدّم')}
+      ${row('رقم الطلب', String(a.id).slice(0,8).toUpperCase())}
       ${row('الاسم الكامل', a.full_name)}
       ${row('البريد الإلكتروني', a.email)}
       ${row('الجوال', a.phone)}
