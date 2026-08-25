@@ -170,17 +170,6 @@
 
   .lp-hero { position: relative; z-index: 10; margin-top: auto; padding-bottom: 64px; padding-inline: 24px; text-align: center; }
 
-  .lp-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 32px;
-              padding-inline: 12px; margin-bottom: 24px; background: rgba(44,58,75,.55); backdrop-filter: blur(4px);
-              border: 1px solid #38465A; font-size: 14px; font-weight: 500; color: rgba(255,255,255,.5);
-              clip-path: polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px); }
-  .lp-badge .c { position: absolute; width: 12px; height: 2px; background: #38465A; }
-  .lp-badge .c1 { top: 1.5px; left: 1.5px; transform: rotate(-45deg) translateX(-50%); transform-origin: top; }
-  .lp-badge .c2 { top: 1.5px; right: 1.5px; transform: rotate(45deg) translateX(50%); }
-  .lp-badge .c3 { bottom: 1.5px; left: 1.5px; transform: rotate(45deg) translateX(-50%); }
-  .lp-badge .c4 { bottom: 1.5px; right: 1.5px; transform: rotate(-45deg) translateX(50%); }
-  .lp-dot { display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background: #9FB6CE;
-            margin-left: 8px; box-shadow: 0 0 8px 2px rgba(159,182,206,.55); }
 
   .lp-h1 { margin: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 200;
            font-size: clamp(34px, 7vw, 72px); line-height: 1.25; letter-spacing: -.01em; }
@@ -236,6 +225,22 @@
              color: #9FB6CE; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   .lp-link:hover:not(:disabled) { background: none; color: #fff; }
   .lp-authcard.lp-wide { max-width: 720px; max-height: 82vh; overflow-y: auto; }
+  .lp-tracks-count { font-size: 12.5px; color: rgba(255,255,255,.4); margin: -14px 0 20px; letter-spacing: .04em; }
+  .lp-tg { margin-bottom: 26px; }
+  .lp-tg-title { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; padding-bottom: 9px;
+    border-bottom: 1px solid rgba(56,70,90,.7); font-size: 14px; font-weight: 400;
+    letter-spacing: .06em; color: #9FB6CE; }
+  .lp-tg-n { font-size: 11px; padding: 1px 7px; border-radius: 10px; background: rgba(159,182,206,.14);
+    color: rgba(159,182,206,.85); font-family: ui-monospace, monospace; }
+  .lp-tg-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 20px; }
+  @media (max-width: 620px) { .lp-tg-list { grid-template-columns: 1fr; } }
+  .lp-track { padding: 9px 0; border-bottom: 1px solid rgba(56,70,90,.35); }
+  .lp-track-name { margin: 0; font-size: 14.5px; font-weight: 400; color: #fff; }
+  .lp-track-out { margin: 3px 0 0; font-size: 12.5px; font-weight: 300; line-height: 1.6;
+    color: rgba(255,255,255,.42); }
+  .lp-tracks-cta { margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(56,70,90,.7); }
+  .lp-tracks-cta p { margin: 0 0 14px; font-size: 13.5px; font-weight: 300; line-height: 1.7;
+    color: rgba(255,255,255,.55); }
   .lp-authcard textarea { width: 100%; padding: 12px 14px; margin-bottom: 18px; background: rgba(44,58,75,.45);
     border: 1px solid rgba(80,98,120,.5); border-radius: 4px; color: #fff; font: inherit; font-size: 15px;
     resize: vertical; min-height: 68px; }
@@ -396,8 +401,7 @@ function renderLogin(errorMsg) {
         <header class="lp-header">
           <a class="lp-logo" href="#" onclick="return false"><img src="./logo-madarij.jpg" alt="مدارج للاستشارات الإدارية والمالية"></a>
           <nav class="lp-nav">
-            <a href="#" onclick="return false">المنصة</a>
-            <a href="#" onclick="return false">المسارات</a>
+            <a href="#" onclick="lpOpenTracks(); return false;">المسارات</a>
             <a href="#" onclick="lpOpenTrainers(); return false;">المدربون</a>
             <a href="#" onclick="lpOpenVerify(); return false;">التحقق من شهادة</a>
             <a href="https://wa.me/966554443569" target="_blank" rel="noopener noreferrer">تواصل</a>
@@ -407,10 +411,6 @@ function renderLogin(errorMsg) {
       </div>
 
       <div class="lp-hero">
-        <div class="lp-badge">
-          <span class="c c1"></span><span class="c c2"></span><span class="c c3"></span><span class="c c4"></span>
-          <span class="lp-dot"></span>إصدار تجريبي
-        </div>
 
         <h1 class="lp-h1">افتح آفاق نموّك<br><em>المستقبلي</em></h1>
 
@@ -545,6 +545,16 @@ function renderLogin(errorMsg) {
           <button type="button" class="lp-submit" id="suBtn" onclick="lpDoSignup()">إرسال الطلب</button>
           <div id="suMsg"></div>
           <p class="lp-alt">لديك حساب؟ <button type="button" class="lp-link" onclick="lpOpenLogin()">سجّل الدخول</button></p>
+        </div>
+      </div>
+
+      <div class="lp-auth" id="lpTracks" role="dialog" aria-modal="true" aria-labelledby="lpTracksTitle" onclick="lpBackdrop(event)">
+        <div class="lp-authcard lp-wide">
+          <span class="c c1"></span><span class="c c2"></span>
+          <button type="button" class="lp-close" onclick="lpCloseAny()" aria-label="إغلاق">&times;</button>
+          <h2 id="lpTracksTitle">المسارات التدريبية</h2>
+          <p class="lp-authsub">لكل تخصص مهامه وحالاته ومخرجه النهائي. المسار الشخصي يُبنى بعد التقييم التشخيصي.</p>
+          <div id="lpTracksBody"><div style="color:rgba(255,255,255,.5);font-size:14px">جارِ التحميل...</div></div>
         </div>
       </div>
 
@@ -732,6 +742,59 @@ async function lpDoSignup() {
     err('تعذّر الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.');
   } finally {
     btn.disabled = false; btn.textContent = 'إرسال الطلب';
+  }
+}
+
+// التخصصات تُقرأ من قاعدة البيانات عبر public_tracks — الجدول نفسه محجوب عن anon.
+// تُعرض الأسماء والمخرج النهائي فقط؛ تفاصيل المهام والحالات خلف الحساب.
+async function lpOpenTracks() {
+  lpCloseAny();
+  const el = document.getElementById('lpTracks');
+  if (!el) return;
+  el.classList.add('open');
+  const body = document.getElementById('lpTracksBody');
+  body.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:14px">جارِ التحميل...</div>';
+  const closeBtn = el.querySelector('.lp-close');
+  if (closeBtn) setTimeout(() => closeBtn.focus(), 30);
+  try {
+    const { data, error } = await sb.rpc('public_tracks');
+    if (error) throw new Error(error.message);
+    const list = data || [];
+    if (!list.length) {
+      body.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:14px;line-height:1.8">لم تُنشر المسارات بعد.</div>';
+      return;
+    }
+
+    // تجميع مع الحفاظ على ترتيب sort_order القادم من الخادم
+    const groups = [];
+    const byName = {};
+    list.forEach(t => {
+      const g = t.track_group || 'أخرى';
+      if (!byName[g]) { byName[g] = []; groups.push(g); }
+      byName[g].push(t);
+    });
+
+    body.innerHTML =
+      '<p class="lp-tracks-count">' + list.length + ' تخصصاً في ' + groups.length + ' مجموعات</p>' +
+      groups.map(g =>
+        '<div class="lp-tg">' +
+          '<h3 class="lp-tg-title">' + esc(g) + '<span class="lp-tg-n">' + byName[g].length + '</span></h3>' +
+          '<div class="lp-tg-list">' +
+            byName[g].map(t =>
+              '<div class="lp-track">' +
+                '<p class="lp-track-name">' + esc(t.name) + '</p>' +
+                (t.description ? '<p class="lp-track-out">المخرج النهائي: ' + esc(t.description) + '</p>' : '') +
+              '</div>'
+            ).join('') +
+          '</div>' +
+        '</div>'
+      ).join('') +
+      '<div class="lp-tracks-cta">' +
+        '<p>تفاصيل المهام والحالات الاستشارية داخل المنصة. قدّم طلب التحاق للاطلاع على مسارك.</p>' +
+        '<button type="button" class="lp-submit" onclick="lpOpenSignup()">قدّم طلب التحاق</button>' +
+      '</div>';
+  } catch (e) {
+    body.innerHTML = '<div class="msg-box msg-error">تعذّر تحميل المسارات. حاول مرة أخرى.</div>';
   }
 }
 
