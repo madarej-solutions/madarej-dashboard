@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مدارج لحلول الأعمال | سوشال ميديا — مركز القيادة</title>
+<title>مدارج لحلول الأعمال | البوابة التدريبية</title>
 <style>
 :root{
   color-scheme: dark;
@@ -144,16 +144,25 @@ tr:hover td{background:var(--surface2)}
 .usercard .em{font-size:30px;margin-bottom:8px}
 .usercard .nm{font-weight:700;font-size:14.5px;margin-bottom:4px}
 .usercard .ds{color:var(--muted);font-size:11.5px;line-height:1.6}
-.login .note2{color:var(--muted);font-size:11px;margin-top:20px;max-width:560px;text-align:center;line-height:1.8}
 .rolebadge{background:#26344d;border:1px solid var(--s1);border-radius:10px;padding:8px 10px;font-size:11.5px;color:#fff;margin-bottom:14px;line-height:1.6}
 .rolebadge button{background:none;border:0;color:var(--s1);cursor:pointer;font-family:inherit;font-size:11px;text-decoration:underline;padding:0;margin-top:4px}
+/* ---- الأمن السيبراني ---- */
+.inp{background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:8px 10px;font-family:inherit;font-size:12.5px;width:100%}
+.inp:focus{outline:none;border-color:var(--s1)}
+select.inp{cursor:pointer}
+.frm{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end}
+.frm label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px}
+.btn{background:linear-gradient(135deg,var(--s1),#1c5cab);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn.gh{background:none;border:1px solid var(--ring);color:var(--ink2);font-weight:600}
+.btn.gh:hover{border-color:var(--s1);color:var(--ink)}
+.ref{display:inline-block;font-size:10px;color:var(--muted);background:var(--surface);border:1px solid var(--ring);border-radius:5px;padding:1px 6px;margin-right:6px;white-space:nowrap;direction:ltr}
 </style>
 </head>
 <body>
 <div class="tt" id="tt"></div>
 <div class="login" id="login">
-  <h2>مدارج <span style="color:var(--gold)">|</span> سوشال ميديا</h2>
-  <div class="sub2">مركز القيادة — سجّل الدخول بإيميلك وكلمة المرور، كلٌّ يرى قنواته ومؤشراته فقط</div>
+  <h2>مدارج <span style="color:var(--gold)">|</span> البوابة التدريبية</h2>
+  <div class="sub2">سجّل الدخول بإيميلك وكلمة المرور — كلٌّ يرى لوحته وصلاحياته فقط</div>
   <div style="background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:26px;width:360px;max-width:92vw">
     <div style="font-size:12px;color:var(--muted);margin-bottom:6px">البريد الإلكتروني</div>
     <input id="lemail" type="email" placeholder="name@gmail.com" style="width:100%;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:11px 12px;font-family:inherit;font-size:13.5px;direction:ltr;text-align:left">
@@ -163,7 +172,6 @@ tr:hover td{background:var(--surface2)}
     <div id="lerr" style="color:#ef6b6b;font-size:12px;margin-top:8px;display:none">البريد أو كلمة المرور غير صحيحة</div>
     <button onclick="loginForm()" style="width:100%;margin-top:16px;background:linear-gradient(135deg,var(--s1),#1c5cab);color:#fff;border:0;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">دخول النظام 🚀</button>
   </div>
-  <div class="note2">كلمة المرور غير حساسة لحالة الأحرف — اكتبيها بحروف صغيرة ولا تضيفي مسافات. الحسابات المسجلة: المدير العام · شهد (مديرة) · رغد · فجر · هيا، وكلمات المرور المبدئية سلّمها المدير لكل موظفة وتُغيّر في النسخة النهائية. في التنفيذ على Power BI تُطبق الصلاحيات بحساب كل موظفة (Row-Level Security) المرتبط بإيميلها الذي تصلها عليه التقارير الأسبوعية.</div>
 </div>
 <div class="app">
 <aside class="side">
@@ -173,6 +181,7 @@ tr:hover td{background:var(--surface2)}
   <div class="demo"><b style="color:var(--ink2)">القنوات المتصلة:</b><br>
   Instagram @madarej_sa<br>TikTok @madarej_sa<br>X @madarej_co<br>Snapchat madarej.co<br>LinkedIn — مدارج<br>WhatsApp Business<br>Google Maps — الملف التجاري<br>madarej.sa + GA4/GSC<br>YouTube (قيد الإطلاق)</div>
   <div class="demo">نموذج أولي (Prototype) ببيانات توضيحية لغرض اعتماد التصميم — يُنفذ لاحقاً على Microsoft Fabric / Power BI ببيانات حية.</div>
+  <div class="demo" style="border-top:1px solid var(--ring);padding-top:8px">النسخة <b style="color:var(--ink2)">v12</b> — 2026-08-24<br>البوابة التدريبية · وحدة الأمن السيبراني (ECC-2:2024 / PDPL)</div>
 </aside>
 <div>
   <div class="top">
@@ -994,6 +1003,7 @@ function computeAlerts(){
   contentFatigue().forEach(f=>{A.push({lvl:'warn',emp:f.emp,name:ROLES[f.emp].name,text:`تكرار موضوع "${f.topic}" ${f.n} مرات خلال أسبوعين من ${ROLES[f.emp].name} — خطر تشبع الجمهور (Content Fatigue).`,action:'بدّلي الزاوية أو الموضوع تماماً للمنشور القادم بدل تكرار نفس الفكرة.'});});
   const gs=growthStagnation();
   if(gs&&gs.d<=0)A.push({lvl:'warn',emp:null,name:'الفريق',text:`نمو الوصول متوقف بصمت: متوسط الوصول في النصف الأخير من سجل المحتوى ${gs.d}% مقارنة بالنصف الأول رغم استمرار النشر.`,action:'هذا "Silent Growth Killer" — غيّري الصيغة أو التوقيت هذا الأسبوع بدل تكرار نفس النمط بأمل تحسّن عضوي.'});
+  if(['admin','shahad','yaran'].includes(ROLE)&&typeof secAlerts==='function')secAlerts().forEach(a=>A.push(a));
   const order2=['crit','warn','good'];
   return A.sort((a,b)=>order2.indexOf(a.lvl)-order2.indexOf(b.lvl));
 }
@@ -1235,8 +1245,375 @@ function cp(btn,txt){
 }
 pages.bank={t:'🪝 بنك الخطافات وقوالب الردود',h:bankPage};
 
+/* ═══════════════════════════════════════════════════════════════
+   وحدة الأمن السيبراني — مدارج لحلول الأعمال
+   المرجع: الضوابط الأساسية للأمن السيبراني ECC-2:2024 (الهيئة الوطنية للأمن السيبراني)
+           4 مكونات رئيسية · 28 مكوناً فرعياً · 108 ضوابط أساسية.
+           + نظام حماية البيانات الشخصية (PDPL) ولائحته التنفيذية — سدايا.
+           إشعار سدايا بحادثة تسريب بيانات شخصية: خلال 72 ساعة من العلم بها.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ---------- 1. حالة تأمين الأصول الرقمية ---------- */
+/* twofa: التحقق بخطوتين · adm: عدد من يملك صلاحية · rot: يوم منذ آخر تدوير لكلمة المرور
+   rec: وسيلة الاسترجاع محدّثة · pd: يحتوي بيانات شخصية لعملاء (نطاق PDPL) */
+const SEC_ASSETS=[
+ {n:'Instagram @madarej_sa', o:'رغد',  twofa:true,  adm:3, rot:41,  rec:true,  pd:true},
+ {n:'TikTok @madarej_sa',    o:'رغد',  twofa:true,  adm:3, rot:41,  rec:true,  pd:true},
+ {n:'X @madarej_co',         o:'هيا',  twofa:false, adm:4, rot:126, rec:false, pd:true},
+ {n:'Snapchat madarej.co',   o:'فجر',  twofa:false, adm:3, rot:98,  rec:false, pd:true},
+ {n:'LinkedIn — مدارج',       o:'هيا',  twofa:true,  adm:2, rot:33,  rec:true,  pd:true},
+ {n:'WhatsApp Business',     o:'شهد',  twofa:true,  adm:2, rot:20,  rec:true,  pd:true},
+ {n:'Google Business Profile',o:'شهد', twofa:true,  adm:2, rot:57,  rec:true,  pd:false},
+ {n:'YouTube (قيد الإطلاق)',  o:'رغد',  twofa:true,  adm:2, rot:12,  rec:true,  pd:false},
+ {n:'البريد المؤسسي — Google Workspace', o:'المدير العام', twofa:true, adm:6, rot:88, rec:true, pd:true},
+ {n:'نطاق واستضافة madarej.sa', o:'المدير العام', twofa:false, adm:2, rot:210, rec:false, pd:true},
+ {n:'GA4 + Search Console',  o:'شهد',  twofa:true,  adm:3, rot:64,  rec:true,  pd:false},
+ {n:'أداة الجدولة والتصميم (طرف خارجي)', o:'شهد', twofa:false, adm:5, rot:145, rec:false, pd:true}
+];
+function assetRisk(a){
+  let s=0;
+  if(!a.twofa)s+=45;
+  if(a.rot>90)s+=25; else if(a.rot>60)s+=12;
+  if(!a.rec)s+=15;
+  if(a.adm>3)s+=10;
+  if(a.pd&&!a.twofa)s+=10;
+  return Math.min(100,s);
+}
+function riskPill(s){
+  if(s>=60)return '<span class="pill pc">حرجة</span>';
+  if(s>=30)return '<span class="pill pw">متوسطة</span>';
+  return '<span class="pill pg">مقبولة</span>';
+}
+
+/* ---------- 2. جاهزية الامتثال — ECC-2:2024 ---------- */
+const ECC=[
+ {k:'1',n:'حوكمة الأمن السيبراني',subs:10,pct:58,gap:'اعتماد السياسات وتوقيع الفريق عليها + تحديد الأدوار والمسؤوليات كتابةً.'},
+ {k:'2',n:'تعزيز الأمن السيبراني',subs:15,pct:72,gap:'إدارة الثغرات والتحديثات، وتسجيل أحداث الدخول ومراجعتها.'},
+ {k:'3',n:'صمود الأمن السيبراني',subs:1,pct:45,gap:'خطة استمرارية أعمال مكتوبة ومختبَرة لفقدان الوصول للحسابات.'},
+ {k:'4',n:'الأطراف الخارجية والحوسبة السحابية',subs:2,pct:52,gap:'حصر مزوّدي الخدمة ومراجعة بنود حماية البيانات في عقودهم.'}
+];
+function eccOverall(){return Math.round(ECC.reduce((s,d)=>s+d.pct,0)/ECC.length);}
+
+/* ---------- 3. نظام حماية البيانات الشخصية (PDPL) ---------- */
+const PDPL_ITEMS=[
+ ['سجل أنشطة معالجة البيانات الشخصية (leads · عملاء · موظفون)',true],
+ ['إشعار الخصوصية منشور على madarej.sa وواضح قبل جمع البيانات',true],
+ ['أساس نظامي أو موافقة صريحة لجمع بيانات العملاء المحتملين',false],
+ ['قناة معلنة لطلبات أصحاب البيانات (اطلاع · تصحيح · حذف)',false],
+ ['إجراء مكتوب لإشعار سدايا خلال 72 ساعة من العلم بالحادثة',true],
+ ['ضوابط نقل البيانات خارج المملكة (الأدوات السحابية المستخدمة)',false],
+ ['مدة احتفاظ محددة وحذف البيانات بعد انتهاء الغرض منها',false],
+ ['بنود حماية البيانات في عقود الأطراف الخارجية',true]
+];
+function pdplPct(){return Math.round(PDPL_ITEMS.filter(x=>x[1]).length/PDPL_ITEMS.length*100);}
+
+/* ---------- 4. الوعي الأمني للفريق ---------- */
+const AWARE=[
+ {n:'المدير العام',tr:true, ph:'اجتاز', pm:true,  f2:true},
+ {n:'شهد',        tr:true, ph:'اجتاز', pm:true,  f2:true},
+ {n:'رغد',        tr:true, ph:'اجتاز', pm:false, f2:true},
+ {n:'فجر',        tr:false,ph:'ضغط الرابط', pm:false, f2:false},
+ {n:'هيا',        tr:true, ph:'لم يُختبر', pm:false, f2:true},
+ {n:'يارا',       tr:true, ph:'اجتاز', pm:true,  f2:true}
+];
+
+/* ---------- 5. المهام والواجبات الدورية ---------- */
+const CAD=[['daily','🌅 يومي',C.s1],['weekly','📅 أسبوعي',C.s3],['monthly','🗓️ شهري',C.s4],['quarterly','🎯 ربع سنوي',C.s5]];
+const CYBER_TASKS={
+ daily:[
+  {t:'مراجعة سجل جلسات الدخول لكل حساب منصّة وإنهاء أي جلسة أو جهاز غير معروف.',ref:'ECC 2-2'},
+  {t:'فحص الرسائل المشبوهة الواردة على البريد المؤسسي وحسابات المنصّات، وتصنيف محاولات التصيّد وتحذير الفريق في نفس اليوم.',ref:'ECC 2-14'},
+  {t:'متابعة تنبيهات حماية الأجهزة الطرفية (مكافحة الفيروسات/الجدار الناري) على أجهزة الفريق ومعالجة أي إنذار.',ref:'ECC 2-3'},
+  {t:'التحقق من نجاح النسخة الاحتياطية الليلية للموقع وقاعدة بيانات العملاء — لا يُغلق اليوم قبل تأكيد النجاح.',ref:'ECC 2-9'},
+  {t:'رصد الحسابات المنتحلة باسم «مدارج» على المنصّات وفتح بلاغ فوري لدى المنصّة.',ref:'حماية العلامة'},
+  {t:'مراجعة أي طلب لتصدير أو مشاركة بيانات عملاء خارج القنوات المعتمدة، ورفض ما لا أساس نظامي له.',ref:'PDPL'}
+ ],
+ weekly:[
+  {t:'تدقيق الصلاحيات: من يملك وصولاً لأي حساب، وسحب صلاحية كل من انتهت حاجته إليها (مبدأ الحد الأدنى من الامتياز).',ref:'ECC 2-2'},
+  {t:'فحص التحديثات والثغرات: أنظمة تشغيل الأجهزة، المتصفحات، إضافات وقوالب موقع madarej.sa.',ref:'ECC 2-10'},
+  {t:'اختبار استعادة عيّنة من النسخة الاحتياطية فعلياً — النسخة التي لم تُستعَد لا تُعتبر نسخة.',ref:'ECC 2-9'},
+  {t:'مراجعة سجل الحوادث المفتوحة، تحديث حالتها، وقياس زمن الاحتواء لكل حادثة.',ref:'ECC 2-13'},
+  {t:'التحقق من صلاحية شهادة SSL، وسجلات النطاق DNS و SPF/DKIM/DMARC لمنع انتحال بريد الشركة.',ref:'ECC 2-5'},
+  {t:'مراجعة أجهزة الفريق: قفل الشاشة التلقائي، تشفير القرص، ومنع العمل على شبكات عامة بدون VPN.',ref:'ECC 2-6'},
+  {t:'رفع تقرير أمني أسبوعي مختصر للمدير العام وشهد: ما أُغلق · ما زال مفتوحاً · ما يحتاج قراراً.',ref:'ECC 1-2'}
+ ],
+ monthly:[
+  {t:'تدوير كلمات مرور الحسابات الحسّاسة، والتأكد من أنها مخزّنة في مدير كلمات مرور معتمد فقط — لا في ملاحظات أو محادثات.',ref:'ECC 2-2'},
+  {t:'تشغيل محاكاة تصيّد داخلية للفريق وقياس نسبة من ضغط الرابط، ومعالجة الحالات فردياً.',ref:'ECC 1-10'},
+  {t:'جلسة توعية 20 دقيقة للفريق بموضوع واحد (التصيّد · الهندسة الاجتماعية · كلمات المرور · خصوصية بيانات العملاء).',ref:'ECC 1-10'},
+  {t:'تحديث سجل أنشطة معالجة البيانات الشخصية: ما يُجمع، لماذا، أين يُخزَّن، من يصل إليه، ومتى يُحذف.',ref:'PDPL'},
+  {t:'مراجعة الأطراف الخارجية والخدمات السحابية المستخدمة والتحقق من بنود حماية البيانات في عقودها.',ref:'ECC المكوّن 4'},
+  {t:'حذف أو إخفاء هوية البيانات الشخصية التي انتهى الغرض من جمعها.',ref:'PDPL'},
+  {t:'تحديث مؤشرات الأمن في هذه اللوحة: تغطية التحقق بخطوتين · الثغرات المغلقة · متوسط زمن الاحتواء.',ref:'ECC 1-2'}
+ ],
+ quarterly:[
+  {t:'تقييم ذاتي لجاهزية الامتثال للضوابط الأساسية ECC-2:2024 وتحديث نسبة كل مكوّن من المكوّنات الأربعة.',ref:'ECC 1-6'},
+  {t:'اختبار خطة الاستجابة للحوادث بسيناريو محاكاة: اختراق حساب إنستغرام · تسريب قائمة العملاء المحتملين.',ref:'ECC 2-13'},
+  {t:'مراجعة واعتماد السياسات الأمنية (الاستخدام المقبول · كلمات المرور · الوصول عن بُعد · النسخ الاحتياطي) وتوقيع الفريق عليها.',ref:'ECC 1-3'},
+  {t:'تقييم أثر حماية البيانات (DPIA) لأي نشاط معالجة جديد عالي الأثر قبل إطلاقه.',ref:'PDPL'},
+  {t:'اختبار استمرارية الأعمال: ماذا لو فقدنا الوصول لكل حسابات المنصّات ليوم كامل؟ توثيق خطة الاسترجاع.',ref:'ECC المكوّن 3'},
+  {t:'مراجعة الحسابات فائقة الصلاحية (المدير العام والمديرة) وتقليصها إلى أدنى حد لازم.',ref:'ECC 2-2'}
+ ]
+};
+
+/* ---------- 6. تخزين المهام حسب الدورية ---------- */
+function periodKey(cad){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  if(cad==='daily')   return 'D'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  if(cad==='weekly')  return 'W'+weekKey();
+  if(cad==='monthly') return 'M'+d.getFullYear()+'-'+p(d.getMonth()+1);
+  return 'Q'+d.getFullYear()+'-Q'+(Math.floor(d.getMonth()/3)+1);
+}
+function secGet(cad){try{return JSON.parse(store.get('madarej:sec:'+cad+':'+periodKey(cad))||'{}')}catch(e){return{}}}
+function secSet(cad,o){store.set('madarej:sec:'+cad+':'+periodKey(cad),JSON.stringify(o));}
+function secDone(cad){const S=secGet(cad);return CYBER_TASKS[cad].filter((x,i)=>S['k'+i]).length;}
+function secPct(cad){return Math.round(secDone(cad)/CYBER_TASKS[cad].length*100);}
+function secAllPct(){const t=CAD.reduce((s,[c])=>s+CYBER_TASKS[c].length,0),d=CAD.reduce((s,[c])=>s+secDone(c),0);return Math.round(d/t*100);}
+let SEC_CAD='daily';
+function secTaskList(cad){
+  const S=secGet(cad),L=CYBER_TASKS[cad],col=(CAD.find(x=>x[0]===cad)||[])[2]||C.s1,d=secDone(cad),p=secPct(cad);
+  const RESET={daily:'يُصفَّر تلقائياً كل يوم',weekly:'يُصفَّر مع بداية كل أسبوع',monthly:'يُصفَّر مع بداية كل شهر',quarterly:'يُصفَّر مع بداية كل ربع'}[cad];
+  return `<div class="okr"><div class="t"><span>الإنجاز — ${RESET}</span><span class="b">${d}/${L.length} · ${p}%</span></div>
+   <div class="bar-wrap"><div class="bar-fill" style="width:${p}%;background:${p===100?C.good:p>=60?C.s4:C.crit}"></div></div></div>`
+   + L.map((x,i)=>`<div class="tk${S['k'+i]?' done':''}" style="border-right-color:${col}" role="checkbox" tabindex="0" aria-checked="${!!S['k'+i]}" onclick="secToggle('${cad}',${i})" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();secToggle('${cad}',${i});}">
+     <input type="checkbox" ${S['k'+i]?'checked':''} tabindex="-1" style="pointer-events:none">
+     <span>${x.t}<span class="ref">${x.ref}</span></span></div>`).join('');
+}
+function secToggle(cad,i){const S=secGet(cad);S['k'+i]=!S['k'+i];secSet(cad,S);
+  const box=document.getElementById('secTasks');if(box)box.innerHTML=secTaskList(cad);
+  const g=document.getElementById('secAllPct');if(g)g.textContent=secAllPct()+'%';}
+function secTab(cad,b){SEC_CAD=cad;document.querySelectorAll('#secTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.getElementById('secTasks').innerHTML=secTaskList(cad);}
+
+/* ---------- 7. سجل الحوادث الأمنية ---------- */
+const INCIDENTS_SEED=[
+ {id:'INC-004',t:'دخول من جهاز غير معروف',sev:'عالية',src:'حساب X @madarej_co — جلسة من موقع غير معتاد',det:'2026-08-23 08:15',act:'أُنهيت الجلسة وطُلب تفعيل التحقق بخطوتين',st:'مفتوحة',close:'',pd:false},
+ {id:'INC-003',t:'مشاركة بيانات عملاء عبر قناة غير معتمدة',sev:'عالية',src:'تصدير قائمة 42 عميلاً محتملاً إلى ملف على جهاز شخصي',det:'2026-08-22 16:40',act:'حُذف الملف وطُلب توثيق الواقعة',st:'مفتوحة',close:'',pd:true},
+ {id:'INC-002',t:'حساب منتحل',sev:'متوسطة',src:'حساب إنستغرام باسم madarej.sa.official',det:'2026-08-12 11:05',act:'بلاغ لدى المنصّة + تنبيه الجمهور بقصة موثّقة',st:'مغلقة',close:'2026-08-15 10:00',pd:false},
+ {id:'INC-001',t:'محاولة تصيّد',sev:'متوسطة',src:'بريد باسم «إنستغرام — مخالفة حقوق نشر» يطلب تسجيل الدخول',det:'2026-08-18 09:40',act:'حُذف البريد وحُذّر الفريق وحُجب المرسل',st:'مغلقة',close:'2026-08-18 11:10',pd:false}
+];
+function incGet(){try{const v=store.get('madarej:sec:incidents');return v?JSON.parse(v):INCIDENTS_SEED.slice()}catch(e){return INCIDENTS_SEED.slice()}}
+function incSet(a){store.set('madarej:sec:incidents',JSON.stringify(a));}
+function nowStamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+function hoursBetween(a,b){return (new Date(b.replace(' ','T'))-new Date(a.replace(' ','T')))/3600000;}
+function incAdd(){
+  const g=id=>(document.getElementById(id).value||'').trim();
+  const t=g('inT');
+  if(!t){document.getElementById('inErr').style.display='block';return;}
+  const a=incGet();
+  const num=a.reduce((m,x)=>Math.max(m,parseInt((x.id||'').replace(/\D/g,''))||0),0)+1;
+  a.unshift({id:'INC-'+String(num).padStart(3,'0'),t,sev:g('inSev'),src:g('inSrc'),det:g('inDet')||nowStamp(),act:g('inAct'),st:'مفتوحة',close:'',pd:document.getElementById('inPd').checked});
+  incSet(a);render('cyber');
+}
+function incClose(id){const a=incGet(),x=a.find(y=>y.id===id);if(x){x.st='مغلقة';x.close=nowStamp();incSet(a);render('cyber');}}
+function incReopen(id){const a=incGet(),x=a.find(y=>y.id===id);if(x){x.st='مفتوحة';x.close='';incSet(a);render('cyber');}}
+function incDel(id){if(!confirm('حذف الحادثة '+id+' من السجل؟'))return;incSet(incGet().filter(y=>y.id!==id));render('cyber');}
+function incReset(){if(!confirm('إعادة السجل إلى البيانات التوضيحية؟'))return;incSet(INCIDENTS_SEED.slice());render('cyber');}
+function mttrHours(){const c=incGet().filter(x=>x.st==='مغلقة'&&x.close);if(!c.length)return null;return c.reduce((s,x)=>s+hoursBetween(x.det,x.close),0)/c.length;}
+
+/* ---------- 8. مؤشرات الأمن ---------- */
+function secKPIs(){
+  const A=SEC_ASSETS,inc=incGet();
+  const f2=Math.round(A.filter(a=>a.twofa).length/A.length*100);
+  const high=A.filter(a=>assetRisk(a)>=60).length;
+  const stale=A.filter(a=>a.rot>90).length;
+  const open=inc.filter(x=>x.st==='مفتوحة').length;
+  const m=mttrHours();
+  const aw=Math.round(AWARE.filter(x=>x.tr).length/AWARE.length*100);
+  return [
+   {l:'تغطية التحقق بخطوتين',v:f2+'%',ok:f2>=90,note:'الهدف 100% — لا استثناء'},
+   {l:'أصول عالية الخطورة',v:high,ok:high===0,note:'حساب واحد بلا 2FA = باب مفتوح'},
+   {l:'كلمات مرور > 90 يوم',v:stale,ok:stale===0,note:'التدوير شهري للحسابات الحسّاسة'},
+   {l:'حوادث مفتوحة',v:open,ok:open===0,note:'لا تُترك حادثة مفتوحة فوق 72 ساعة'},
+   {l:'متوسط زمن الاحتواء',v:m===null?'—':m.toFixed(1)+' س',ok:m!==null&&m<=24,note:'الهدف: أقل من 24 ساعة'},
+   {l:'جاهزية ECC-2:2024',v:eccOverall()+'%',ok:eccOverall()>=80,note:'متوسط المكوّنات الأربعة'},
+   {l:'جاهزية PDPL',v:pdplPct()+'%',ok:pdplPct()>=80,note:'بنود الامتثال المكتملة'},
+   {l:'وعي الفريق',v:aw+'%',ok:aw===100,note:'من أكمل التدريب واجتاز المحاكاة'}
+  ];
+}
+
+/* ---------- 9. تنبيهات الأمن (لا تظهر لغير المخوّلين) ---------- */
+function secAlerts(){
+  const A=[],inc=incGet();
+  SEC_ASSETS.filter(a=>!a.twofa).forEach(a=>A.push({lvl:'crit',emp:null,name:'أمن',text:`«${a.n}» بلا تحقق بخطوتين${a.pd?' ويحتوي بيانات عملاء':''}.`,action:'فعّل التحقق بخطوتين اليوم واحفظ رموز الاسترجاع في مدير كلمات المرور. (ECC 2-2)'}));
+  SEC_ASSETS.filter(a=>a.rot>90).forEach(a=>A.push({lvl:'warn',emp:null,name:'أمن',text:`كلمة مرور «${a.n}» لم تُدوَّر منذ ${a.rot} يوماً.`,action:'دوّرها ضمن مهمة التدوير الشهرية وسجّل التاريخ.'}));
+  SEC_ASSETS.filter(a=>a.adm>3).forEach(a=>A.push({lvl:'warn',emp:null,name:'أمن',text:`${a.adm} أشخاص يملكون صلاحية على «${a.n}» — أكثر من اللازم.`,action:'طبّق مبدأ الحد الأدنى من الامتياز واسحب ما لا حاجة له. (ECC 2-2)'}));
+  inc.filter(x=>x.st==='مفتوحة').forEach(x=>{
+    const h=hoursBetween(x.det,nowStamp());
+    if(x.pd){
+      const left=72-h;
+      A.push({lvl:'crit',emp:null,name:'PDPL',text:`الحادثة ${x.id} تمسّ بيانات شخصية — ${left>0?'تبقّى '+Math.floor(left)+' ساعة':'انقضت المهلة بـ'+Math.floor(-left)+' ساعة'} على مهلة إشعار سدايا (72 ساعة).`,action:left>0?'جهّز الإشعار الآن: وصف الحادثة، وقتها، فئة وعدد المتأثرين، والآثار المحتملة.':'أشعر سدايا فوراً ووثّق سبب التأخير — التأخر مخالفة نظامية.'});
+    }
+    if(h>72)A.push({lvl:'crit',emp:null,name:'أمن',text:`الحادثة ${x.id} «${x.t}» مفتوحة منذ ${Math.floor(h/24)} يوماً.`,action:'أغلقها أو صعّدها للمدير العام في تقرير هذا الأسبوع.'});
+  });
+  AWARE.filter(x=>!x.tr||x.ph==='ضغط الرابط').forEach(x=>A.push({lvl:'warn',emp:null,name:'توعية',text:`${x.n}: ${!x.tr?'لم يُكمل تدريب التوعية':'ضغط رابط محاكاة التصيّد'}.`,action:'جلسة فردية 15 دقيقة هذا الأسبوع + إعادة الاختبار بعد أسبوعين. (ECC 1-10)'}));
+  ECC.filter(d=>d.pct<50).forEach(d=>A.push({lvl:'warn',emp:null,name:'امتثال',text:`مكوّن «${d.n}» عند ${d.pct}% فقط من الجاهزية.`,action:d.gap}));
+  CAD.forEach(([c,lbl])=>{if(secPct(c)<60&&(c==='daily'||c==='weekly'))A.push({lvl:'warn',emp:null,name:'مهام',text:`مهام ${lbl.replace(/^\S+\s/,'')} منجزة ${secPct(c)}% فقط.`,action:'أكملها قبل نهاية الدورة — المهام غير المنجزة تتحول إلى مخاطر متراكمة.'});});
+  const ord=['crit','warn','good'];
+  return A.sort((a,b)=>ord.indexOf(a.lvl)-ord.indexOf(b.lvl));
+}
+
+/* ---------- 10. الصفحة ---------- */
+function cyberPage(){
+  const R=ROLES.yaran,K=secKPIs(),AL=secAlerts(),inc=incGet();
+  const f2=SEC_ASSETS.filter(a=>a.twofa).length,noF2=SEC_ASSETS.length-f2;
+  const crit=AL.filter(a=>a.lvl==='crit').length;
+  const posture=Math.max(0,Math.round(100-(SEC_ASSETS.reduce((s,a)=>s+assetRisk(a),0)/SEC_ASSETS.length)));
+  const tier=posture>=75?{c:C.good,t:'وضع أمني مستقر'}:posture>=50?{c:C.warn,t:'ثغرات تحتاج إغلاقاً'}:{c:C.crit,t:'خطر مرتفع — تدخّل فوري'};
+  return `
+ <div class="row cols4">
+  ${K.map(k=>`<div class="card kpi"><div class="l">${k.l}</div>
+   <div class="v" style="color:${k.ok?C.good:C.crit}">${k.v}</div>
+   <div class="d" style="color:var(--muted);font-weight:400">${k.note}</div></div>`).join('')}
+ </div>
+
+ <div class="row cols3">
+  <div class="card" style="border-right:3px solid ${tier.c}">
+   <h3>🛡️ مؤشر المناعة الرقمية <small>— رقم واحد يلخّص وضعنا الأمني</small></h3>
+   <div style="text-align:center">${gauge(posture/100,tier.c)}
+    <div style="font-size:26px;font-weight:800;margin-top:-4px">${posture}<span style="font-size:13px;color:var(--muted)">/100</span></div>
+    <div style="color:${tier.c};font-weight:700;font-size:13px">${tier.t}</div></div>
+   <div class="foot">يُحسب من: التحقق بخطوتين (وزن أعلى) · عمر كلمات المرور · وسائل الاسترجاع · عدد أصحاب الصلاحية · وجود بيانات شخصية في الأصل.</div></div>
+
+  <div class="card"><h3>🔐 درع الحسابات <small>— ${SEC_ASSETS.length} أصلاً رقمياً</small></h3>
+   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    ${donut([{n:'محمي بـ2FA',v:f2,c:C.good},{n:'بلا 2FA',v:noF2||0.001,c:C.crit}],150,150,42)}
+    <div style="flex:1;min-width:120px">
+     <div class="legend" style="flex-direction:column;gap:6px">
+      <span><i style="background:${C.good}"></i> محمي بالتحقق بخطوتين: <b>${f2}</b></span>
+      <span><i style="background:${C.crit}"></i> بلا تحقق بخطوتين: <b>${noF2}</b></span></div>
+     <div class="foot" style="margin-top:10px">${noF2?'كل أصل بلا 2FA هو نقطة الاختراق الأرجح — أغلقها أولاً.':'كل الأصول محمية ✓'}</div></div>
+   </div>
+   <div class="okr" style="margin-top:10px"><div class="t"><span>إنجاز المهام الدورية (كل الدوريات)</span><span class="b" id="secAllPct">${secAllPct()}%</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${secAllPct()}%;background:${C.s4}"></div></div></div></div>
+
+  <div class="card" style="border-right:3px solid ${crit?C.crit:C.good}">
+   <h3>🚨 الأولويات الأمنية الآن <small>— ${crit} حرجة من ${AL.length}</small></h3>
+   ${AL.slice(0,5).map(a=>`<div class="insight ${a.lvl==='crit'?'r':a.lvl==='warn'?'w':'o'}"><b>${a.name}:</b> ${a.text}<br><span style="color:var(--muted)">▸ ${a.action}</span></div>`).join('')||'<div class="insight o">لا تنبيهات أمنية مفتوحة — استمر على الإيقاع.</div>'}
+   ${AL.length>5?`<div class="foot">+${AL.length-5} تنبيهاً آخر ضمن الجداول أدناه.</div>`:''}</div>
+ </div>
+
+ <div class="row cols2">
+  <div class="card"><h3>🗝️ حالة تأمين الأصول الرقمية <small>— المصدر الوحيد للحقيقة عن «من يملك ماذا»</small></h3>
+   <div style="overflow-x:auto"><table>
+    <tr><th>الأصل</th><th>المسؤول</th><th>2FA</th><th>أصحاب الصلاحية</th><th>عمر كلمة المرور</th><th>الاسترجاع</th><th>بيانات شخصية</th><th>الخطورة</th></tr>
+    ${SEC_ASSETS.slice().sort((a,b)=>assetRisk(b)-assetRisk(a)).map(a=>{const r=assetRisk(a);return `<tr>
+     <td class="b">${a.n}</td><td>${a.o}</td>
+     <td>${a.twofa?'<span style="color:'+C.good+'">✓ مفعّل</span>':'<span style="color:'+C.crit+'">✕ معطّل</span>'}</td>
+     <td>${a.adm}${a.adm>3?' <span style="color:'+C.warn+'">⚠</span>':''}</td>
+     <td style="color:${a.rot>90?C.crit:a.rot>60?C.warn:C.ink2}">${a.rot} يوم</td>
+     <td>${a.rec?'✓':'<span style="color:'+C.warn+'">✕</span>'}</td>
+     <td>${a.pd?'<span class="pill pb">PDPL</span>':'—'}</td>
+     <td>${riskPill(r)} <span style="color:var(--muted);font-size:11px">${r}</span></td></tr>`;}).join('')}
+   </table></div>
+   <div class="foot">الخطورة محسوبة آلياً: بلا 2FA (+45) · كلمة مرور >90 يوم (+25) · بلا وسيلة استرجاع (+15) · أكثر من 3 أصحاب صلاحية (+10) · بيانات شخصية بلا 2FA (+10).</div></div>
+
+  <div class="card"><h3>📋 جاهزية الامتثال <small>— ECC-2:2024 · 4 مكوّنات · 28 مكوّناً فرعياً · 108 ضوابط</small></h3>
+   ${ECC.map(d=>`<div class="okr"><div class="t"><span>${d.k}. ${d.n} <span style="color:var(--muted)">(${d.subs} فرعي)</span></span><span class="b">${d.pct}%</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${d.pct}%;background:${d.pct>=80?C.good:d.pct>=50?C.s4:C.crit}"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">الفجوة: ${d.gap}</div></div>`).join('')}
+   <div class="okr" style="border-top:1px solid var(--ring);padding-top:10px"><div class="t"><span class="b">الجاهزية الإجمالية</span><span class="b" style="color:var(--s4)">${eccOverall()}%</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${eccOverall()}%;background:${C.s1}"></div></div></div>
+   <div class="foot">تقييم ذاتي يُحدَّث ربع سنوياً. المرجع: الهيئة الوطنية للأمن السيبراني — الضوابط الأساسية ECC-2:2024.</div></div>
+ </div>
+
+ <div class="row cols2">
+  <div class="card"><h3>✅ المهام والواجبات الدورية <small>— اضغط على المهمة عند إنجازها</small></h3>
+   <div class="tabs" id="secTabs">
+    ${CAD.map(([c,lbl])=>`<button class="${c===SEC_CAD?'on':''}" onclick="secTab('${c}',this)">${lbl} <span style="opacity:.7">${secDone(c)}/${CYBER_TASKS[c].length}</span></button>`).join('')}
+   </div>
+   <div id="secTasks">${secTaskList(SEC_CAD)}</div>
+   <div class="foot">تُحفظ محلياً على المتصفح وتُصفَّر تلقائياً مع بداية كل دورة. الرمز بجانب كل مهمة = الضابط المرجعي في ECC-2:2024 أو نظام حماية البيانات الشخصية.</div></div>
+
+  <div>
+   <div class="card" style="margin-bottom:14px"><h3>🔏 نظام حماية البيانات الشخصية (PDPL) <small>— ${pdplPct()}% مكتمل</small></h3>
+    <div class="bar-wrap" style="margin-bottom:10px"><div class="bar-fill" style="width:${pdplPct()}%;background:${pdplPct()>=80?C.good:C.s4}"></div></div>
+    ${PDPL_ITEMS.map(([t,ok])=>`<div class="alert-item"><span class="dot" style="background:${ok?C.good:C.crit}"></span><span>${t}</span></div>`).join('')}
+    <div class="foot">مدارج جهة تحكّم (Controller) لبيانات العملاء المحتملين. عند أي حادثة تمسّ بيانات شخصية: إشعار سدايا خلال <b style="color:var(--ink2)">72 ساعة</b> من العلم بها، وإشعار أصحاب البيانات دون تأخير غير مبرر.</div></div>
+
+   <div class="card"><h3>🎓 الوعي الأمني للفريق <small>— أضعف حلقة تحدد قوة السلسلة</small></h3>
+    <table><tr><th>الفرد</th><th>التدريب</th><th>محاكاة التصيّد</th><th>مدير كلمات المرور</th><th>2FA شخصي</th></tr>
+    ${AWARE.map(x=>`<tr><td class="b">${x.n}</td>
+     <td>${x.tr?'<span class="pill pg">مكتمل</span>':'<span class="pill pc">ناقص</span>'}</td>
+     <td>${x.ph==='اجتاز'?'<span class="pill pg">اجتاز</span>':x.ph==='ضغط الرابط'?'<span class="pill pc">ضغط الرابط</span>':'<span class="pill pw">لم يُختبر</span>'}</td>
+     <td>${x.pm?'✓':'<span style="color:'+C.warn+'">✕</span>'}</td>
+     <td>${x.f2?'✓':'<span style="color:'+C.crit+'">✕</span>'}</td></tr>`).join('')}
+    </table>
+    <div class="foot">محاكاة تصيّد شهرية + جلسة توعية 20 دقيقة. من يضغط الرابط لا يُعاقَب — يُدرَّب ويُعاد اختباره بعد أسبوعين.</div></div>
+  </div>
+ </div>
+
+ <div class="row">
+  <div class="card"><h3>🧾 سجل الحوادث الأمنية <small>— ${inc.filter(x=>x.st==='مفتوحة').length} مفتوحة من ${inc.length}</small></h3>
+   <div style="background:var(--surface2);border:1px solid var(--ring);border-radius:10px;padding:12px;margin-bottom:12px">
+    <div style="font-size:12px;color:var(--ink2);font-weight:600;margin-bottom:9px">➕ تسجيل حادثة جديدة</div>
+    <div class="frm">
+     <div><label>نوع الحادثة *</label><input class="inp" id="inT" placeholder="محاولة تصيّد / دخول غير مصرح / حساب منتحل"></div>
+     <div><label>الخطورة</label><select class="inp" id="inSev"><option>منخفضة</option><option selected>متوسطة</option><option>عالية</option><option>حرجة</option></select></div>
+     <div><label>وقت الاكتشاف</label><input class="inp" id="inDet" placeholder="${nowStamp()}" style="direction:ltr;text-align:left"></div>
+     <div style="grid-column:span 2"><label>الوصف / المصدر</label><input class="inp" id="inSrc" placeholder="ما الذي حدث بالضبط وأين"></div>
+     <div style="grid-column:span 2"><label>الإجراء المتخذ</label><input class="inp" id="inAct" placeholder="ما فعلته للاحتواء"></div>
+     <div><label style="opacity:0">.</label><label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2);cursor:pointer;margin:0"><input type="checkbox" id="inPd" style="cursor:pointer;width:15px;height:15px;accent-color:#d03b3b"> تمسّ بيانات شخصية</label></div>
+     <div><button class="btn" onclick="incAdd()">تسجيل الحادثة</button></div>
+    </div>
+    <div id="inErr" style="display:none;color:#ef6b6b;font-size:11.5px;margin-top:8px">اكتب نوع الحادثة على الأقل.</div>
+    <div class="foot" style="margin-top:8px">تحديد «تمسّ بيانات شخصية» يُشغّل عدّاد مهلة إشعار سدايا (72 ساعة) في التنبيهات أعلاه.</div>
+   </div>
+   <div style="overflow-x:auto"><table>
+    <tr><th>الرقم</th><th>النوع</th><th>الخطورة</th><th>الوصف</th><th>الاكتشاف</th><th>الإجراء</th><th>الحالة</th><th>زمن الاحتواء</th><th></th></tr>
+    ${inc.map(x=>{
+      const closed=x.st==='مغلقة'&&x.close;
+      const h=closed?hoursBetween(x.det,x.close):hoursBetween(x.det,nowStamp());
+      const sevP=x.sev==='حرجة'||x.sev==='عالية'?'pc':x.sev==='متوسطة'?'pw':'pb';
+      return `<tr>
+      <td class="b" style="direction:ltr;text-align:right">${x.id}</td>
+      <td>${x.t}${x.pd?' <span class="pill pc">بيانات شخصية</span>':''}</td>
+      <td><span class="pill ${sevP}">${x.sev}</span></td>
+      <td style="max-width:280px">${x.src||'—'}</td>
+      <td style="direction:ltr;text-align:right;white-space:nowrap">${x.det}</td>
+      <td style="max-width:240px">${x.act||'—'}</td>
+      <td>${closed?'<span class="pill pg">مغلقة</span>':'<span class="pill pc">مفتوحة</span>'}</td>
+      <td style="color:${h>72?C.crit:h>24?C.warn:C.good};white-space:nowrap">${h.toFixed(1)} س${closed?'':' (جارية)'}</td>
+      <td style="white-space:nowrap">${closed?`<button class="btn gh" style="padding:4px 9px;font-size:11px" onclick="incReopen('${x.id}')">إعادة فتح</button>`:`<button class="btn gh" style="padding:4px 9px;font-size:11px" onclick="incClose('${x.id}')">إغلاق</button>`}
+       <button class="btn gh" style="padding:4px 9px;font-size:11px;color:#ef6b6b" onclick="incDel('${x.id}')">حذف</button></td></tr>`;}).join('')}
+   </table></div>
+   <div class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <span>متوسط زمن الاحتواء للحوادث المغلقة: <b style="color:var(--ink2)">${mttrHours()===null?'—':mttrHours().toFixed(1)+' ساعة'}</b> · الهدف أقل من 24 ساعة. يُحفظ السجل محلياً على المتصفح.</span>
+    <button class="btn gh" style="padding:4px 10px;font-size:11px" onclick="incReset()">إعادة السجل للبيانات التوضيحية</button></div></div>
+ </div>
+
+ <div class="row cols2">
+  <div class="card"><h3>🧭 خطة الاستجابة للحوادث — الخطوات الست بالترتيب</h3>
+   ${[['1. الاكتشاف والتوثيق','سجّل الحادثة فوراً بوقت الاكتشاف الدقيق — الساعة التي تبدأ منها كل المهل النظامية.'],
+      ['2. الاحتواء','أوقف الضرر أولاً: إنهاء الجلسات، تغيير كلمة المرور، عزل الجهاز. لا تحقيق قبل الاحتواء.'],
+      ['3. التقييم','هل تمسّ بيانات شخصية؟ كم عدد المتأثرين؟ إن كانت نعم — عدّاد الـ72 ساعة يعمل.'],
+      ['4. الإشعار','المدير العام وشهد فوراً · سدايا خلال 72 ساعة إن مسّت بيانات شخصية · أصحاب البيانات دون تأخير غير مبرر.'],
+      ['5. المعالجة والاسترجاع','أغلق الثغرة التي سمحت بالحادثة — لا إغلاق للحادثة قبل إغلاق سببها.'],
+      ['6. الدروس المستفادة','حوّل الحادثة إلى مهمة دورية جديدة أو ضابط في هذه اللوحة حتى لا تتكرر.']
+    ].map(([t,d])=>`<div class="insight"><b>${t}</b><br>${d}</div>`).join('')}
+   <div class="foot">المرجع: ECC 2-13 — إدارة حوادث وتهديدات الأمن السيبراني · PDPL — الإبلاغ عن تسرّب البيانات الشخصية.</div></div>
+
+  <div class="card"><h3>👤 بطاقتي ونطاق مسؤوليتي</h3>
+   <div style="font-size:20px;font-weight:700;margin:4px 0">${R.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2);direction:ltr;text-align:right">${R.email}</div>
+   <div style="font-size:12px;color:var(--muted);margin-top:8px">${R.desc}</div>
+   <div class="foot" style="margin-bottom:12px">رابط دخولي المباشر: أضف <b style="color:var(--ink2)">#yaran</b> لرابط النظام</div>
+   <h3>📌 نطاق المسؤولية</h3>
+   ${['حماية حسابات المنصّات: التحقق بخطوتين، الصلاحيات، الجلسات، الحسابات المنتحلة.',
+      'الأمن التشغيلي: أجهزة الفريق، البريد، النطاق والاستضافة، النسخ الاحتياطي، الثغرات والتحديثات.',
+      'حماية بيانات العملاء: سجل المعالجة، ضوابط المشاركة، مدد الاحتفاظ، الحذف بعد انتهاء الغرض.',
+      'الامتثال والحوكمة: الضوابط الأساسية ECC-2:2024 ونظام حماية البيانات الشخصية والسياسات الداخلية.',
+      'الاستجابة للحوادث: الاكتشاف، الاحتواء، الإشعار في المهل النظامية، والدروس المستفادة.',
+      'التوعية: محاكاة تصيّد شهرية وجلسة توعية للفريق.'
+     ].map(t=>`<div class="insight o">${t}</div>`).join('')}
+   <div class="foot">هذه الصفحة وسجل الحوادث مرئية للمدير العام وشهد ويارا فقط.</div></div>
+ </div>`;
+}
+pages.cyber={t:'🛡️ الأمن السيبراني',h:cyberPage};
+
 /* ---------- nav & render ---------- */
 const order=[['me','👤','صفحتي'],['board','🏆','لوحة الصدارة'],['intel','🧠','ذكاء المحتوى (AI)'],['alerts','🔔','التنبيهات الذكية'],['opportunity','🛰️','رادار الفرص'],['bank','🪝','بنك الخطافات والردود'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
+'الأمن والامتثال',['cyber','🛡️','الأمن السيبراني'],
 'مؤشرات المنصات — كل قناة على حدة',
 ...PLATS.map(cf=>[cf.key,cf.icon,cf.name])];
 
@@ -1251,6 +1628,9 @@ const ROLES={
   tasks:['تصميم منشور لإنستغرام','إعداد محتوى للينكدإن','إعداد 5 ردود لمنصة X','إدارة حساب سناب شات']},
  shahad:{label:'⭐ شهد — مديرة',name:'شهد',email:'iiishahad98@gmail.com',desc:'إشراف كامل على العمل — جميع اللوحات',pages:'all',home:'team',
   tasks:['الإشراف اليومي على تنفيذ التقويم ومتابعة الفريق','مراجعة الجودة قبل النشر (قائمة التحقق السبعة)','متابعة الردود وتحقيق SLA الساعتين','تجهيز اجتماع الأحد ورفع الملاحظات للمدير العام']},
+ yaran:{label:'🛡️ يارا — الأمن السيبراني',name:'يارا',email:'yaran9688@gmail.com',desc:'أمن الحسابات · الأجهزة والبيانات · الامتثال ECC/PDPL',
+  pages:['cyber','p_ig','p_tt','p_x','p_sc','p_li'],home:'cyber',strict:true,
+  tasks:['تأمين حسابات المنصّات: التحقق بخطوتين والصلاحيات والجلسات','الأمن التشغيلي: الأجهزة والبريد والنطاق والنسخ الاحتياطي والثغرات','حماية بيانات العملاء وفق نظام حماية البيانات الشخصية (PDPL)','الامتثال للضوابط الأساسية للأمن السيبراني ECC-2:2024','الاستجابة للحوادث والإشعار في المهل النظامية','التوعية الأمنية للفريق ومحاكاة التصيّد الشهرية']},
 };
 const USERS={
  'madareejconsulting@gmail.com':{role:'admin',pass:['madarej2026','madarej@2026']},
@@ -1258,6 +1638,7 @@ const USERS={
  'rghdsqaf@gmail.com':{role:'raghad',pass:['raghad2026','raghad@123']},
  'almohem711@gmail.com':{role:'fajr',pass:['fajr2026','fajr@123']},
  'haya1170@icloud.com':{role:'haya',pass:['haya2026']},
+ 'yaran9688@gmail.com':{role:'yaran',pass:['yaran2026','yaran@123']},
 };
 function loginForm(){
   let e=document.getElementById('lemail').value.trim().toLowerCase().replace(/\s+/g,'');
@@ -1270,7 +1651,7 @@ function showPass(cb){document.getElementById('lpass').type=cb.checked?'text':'p
 let ROLE='admin';
 const nav=document.getElementById('nav'),main=document.getElementById('main');
 const OPEN=['board','bank','intel','alerts','opportunity'];
-const allowed=k=>OPEN.includes(k)||ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k);
+const allowed=k=>ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k)||(OPEN.includes(k)&&!ROLES[ROLE].strict);
 function buildNav(){
   nav.innerHTML='';
   const badge=document.createElement('div');badge.className='rolebadge';
@@ -1279,7 +1660,8 @@ function buildNav(){
   let first=true;
   order.forEach(item=>{
     if(typeof item==='string'){
-      if(PLATS.some(cf=>allowed(cf.key))){
+      const showHdr = item==='الأمن والامتثال' ? allowed('cyber') : PLATS.some(cf=>allowed(cf.key));
+      if(showHdr){
         const h=document.createElement('div');h.textContent=item;
         h.style.cssText='font-size:10.5px;color:var(--muted);margin:14px 10px 6px;border-top:1px solid var(--ring);padding-top:10px;font-weight:600';
         nav.appendChild(h);

@@ -972,6 +972,7 @@ function renderShell(kind) {
       <button class="tab-btn" data-tab="trainers" onclick="renderStaffTab('trainers')">المدربون</button>
       <button class="tab-btn" data-tab="tracks" onclick="renderStaffTab('tracks')">المسارات التدريبية</button>
       <button class="tab-btn" data-tab="exams" onclick="renderStaffTab('exams')">الاختبارات</button>
+      <button class="tab-btn" data-tab="scenarios" onclick="renderStaffTab('scenarios')">السيناريوهات</button>
     `
     : `
       <button class="tab-btn" data-tab="tasks" onclick="renderTraineeTab('tasks')">مهامي</button>
@@ -1407,6 +1408,7 @@ async function renderStaffTab(tab) {
   else if (tab === 'trainers') await renderTrainersTab(main);
   else if (tab === 'tracks') await renderTracksTab(main);
   else if (tab === 'exams') await renderExamsSettingsTab(main);
+  else if (tab === 'scenarios') await renderScenariosTab(main);
 }
 
 async function renderApplicationsTab(main) {
@@ -2206,6 +2208,290 @@ async function togglePeriodicSurprise(enable) {
 }
 
 init();
+
+// ============================================================================
+// المرحلة ٢ — شاشة المشرف: توليد السيناريوهات الواقعية واعتمادها
+// المسودة لا تصل المتدرب أبداً قبل الاعتماد (status = approved).
+// ============================================================================
+
+const SCENARIO_STATUS_AR = { draft: 'مسودة', approved: 'معتمد', archived: 'مؤرشف' };
+const SCENARIO_DIFF_AR = { 1: 'مبتدئ', 2: 'ممارس', 3: 'متقن', 4: 'خبير' };
+const scenarioState = { filter: 'draft', tracks: [], types: [] };
+
+async function renderScenariosTab(main) {
+  const [{ data: tracks }, { data: types }] = await Promise.all([
+    sb.from('training_tracks').select('id, code, name').eq('is_active', true).order('sort_order'),
+    sb.from('scenario_types').select('code, name, default_time_limit_minutes').order('sort_order'),
+  ]);
+  scenarioState.tracks = tracks || [];
+  scenarioState.types = types || [];
+
+  let q = sb.from('scenarios')
+    .select('id, title, status, difficulty_level, time_limit_minutes, type_code, created_at, track_id, source')
+    .order('created_at', { ascending: false })
+    .limit(60);
+  if (scenarioState.filter !== 'all') q = q.eq('status', scenarioState.filter);
+  const { data: scenarios } = await q;
+
+  const trackName = (id) => (scenarioState.tracks.find(t => t.id === id) || {}).name || '—';
+  const typeName = (code) => (scenarioState.types.find(t => t.code === code) || {}).name || code;
+
+  const rows = (scenarios || []).map(s => `
+    <tr>
+      <td>${esc(s.title)}</td>
+      <td>${esc(trackName(s.track_id))}</td>
+      <td>${esc(typeName(s.type_code))}</td>
+      <td>${esc(SCENARIO_DIFF_AR[s.difficulty_level] || s.difficulty_level)}</td>
+      <td>${s.time_limit_minutes} د</td>
+      <td><span class="badge badge-${s.status === 'approved' ? 'approved' : s.status === 'archived' ? 'archived' : 'assigned'}">${SCENARIO_STATUS_AR[s.status] || s.status}</span></td>
+      <td>${fmtDate(s.created_at)}</td>
+      <td class="actions-row">
+        <button class="small secondary" onclick="openScenarioModal('${s.id}')">فتح</button>
+      </td>
+    </tr>
+  `).join('') || `<tr><td class="empty-row" colspan="8">لا توجد سيناريوهات بهذا التصنيف بعد</td></tr>`;
+
+  const trackOptions = scenarioState.tracks
+    .map(t => `<option value="${t.id}"${t.code === 'MKT' ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+  const typeOptions = scenarioState.types
+    .map(t => `<option value="${t.code}">${esc(t.name)} — ${t.default_time_limit_minutes} د</option>`).join('');
+
+  main.innerHTML = `
+    ${state.isAdminOrManager ? `
+    <div class="panel">
+      <h2>توليد سيناريو جديد</h2>
+      <p style="font-size:13px;color:var(--muted)">
+        يولّد النظام مسودة موقف من أرض الواقع مبنية على كفاءات المسار المختار. المسودة لا تصل المتدرب
+        إطلاقاً قبل أن تعتمدها. راجعها، عدّل ما يلزم، ثم اعتمدها أو ارفضها.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end">
+        <div><label for="genTrack">المسار التدريبي</label><select id="genTrack">${trackOptions}</select></div>
+        <div><label for="genType">نوع السيناريو</label><select id="genType">${typeOptions}</select></div>
+        <div><label for="genDiff">مستوى الصعوبة</label><select id="genDiff">
+          <option value="1">١ — مبتدئ</option>
+          <option value="2" selected>٢ — ممارس</option>
+          <option value="3">٣ — متقن</option>
+          <option value="4">٤ — خبير</option>
+        </select></div>
+        <div><label for="genEmph">تركيز الكفاءات</label><select id="genEmph">
+          <option value="mixed" selected>مزيج: من تخصصه ومن خارجه</option>
+          <option value="own">من تخصصه فقط</option>
+          <option value="cross">يغلب عليه العابر للتخصص</option>
+        </select></div>
+      </div>
+      <label for="genExtra" style="margin-top:12px">سياق إضافي <span style="opacity:.5">(اختياري)</span></label>
+      <textarea id="genExtra" rows="2" placeholder="مثال: اجعل العميل مطعماً في الرياض يريد إطلاق فرع ثانٍ، وأدخل قيد ميزانية ضيق."></textarea>
+      <button class="full gold" id="genBtn" style="margin-top:12px" onclick="generateScenarioAction()">توليد مسودة سيناريو</button>
+      <div id="genMsg"></div>
+    </div>
+    ` : ''}
+
+    <div class="panel">
+      <h2>بنك السيناريوهات</h2>
+      <div class="actions-row" style="margin-bottom:14px">
+        ${['draft', 'approved', 'archived', 'all'].map(f => `
+          <button class="small ${scenarioState.filter === f ? 'gold' : 'secondary'}" onclick="setScenarioFilter('${f}')">
+            ${f === 'all' ? 'الكل' : SCENARIO_STATUS_AR[f]}
+          </button>`).join('')}
+      </div>
+      <table><thead><tr>
+        <th>العنوان</th><th>المسار</th><th>النوع</th><th>الصعوبة</th><th>المدة</th><th>الحالة</th><th>أُنشئ</th><th></th>
+      </tr></thead><tbody>${rows}</tbody></table>
+    </div>
+  `;
+}
+
+async function setScenarioFilter(f) {
+  scenarioState.filter = f;
+  await renderStaffTab('scenarios');
+}
+
+async function generateScenarioAction() {
+  const btn = document.getElementById('genBtn');
+  const msgEl = document.getElementById('genMsg');
+  const payload = {
+    track_id: document.getElementById('genTrack').value,
+    type_code: document.getElementById('genType').value,
+    difficulty_level: Number(document.getElementById('genDiff').value),
+    emphasis: document.getElementById('genEmph').value,
+    extra_context: (document.getElementById('genExtra').value || '').trim() || undefined,
+  };
+  btn.disabled = true;
+  btn.textContent = 'جارِ التوليد... قد يستغرق نصف دقيقة';
+  msgEl.innerHTML = '';
+  try {
+    const data = await authedFetch('scenario-generate', payload);
+    await renderStaffTab('scenarios');
+    openScenarioModal(data.scenario_id);
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'توليد مسودة سيناريو';
+    msgEl.innerHTML = `<div class="msg-box msg-error">${esc(err.message)}</div>`;
+  }
+}
+
+async function openScenarioModal(scenarioId) {
+  openModal(`<div class="loading">جارِ تحميل السيناريو...</div>`);
+  const { data: s, error } = await sb.from('scenarios').select('*').eq('id', scenarioId).single();
+  if (error || !s) {
+    openModal(`<h3>تعذّر فتح السيناريو</h3><div class="msg-box msg-error">${esc(error?.message || 'غير موجود')}</div>
+      <div class="modal-actions"><button class="secondary" onclick="closeModal()">إغلاق</button></div>`);
+    return;
+  }
+
+  const { data: links } = await sb.from('scenario_competencies')
+    .select('weight, competencies(code, name, is_core, domain)')
+    .eq('scenario_id', scenarioId);
+
+  const { data: rubric } = await sb.from('rubric_dimensions')
+    .select('name, description, weight').eq('is_active', true).order('sort_order');
+
+  const track = scenarioState.tracks.find(t => t.id === s.track_id);
+  const type = scenarioState.types.find(t => t.code === s.type_code);
+  const notes = s.generation_meta?.model_answer_notes;
+  const editable = s.status === 'draft' && state.isAdminOrManager;
+
+  const compChips = (links || []).map(l => {
+    const c = l.competencies || {};
+    const kind = c.is_core ? 'جوهرية' : (c.domain === track?.code ? 'تخصص' : 'مجاورة');
+    return `<span class="badge badge-${kind === 'تخصص' ? 'approved' : 'assigned'}">${esc(c.name)} · ${kind}</span>`;
+  }).join(' ') || '<span style="color:var(--muted)">—</span>';
+
+  const rubricList = (rubric || []).map(d =>
+    `<li><b>${esc(d.name)}</b> (${d.weight}٪) — ${esc(d.description)}</li>`).join('');
+
+  openModal(`
+    <h3>${esc(s.title)}</h3>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">
+      ${esc(track?.name || '—')} · ${esc(type?.name || s.type_code)} ·
+      صعوبة: ${esc(SCENARIO_DIFF_AR[s.difficulty_level])} ·
+      ${s.time_limit_minutes} دقيقة ·
+      <span class="badge badge-${s.status === 'approved' ? 'approved' : s.status === 'archived' ? 'archived' : 'assigned'}">${SCENARIO_STATUS_AR[s.status]}</span>
+      ${s.source === 'ai' ? ' · مولَّد آلياً' : ' · مكتوب يدوياً'}
+    </p>
+
+    <div style="margin-bottom:12px">${compChips}</div>
+
+    <label for="scTitle">العنوان</label>
+    <input id="scTitle" type="text" value="${esc(s.title)}" ${editable ? '' : 'disabled'}>
+
+    <label for="scBrief">الموجز — هذا ما يصل المتدرب</label>
+    <textarea id="scBrief" rows="7" ${editable ? '' : 'disabled'}>${esc(s.brief)}</textarea>
+
+    <label for="scContext">المرفق النصي <span style="opacity:.5">(رسالة العميل أو البيانات)</span></label>
+    <textarea id="scContext" rows="6" ${editable ? '' : 'disabled'}>${esc(s.context_material || '')}</textarea>
+
+    <label for="scDeliv">المخرج المطلوب — أساس تقييم «نوع المخرج»</label>
+    <textarea id="scDeliv" rows="4" ${editable ? '' : 'disabled'}>${esc(s.deliverable_spec)}</textarea>
+
+    <label for="scTime">مدة التنفيذ بالدقائق</label>
+    <input id="scTime" type="number" min="5" max="1440" value="${s.time_limit_minutes}" ${editable ? '' : 'disabled'}>
+
+    ${notes ? `
+      <div class="msg-box" style="background:rgba(201,162,39,.10);border:1px solid rgba(201,162,39,.45);margin-top:14px">
+        <b>ملاحظات للمشرف فقط — لا تصل المتدرب:</b><br>${esc(notes)}
+      </div>` : ''}
+
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;font-size:13px;color:var(--muted)">معايير التقييم المطبَّقة على هذا السيناريو</summary>
+      <ul style="font-size:12.5px;line-height:1.9;margin:8px 0 0;padding-inline-start:18px">${rubricList}</ul>
+    </details>
+
+    ${s.review_notes ? `<div class="msg-box msg-error" style="margin-top:12px"><b>سبب الرفض:</b> ${esc(s.review_notes)}</div>` : ''}
+
+    <div id="scMsg"></div>
+    <div class="modal-actions">
+      ${editable ? `
+        <button class="gold" onclick="approveScenarioAction('${s.id}')">اعتماد ونشر</button>
+        <button class="secondary" onclick="saveScenarioEdits('${s.id}')">حفظ التعديل</button>
+        <button class="danger" onclick="rejectScenarioAction('${s.id}')">رفض</button>
+      ` : ''}
+      ${s.status === 'approved' && state.isAdminOrManager
+        ? `<button class="danger" onclick="rejectScenarioAction('${s.id}')">سحب من النشر</button>` : ''}
+      <button class="secondary" onclick="closeModal()">إغلاق</button>
+    </div>
+  `);
+}
+
+function readScenarioForm() {
+  const title = (document.getElementById('scTitle').value || '').trim();
+  const brief = (document.getElementById('scBrief').value || '').trim();
+  const deliverable_spec = (document.getElementById('scDeliv').value || '').trim();
+  const context_material = (document.getElementById('scContext').value || '').trim();
+  const time_limit_minutes = Number(document.getElementById('scTime').value);
+  return { title, brief, deliverable_spec, context_material: context_material || null, time_limit_minutes };
+}
+
+function validateScenarioForm(f, msgEl) {
+  if (!f.title || !f.brief || !f.deliverable_spec) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">العنوان والموجز والمخرج المطلوب حقول إلزامية.</div>`;
+    return false;
+  }
+  if (!(f.time_limit_minutes >= 5 && f.time_limit_minutes <= 1440)) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">مدة التنفيذ يجب أن تكون بين ٥ و ١٤٤٠ دقيقة.</div>`;
+    return false;
+  }
+  return true;
+}
+
+async function saveScenarioEdits(scenarioId) {
+  const msgEl = document.getElementById('scMsg');
+  const f = readScenarioForm();
+  if (!validateScenarioForm(f, msgEl)) return;
+  const { error } = await sb.from('scenarios')
+    .update({ ...f, source: 'manual', updated_at: new Date().toISOString() })
+    .eq('id', scenarioId);
+  if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
+  msgEl.innerHTML = `<div class="msg-box msg-success">حُفظ التعديل. لا يزال مسودة حتى تعتمده.</div>`;
+  await renderStaffTab('scenarios');
+}
+
+async function approveScenarioAction(scenarioId) {
+  const msgEl = document.getElementById('scMsg');
+  const f = readScenarioForm();
+  if (!validateScenarioForm(f, msgEl)) return;
+  const { data: sessionData } = await sb.auth.getSession();
+  const { error } = await sb.from('scenarios').update({
+    ...f,
+    status: 'approved',
+    review_notes: null,
+    approved_by: sessionData?.session?.user?.id ?? null,
+    approved_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq('id', scenarioId);
+  if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
+  closeModal();
+  scenarioState.filter = 'approved';
+  await renderStaffTab('scenarios');
+}
+
+async function rejectScenarioAction(scenarioId) {
+  openModal(`
+    <h3>رفض السيناريو</h3>
+    <p style="font-size:13px;color:var(--muted)">اكتب سبب الرفض — يبقى في السجل ويُستفاد منه في تحسين التوليد لاحقاً.</p>
+    <label for="rejReason">السبب</label>
+    <textarea id="rejReason" rows="3" placeholder="مثال: الموقف غير واقعي في السياق السعودي، أو المخرج المطلوب غامض."></textarea>
+    <div id="rejMsg"></div>
+    <div class="modal-actions">
+      <button class="danger" onclick="confirmRejectScenario('${scenarioId}')">تأكيد الرفض</button>
+      <button class="secondary" onclick="openScenarioModal('${scenarioId}')">رجوع</button>
+    </div>
+  `);
+}
+
+async function confirmRejectScenario(scenarioId) {
+  const reason = (document.getElementById('rejReason').value || '').trim();
+  const msgEl = document.getElementById('rejMsg');
+  if (!reason) { msgEl.innerHTML = `<div class="msg-box msg-error">اكتب سبب الرفض.</div>`; return; }
+  const { error } = await sb.from('scenarios')
+    .update({ status: 'archived', review_notes: reason, updated_at: new Date().toISOString() })
+    .eq('id', scenarioId);
+  if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
+  closeModal();
+  scenarioState.filter = 'archived';
+  await renderStaffTab('scenarios');
+}
+
 </script>
 </body>
 </html>
