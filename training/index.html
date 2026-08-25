@@ -129,6 +129,22 @@
   .det-flag { font-size: 13px; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; }
   .det-flag.ok { background: rgba(30,126,52,.12); color: #1E7E34; }
   .det-flag.warn { background: rgba(184,134,10,.14); color: #8A6100; }
+  .kpi-sec { font-size: 12px; letter-spacing: .12em; color: #B8860A; margin: 22px 0 10px;
+    padding-top: 14px; border-top: 1px solid rgba(0,0,0,.08); }
+  .kpi-sec:first-of-type { margin-top: 6px; padding-top: 0; border-top: none; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .kpi { background: rgba(11,37,69,.04); border: 1px solid rgba(11,37,69,.1); border-radius: 6px; padding: 16px 14px; }
+  .kpi-n { display: block; font-size: 30px; font-weight: 600; line-height: 1; color: #0B2545;
+    font-variant-numeric: tabular-nums; margin-bottom: 6px; }
+  .kpi-l { display: block; font-size: 13px; color: #3D4A59; }
+  .kpi-s { display: block; font-size: 11.5px; color: #6B7A8C; margin-top: 3px; }
+  .panel-note { font-size: 13px; color: #6B7A8C; margin: -6px 0 16px; font-weight: 300; }
+  .role-sel { padding: 6px 10px; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 13px; }
+  .hours-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: end; }
+  .hours-form label { display: block; font-size: 12px; color: #6B7A8C; margin-bottom: 4px; }
+  .hours-form input, .hours-form select { width: 100%; padding: 8px 10px; border: 1px solid rgba(0,0,0,.15);
+    border-radius: 4px; font: inherit; font-size: 13.5px; margin: 0; }
+  .hours-form button { width: 100%; }
   .app-ref { font-family: ui-monospace, "Courier New", monospace; font-size: 12.5px;
     letter-spacing: .5px; color: #B8860A; white-space: nowrap; }
   #appSearch { padding: 8px 12px; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 14px; }
@@ -261,6 +277,8 @@
   .lp-fnote { font-size: 12.5px; font-weight: 300; color: rgba(255,255,255,.45); margin: -12px 0 18px; }
   .lp-req { color: #E8927C; }
   .lp-forgot { margin: -8px 0 18px; text-align: left; font-size: 13px; }
+  .lp-daterow { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .lp-daterow select { margin-bottom: 0; padding: 12px 8px; text-align: center; }
   .lp-coderow { display: flex; gap: 10px; align-items: flex-start; }
   .lp-coderow input { flex: 1; letter-spacing: 6px; text-align: center; font-size: 18px; }
   .lp-codebtn { flex: 0 0 auto; padding: 12px 18px; margin-bottom: 18px; background: transparent;
@@ -535,45 +553,31 @@ function renderLogin(errorMsg) {
           <div class="lp-fsec">تدريبك المطلوب</div>
           <div class="lp-fgrid">
             <div>
-              <label for="suDuration">مدة التدريب المطلوبة</label>
-              <select id="suDuration">
-                <option value="">اختر...</option>
-                <option value="1">شهر واحد</option>
-                <option value="3">من شهرين إلى ثلاثة</option>
-                <option value="6">من أربعة إلى ستة أشهر</option>
-                <option value="12">من سبعة إلى اثني عشر شهراً</option>
-              </select>
+              <label for="suStart">بداية التدريب</label>
+              <div class="lp-daterow">
+                <select id="suStartD" aria-label="اليوم"></select>
+                <select id="suStartM" aria-label="الشهر"></select>
+                <select id="suStartY" aria-label="السنة"></select>
+              </div>
             </div>
             <div>
-              <label for="suHours">الساعات المتاحة أسبوعياً</label>
-              <select id="suHours">
-                <option value="">اختر...</option>
-                <option value="10">حتى 10 ساعات</option>
-                <option value="20">من 11 إلى 20 ساعة</option>
-                <option value="30">من 21 إلى 30 ساعة</option>
-                <option value="40">أكثر من 30 ساعة</option>
-              </select>
+              <label for="suEnd">نهاية التدريب</label>
+              <div class="lp-daterow">
+                <select id="suEndD" aria-label="اليوم"></select>
+                <select id="suEndM" aria-label="الشهر"></select>
+                <select id="suEndY" aria-label="السنة"></select>
+              </div>
             </div>
           </div>
-
-          <div class="lp-fsec">خبرتك الحالية</div>
-          <p class="lp-fnote">اكتب ما لديك فعلاً. هذه البيانات تُستخدم لبناء مسارك، وسنتحقق منها أثناء التدريب.</p>
-          <label for="suSkills">المهارات التي تجيدها</label>
-          <textarea id="suSkills" placeholder="التحليل المالي، كتابة التقارير، إدارة المشاريع..."></textarea>
-          <label for="suTools">البرامج والأدوات</label>
-          <textarea id="suTools" placeholder="Excel, Power BI, SAP, Python..."></textarea>
-          <label for="suCourses">الدورات والشهادات</label>
-          <textarea id="suCourses" placeholder="اسم الدورة والجهة والسنة"></textarea>
-          <label for="suProjects">المشروعات التي شاركت فيها</label>
-          <textarea id="suProjects" placeholder="وصف موجز لدورك في كل مشروع"></textarea>
-
-          <div class="lp-fsec">هدفك من التدريب</div>
-          <label for="suRoles">المجالات الوظيفية التي تستهدفها</label>
-          <textarea id="suRoles" placeholder="محلل مخاطر، مستشار إداري، محلل مالي..."></textarea>
-          <label for="suGoals">ما الذي تريد الوصول إليه</label>
-          <textarea id="suGoals" placeholder="اكتب هدفك بوضوح"></textarea>
-          <label for="suChallenges">التحديات التي تواجهك</label>
-          <textarea id="suChallenges" placeholder="ما الذي يعوقك اليوم عن الوصول إلى هدفك"></textarea>
+          <div id="suDateMsg"></div>
+          <label for="suHours">الساعات المتاحة أسبوعياً</label>
+          <select id="suHours">
+            <option value="">اختر...</option>
+            <option value="10">حتى 10 ساعات</option>
+            <option value="20">من 11 إلى 20 ساعة</option>
+            <option value="30">من 21 إلى 30 ساعة</option>
+            <option value="40">أكثر من 30 ساعة</option>
+          </select>
 
           <button type="button" class="lp-submit" id="suBtn" onclick="lpDoSignup()">إرسال الطلب</button>
           <div id="suMsg"></div>
@@ -672,6 +676,39 @@ function lpCloseAny() {
   if (back) back.focus();
 }
 
+const LP_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                   'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+// تُعبّأ مرة واحدة عند أول فتح للنموذج.
+function lpFillDateSelects() {
+  const now = new Date();
+  const yNow = now.getFullYear();
+  ['suStart','suEnd'].forEach(base => {
+    const d = document.getElementById(base + 'D');
+    const m = document.getElementById(base + 'M');
+    const y = document.getElementById(base + 'Y');
+    if (!d || !m || !y || d.options.length) return;
+    d.innerHTML = '<option value="">اليوم</option>' +
+      Array.from({length:31}, (_,i) => '<option value="' + (i+1) + '">' + (i+1) + '</option>').join('');
+    m.innerHTML = '<option value="">الشهر</option>' +
+      LP_MONTHS.map((n,i) => '<option value="' + (i+1) + '">' + n + '</option>').join('');
+    y.innerHTML = '<option value="">السنة</option>' +
+      Array.from({length:3}, (_,i) => '<option value="' + (yNow+i) + '">' + (yNow+i) + '</option>').join('');
+  });
+}
+
+// يعيد YYYY-MM-DD أو '' إن لم تكتمل، أو null إن كان التاريخ غير موجود أصلاً
+// (مثل 31 فبراير) — نتحقق بأن جافاسكربت لم تُعِد ترتيبه.
+function lpReadDate(base) {
+  const g = sfx => (document.getElementById(base + sfx) || {}).value || '';
+  const d = parseInt(g('D'),10), m = parseInt(g('M'),10), y = parseInt(g('Y'),10);
+  if (!d || !m || !y) return '';
+  const dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+  const p = n => String(n).padStart(2, '0');
+  return y + '-' + p(m) + '-' + p(d);
+}
+
 function lpOpenReset() {
   lpCloseAny();
   const el = document.getElementById('lpReset');
@@ -764,6 +801,9 @@ function lpOpenSignup() {
   if (cb) { cb.disabled = false; cb.textContent = 'أرسل الرمز'; }
   const cm = document.getElementById('suCodeMsg');
   if (cm) cm.innerHTML = '';
+  const dm = document.getElementById('suDateMsg');
+  if (dm) dm.innerHTML = '';
+  lpFillDateSelects();
   el.classList.add('open');
   const f = document.getElementById('suName');
   if (f) setTimeout(() => f.focus(), 30);
@@ -830,6 +870,12 @@ async function lpDoSignup() {
   if (!university) return err('اكتب اسم الجامعة أو المعهد.');
   if (!major) return err('اكتب تخصصك.');
 
+  const startDate = lpReadDate('suStart');
+  const endDate = lpReadDate('suEnd');
+  if (startDate === null) return err('تاريخ البداية غير صحيح — راجع اليوم والشهر.');
+  if (endDate === null) return err('تاريخ النهاية غير صحيح — راجع اليوم والشهر.');
+  if (startDate && endDate && endDate < startDate) return err('تاريخ النهاية يسبق تاريخ البداية.');
+
   btn.disabled = true; btn.textContent = 'جارِ الإرسال...'; msg.innerHTML = '';
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/self-signup', {
@@ -840,10 +886,8 @@ async function lpDoSignup() {
         full_name: name, email, phone: g('suPhone'), code: g('suCode'),
         university, major,
         study_level: g('suLevel'), gpa: g('suGpa'),
-        duration_months: g('suDuration'), weekly_hours: g('suHours'),
-        skills: g('suSkills'), tools: g('suTools'),
-        courses: g('suCourses'), projects: g('suProjects'),
-        target_roles: g('suRoles'), goals: g('suGoals'), challenges: g('suChallenges'),
+        preferred_start_date: startDate, preferred_end_date: endDate,
+        weekly_hours: g('suHours'),
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -1066,7 +1110,7 @@ async function postLogin() {
 
   if (state.isStaff) {
     renderShell('staff');
-    await renderStaffTab('applications');
+    await renderStaffTab(state.isAdminOrManager ? 'dashboard' : 'applications');
   } else if (state.myTraineeId) {
     renderShell('trainee');
     await checkNdaAndRenderTrainee();
@@ -1084,11 +1128,14 @@ function renderShell(kind) {
   const email = state.session.user.email;
   const tabsHtml = kind === 'staff'
     ? `
+      <button class="tab-btn" data-tab="dashboard" onclick="renderStaffTab('dashboard')">لوحة المعلومات</button>
       <button class="tab-btn" data-tab="applications" onclick="renderStaffTab('applications')">طلبات التدريب</button>
       <button class="tab-btn" data-tab="trainees" onclick="renderStaffTab('trainees')">المتدربون</button>
       <button class="tab-btn" data-tab="certificates" onclick="renderStaffTab('certificates')">الشهادات</button>
       <button class="tab-btn" data-tab="trainers" onclick="renderStaffTab('trainers')">المدربون</button>
       <button class="tab-btn" data-tab="tracks" onclick="renderStaffTab('tracks')">المسارات التدريبية</button>
+      <button class="tab-btn" data-tab="accounts" onclick="renderStaffTab('accounts')">الحسابات والصلاحيات</button>
+      <button class="tab-btn" data-tab="hours" onclick="renderStaffTab('hours')">ساعات العمل</button>
       <button class="tab-btn" data-tab="exams" onclick="renderStaffTab('exams')">الاختبارات</button>
       <button class="tab-btn" data-tab="scenarios" onclick="renderStaffTab('scenarios')">السيناريوهات</button>
     `
@@ -1520,13 +1567,198 @@ async function renderStaffTab(tab) {
   const main = document.getElementById('mainContent');
   main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
 
-  if (tab === 'applications') await renderApplicationsTab(main);
+  if (tab === 'dashboard') await renderDashboardTab(main);
+  else if (tab === 'accounts') await renderAccountsTab(main);
+  else if (tab === 'hours') await renderHoursTab(main);
+  else if (tab === 'applications') await renderApplicationsTab(main);
   else if (tab === 'trainees') await renderTraineesTab(main);
   else if (tab === 'certificates') await renderStaffCertificatesTab(main);
   else if (tab === 'trainers') await renderTrainersTab(main);
   else if (tab === 'tracks') await renderTracksTab(main);
   else if (tab === 'exams') await renderExamsSettingsTab(main);
   else if (tab === 'scenarios') await renderScenariosTab(main);
+}
+
+// ===== لوحة المعلومات =====
+// كل الأرقام من admin_dashboard_stats بصلاحية DEFINER، وهي تُرجع {} لغير المدير.
+async function renderDashboardTab(main) {
+  if (!state.isAdminOrManager) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-warn">لوحة المعلومات متاحة للمدير فقط.</div></div>`;
+    return;
+  }
+  const { data: st, error } = await sb.rpc('admin_dashboard_stats');
+  if (error || !st || !Object.keys(st).length) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل الإحصاءات.</div></div>`;
+    return;
+  }
+  const n = v => Number(v || 0).toLocaleString('ar-SA', { maximumFractionDigits: 1 });
+  const card = (label, value, sub) =>
+    `<div class="kpi"><span class="kpi-n">${esc(n(value))}</span>     <span class="kpi-l">${esc(label)}</span>     ${sub ? `<span class="kpi-s">${esc(sub)}</span>` : ''}</div>`;
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>لوحة المعلومات</h2>
+      <p class="panel-note">صورة حيّة لبيانات المنصة.</p>
+
+      <div class="kpi-sec">الطلبات</div>
+      <div class="kpi-grid">
+        ${card('إجمالي الطلبات', st.applications_total)}
+        ${card('قيد المراجعة', st.applications_pending, 'تنتظر قرارك')}
+        ${card('تسجيل ذاتي', st.applications_self)}
+        ${card('آخر 30 يوماً', st.apps_last_30d)}
+      </div>
+
+      <div class="kpi-sec">الأشخاص</div>
+      <div class="kpi-grid">
+        ${card('المتدربون', st.trainees_total, `${n(st.trainees_active)} نشط`)}
+        ${card('المدربون', st.trainers_total, `${n(st.trainers_published)} منشور`)}
+        ${card('الحسابات', st.accounts_total)}
+        ${card('الشهادات', st.certificates_total)}
+      </div>
+
+      <div class="kpi-sec">المحتوى التدريبي</div>
+      <div class="kpi-grid">
+        ${card('المسارات', st.tracks_total)}
+        ${card('المهام', st.tasks_total)}
+        ${card('السيناريوهات', st.scenarios_total)}
+      </div>
+
+      <div class="kpi-sec">ساعات العمل</div>
+      <div class="kpi-grid">
+        ${card('هذا الشهر', st.hours_this_month, 'ساعة')}
+        ${card('الإجمالي', st.hours_all_time, 'ساعة')}
+      </div>
+    </div>`;
+}
+
+// ===== الحسابات والصلاحيات =====
+// إسناد الأدوار كان يتطلب تعديلاً مباشراً في القاعدة. صار من هنا،
+// وset_user_role تمنع إزالة آخر مدير حتى لا يُقفل أحد على نفسه.
+const ROLE_LABELS = { admin: 'مدير', training_manager: 'مدير تدريب', supervisor: 'مشرف', trainee: 'متدرب' };
+
+async function renderAccountsTab(main) {
+  if (!state.isAdminOrManager) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-warn">إدارة الصلاحيات متاحة للمدير فقط.</div></div>`;
+    return;
+  }
+  const { data: rows, error } = await sb.rpc('admin_list_accounts');
+  if (error) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل الحسابات: ${esc(error.message)}</div></div>`;
+    return;
+  }
+  const list = rows || [];
+  const opts = cur => ['', 'admin', 'training_manager', 'supervisor', 'trainee']
+    .map(r => `<option value="${r}" ${cur === r || (!cur && !r) ? 'selected' : ''}>${r ? esc(ROLE_LABELS[r]) : '— بلا دور —'}</option>`).join('');
+
+  const body = list.map(a => `
+    <tr>
+      <td>${esc(a.full_name || '—')}</td>
+      <td dir="ltr">${esc(a.email || '—')}</td>
+      <td>${a.social_handle ? '<span class="src-staff">فريق لوحة التواصل</span>' : (a.is_trainee ? '<span class="src-self">متدرب</span>' : '')}</td>
+      <td>${a.last_sign_in_at ? fmtDate(a.last_sign_in_at) : '<span style="opacity:.5">لم يدخل بعد</span>'}</td>
+      <td><select class="role-sel" data-uid="${esc(a.id)}" onchange="changeRole(this)">${opts(a.role)}</select></td>
+    </tr>`).join('') || `<tr><td class="empty-row" colspan="5">لا توجد حسابات</td></tr>`;
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>الحسابات والصلاحيات</h2>
+      <p class="panel-note">غيّر الدور من القائمة ويُحفظ فوراً. «مدير» و«مدير تدريب» يريان كل شيء، و«مشرف» يرى متدربيه فقط.</p>
+      <div id="roleMsg"></div>
+      <table><thead><tr><th>الاسم</th><th>البريد</th><th>الانتماء</th><th>آخر دخول</th><th>الدور</th></tr></thead>
+      <tbody>${body}</tbody></table>
+    </div>`;
+}
+
+async function changeRole(sel) {
+  const msg = document.getElementById('roleMsg');
+  const uid = sel.dataset.uid;
+  const prev = sel.dataset.prev || '';
+  const val = sel.value || null;
+  sel.disabled = true;
+  try {
+    const { data, error } = await sb.rpc('set_user_role', { p_user_id: uid, p_role: val });
+    if (error) throw new Error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    sel.dataset.prev = sel.value;
+    msg.innerHTML = `<div class="msg-box msg-success">حُفظ دور ${esc(row?.full_name || 'الحساب')}: ${esc(val ? ROLE_LABELS[val] : 'بلا دور')}</div>`;
+  } catch (e) {
+    sel.value = prev;
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(e.message)}</div>`;
+  } finally {
+    sel.disabled = false;
+  }
+}
+
+// ===== ساعات العمل =====
+async function renderHoursTab(main) {
+  const [{ data: trainees }, { data: hours }] = await Promise.all([
+    sb.from('trainees').select('id, full_name, status').order('full_name'),
+    sb.from('work_hours').select('*').order('work_date', { ascending: false }).limit(200),
+  ]);
+  const tList = trainees || [];
+  const hList = hours || [];
+  const nameOf = id => (tList.find(t => t.id === id) || {}).full_name || '—';
+
+  const totals = {};
+  hList.forEach(h => { totals[h.trainee_id] = (totals[h.trainee_id] || 0) + Number(h.hours); });
+
+  const opts = tList.map(t => `<option value="${esc(t.id)}">${esc(t.full_name)}</option>`).join('');
+  const rows = hList.map(h => `
+    <tr>
+      <td>${esc(nameOf(h.trainee_id))}</td>
+      <td dir="ltr">${esc(h.work_date)}</td>
+      <td>${esc(String(h.hours))}</td>
+      <td>${esc(h.note || '')}</td>
+      <td><button class="small danger" onclick="deleteHours('${esc(h.id)}')">حذف</button></td>
+    </tr>`).join('') || `<tr><td class="empty-row" colspan="5">لم تُسجَّل ساعات بعد</td></tr>`;
+
+  const summary = tList.map(t => `
+    <tr><td>${esc(t.full_name)}</td><td>${esc(String(totals[t.id] || 0))}</td></tr>`).join('')
+    || `<tr><td class="empty-row" colspan="2">لا يوجد متدربون</td></tr>`;
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>ساعات العمل</h2>
+      <p class="panel-note">صف واحد لكل متدرب في اليوم الواحد. تسجيل اليوم نفسه مرتين يحدّث القيمة.</p>
+      <div class="hours-form">
+        <div><label>المتدرب</label><select id="whTrainee"><option value="">اختر...</option>${opts}</select></div>
+        <div><label>التاريخ</label><input id="whDate" type="date"></div>
+        <div><label>الساعات</label><input id="whHours" type="number" step="0.5" min="0.5" max="24" placeholder="8"></div>
+        <div><label>ملاحظة</label><input id="whNote" type="text" placeholder="اختياري"></div>
+        <div><button class="gold" onclick="addHours()">تسجيل</button></div>
+      </div>
+      <div id="whMsg"></div>
+      <h3 style="margin-top:22px">الإجمالي لكل متدرب</h3>
+      <table><thead><tr><th>المتدرب</th><th>مجموع الساعات</th></tr></thead><tbody>${summary}</tbody></table>
+      <h3 style="margin-top:22px">آخر التسجيلات</h3>
+      <table><thead><tr><th>المتدرب</th><th>التاريخ</th><th>الساعات</th><th>ملاحظة</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`;
+}
+
+async function addHours() {
+  const msg = document.getElementById('whMsg');
+  const g = id => (document.getElementById(id).value || '').trim();
+  const trainee = g('whTrainee'), date = g('whDate'), hrs = parseFloat(g('whHours'));
+  const err = t => { msg.innerHTML = `<div class="msg-box msg-error">${esc(t)}</div>`; };
+
+  if (!trainee) return err('اختر المتدرب.');
+  if (!date) return err('اختر التاريخ.');
+  if (!Number.isFinite(hrs) || hrs <= 0 || hrs > 24) return err('الساعات يجب أن تكون بين 0.5 و24.');
+
+  const { error } = await sb.from('work_hours').upsert({
+    trainee_id: trainee, work_date: date, hours: hrs, note: g('whNote') || null,
+  }, { onConflict: 'trainee_id,work_date' });
+
+  if (error) return err(error.message);
+  await renderStaffTab('hours');
+}
+
+async function deleteHours(id) {
+  if (!confirm('حذف هذا التسجيل؟')) return;
+  const { error } = await sb.from('work_hours').delete().eq('id', id);
+  if (error) { alert('تعذّر الحذف: ' + error.message); return; }
+  await renderStaffTab('hours');
 }
 
 async function renderApplicationsTab(main) {
