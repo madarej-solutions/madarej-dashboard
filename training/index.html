@@ -260,6 +260,7 @@
   .lp-fsec.first { margin-top: 0; padding-top: 0; border-top: none; }
   .lp-fnote { font-size: 12.5px; font-weight: 300; color: rgba(255,255,255,.45); margin: -12px 0 18px; }
   .lp-req { color: #E8927C; }
+  .lp-forgot { margin: -8px 0 18px; text-align: left; font-size: 13px; }
   .lp-coderow { display: flex; gap: 10px; align-items: flex-start; }
   .lp-coderow input { flex: 1; letter-spacing: 6px; text-align: center; font-size: 18px; }
   .lp-codebtn { flex: 0 0 auto; padding: 12px 18px; margin-bottom: 18px; background: transparent;
@@ -435,9 +436,38 @@ function renderLogin(errorMsg) {
           <input id="loginEmail" type="email" placeholder="name@example.com" autocomplete="username">
           <label for="loginPassword">كلمة المرور</label>
           <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+          <p class="lp-forgot"><button type="button" class="lp-link" onclick="lpOpenReset()">نسيت كلمة المرور؟</button></p>
           <button type="button" class="lp-submit" id="loginBtn" onclick="doLogin()">تسجيل الدخول</button>
           <div id="loginMsg">${errorMsg ? `<div class="msg-box msg-error">${esc(errorMsg)}</div>` : ''}</div>
           <p class="lp-alt">ليس لديك حساب؟ <button type="button" class="lp-link" onclick="lpOpenSignup()">أنشئ حسابًا جديدًا</button></p>
+        </div>
+      </div>
+
+      <div class="lp-auth" id="lpReset" role="dialog" aria-modal="true" aria-labelledby="lpResetTitle" onclick="lpBackdrop(event)">
+        <div class="lp-authcard">
+          <span class="c c1"></span><span class="c c2"></span>
+          <button type="button" class="lp-close" onclick="lpCloseAny()" aria-label="إغلاق">&times;</button>
+          <h2 id="lpResetTitle">استعادة كلمة المرور</h2>
+          <p class="lp-authsub">اكتب بريدك ونرسل إليك رابطاً لتعيين كلمة مرور جديدة.</p>
+          <label for="rsEmail">البريد الإلكتروني</label>
+          <input id="rsEmail" type="email" dir="ltr" autocomplete="username" placeholder="name@example.com">
+          <button type="button" class="lp-submit" id="rsBtn" onclick="lpDoReset()">أرسل رابط الاستعادة</button>
+          <div id="rsMsg"></div>
+          <p class="lp-alt">تذكّرتها؟ <button type="button" class="lp-link" onclick="lpOpenLogin()">سجّل الدخول</button></p>
+        </div>
+      </div>
+
+      <div class="lp-auth" id="lpNewPass" role="dialog" aria-modal="true" aria-labelledby="lpNewPassTitle">
+        <div class="lp-authcard">
+          <span class="c c1"></span><span class="c c2"></span>
+          <h2 id="lpNewPassTitle">تعيين كلمة مرور جديدة</h2>
+          <p class="lp-authsub">اختر كلمة مرور جديدة لحسابك.</p>
+          <label for="npPass">كلمة المرور الجديدة</label>
+          <input id="npPass" type="password" autocomplete="new-password" placeholder="8 أحرف على الأقل">
+          <label for="npPass2">تأكيد كلمة المرور</label>
+          <input id="npPass2" type="password" autocomplete="new-password" placeholder="أعد كتابتها">
+          <button type="button" class="lp-submit" id="npBtn" onclick="lpDoNewPass()">حفظ كلمة المرور</button>
+          <div id="npMsg"></div>
         </div>
       </div>
 
@@ -598,6 +628,12 @@ function renderLogin(errorMsg) {
   onEnter('loginPassword', doLogin);
   onEnter('lpVerifyCode', lpDoVerify);
   document.addEventListener('keydown', lpEscHandler);
+  // العودة من رابط الاستعادة: supabase-js يطلق PASSWORD_RECOVERY بعد قراءة الرمز من الرابط
+  try {
+    sb.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') lpOpenNewPass();
+    });
+  } catch (e) { console.error('recovery listener failed:', e); }
   if (errorMsg) lpOpenLogin();
 
   // رابط تحقق مباشر: ?verify=CODE يفتح النافذة ويتحقق فوراً
@@ -634,6 +670,85 @@ function lpCloseAny() {
   open.classList.remove('open');
   const back = document.querySelector('.lp-signin');
   if (back) back.focus();
+}
+
+function lpOpenReset() {
+  lpCloseAny();
+  const el = document.getElementById('lpReset');
+  if (!el) return;
+  const m = document.getElementById('rsMsg');
+  if (m) m.innerHTML = '';
+  const b = document.getElementById('rsBtn');
+  if (b) { b.disabled = false; b.textContent = 'أرسل رابط الاستعادة'; b.style.display = ''; }
+  // ننقل البريد المكتوب في نافذة الدخول حتى لا يعيد كتابته
+  const le = document.getElementById('loginEmail');
+  const re = document.getElementById('rsEmail');
+  if (re && le && le.value) re.value = le.value;
+  el.classList.add('open');
+  if (re) setTimeout(() => re.focus(), 30);
+}
+
+async function lpDoReset() {
+  const btn = document.getElementById('rsBtn');
+  const msg = document.getElementById('rsMsg');
+  const email = (document.getElementById('rsEmail').value || '').trim();
+  const show = (cls, t) => { msg.innerHTML = '<div class="msg-box ' + cls + '">' + t + '</div>'; };
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return show('msg-error', 'اكتب بريداً إلكترونياً صالحاً.');
+
+  btn.disabled = true; btn.textContent = 'جارِ الإرسال...'; msg.innerHTML = '';
+  try {
+    const redirectTo = location.origin + location.pathname;
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw new Error(error.message);
+    // لا نكشف إن كان البريد مسجلاً أو لا — الرسالة واحدة في الحالتين
+    show('msg-success', 'إن كان هذا البريد مسجلاً لدينا فسيصلك رابط لتعيين كلمة مرور جديدة. تحقق من صندوق الوارد ومن الرسائل غير المرغوبة.');
+    btn.style.display = 'none';
+  } catch (e) {
+    show('msg-error', esc(e.message || 'تعذّر إرسال الرابط. حاول مرة أخرى.'));
+    btn.disabled = false; btn.textContent = 'أرسل رابط الاستعادة';
+  }
+}
+
+// تُفتح تلقائياً حين يعود المستخدم من رابط الاستعادة (حدث PASSWORD_RECOVERY).
+function lpOpenNewPass() {
+  lpCloseAny();
+  const el = document.getElementById('lpNewPass');
+  if (!el) return;
+  const m = document.getElementById('npMsg');
+  if (m) m.innerHTML = '';
+  const b = document.getElementById('npBtn');
+  if (b) { b.disabled = false; b.textContent = 'حفظ كلمة المرور'; b.style.display = ''; }
+  el.classList.add('open');
+  const f = document.getElementById('npPass');
+  if (f) setTimeout(() => f.focus(), 30);
+}
+
+async function lpDoNewPass() {
+  const btn = document.getElementById('npBtn');
+  const msg = document.getElementById('npMsg');
+  const p1 = document.getElementById('npPass').value;
+  const p2 = document.getElementById('npPass2').value;
+  const show = (cls, t) => { msg.innerHTML = '<div class="msg-box ' + cls + '">' + t + '</div>'; };
+
+  if (p1.length < 8) return show('msg-error', 'كلمة المرور يجب ألا تقل عن 8 أحرف.');
+  if (p1 !== p2) return show('msg-error', 'كلمتا المرور غير متطابقتين.');
+
+  btn.disabled = true; btn.textContent = 'جارِ الحفظ...'; msg.innerHTML = '';
+  try {
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) throw new Error(error.message);
+    show('msg-success', 'تم تغيير كلمة المرور. جارِ الدخول...');
+    btn.style.display = 'none';
+    // ننظّف الرابط من رموز الاستعادة ثم نعيد التحميل لتُبنى الجلسة كاملة
+    setTimeout(() => {
+      history.replaceState(null, '', location.origin + location.pathname);
+      location.reload();
+    }, 1200);
+  } catch (e) {
+    show('msg-error', esc(e.message || 'تعذّر تغيير كلمة المرور. اطلب رابطاً جديداً.'));
+    btn.disabled = false; btn.textContent = 'حفظ كلمة المرور';
+  }
 }
 
 function lpOpenSignup() {
