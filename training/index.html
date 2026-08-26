@@ -213,6 +213,13 @@
   .pending-banner { margin-bottom: 14px; }
   .pending-note { font-size: 13px; font-weight: 300; margin: 4px 0 10px; opacity: .85; }
   .pending-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .blocked-list { display: flex; flex-direction: column; gap: 6px; }
+  .blocked-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+    font-size: 13px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,.08); }
+  .br-name { font-weight: 600; }
+  .br-count { font-family: ui-monospace, monospace; font-size: 11.5px; opacity: .8; white-space: nowrap; }
+  .br-why { font-size: 12px; opacity: .8; white-space: nowrap; }
+  @media (max-width: 620px) { .blocked-row { grid-template-columns: 1fr; gap: 2px; } }
   .cred-row { display: flex; justify-content: space-between; align-items: center; gap: 12px;
     padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,.07); font-size: 13.5px; }
   .cred-row span { color: #6B7A8C; font-size: 12.5px; }
@@ -2358,6 +2365,27 @@ async function renderTraineesTab(main) {
   main.innerHTML = `
     <div class="panel">
       <h2>المتدربون <span style="font-size:12px;font-weight:normal;color:var(--muted)">— ${scopeNote} (${list.length})</span></h2>
+      ${(() => {
+        // شرط رؤية المهام في RLS: تعهد موقّع + اختبار أمن مجتاز.
+        const blocked = list.filter(x => (taskAll[x.id] || 0) > 0
+          && (!(ndaBy[x.id] > 0) || !x.security_exam_passed));
+        if (!blocked.length) return '';
+        const why = x => [
+          (ndaBy[x.id] > 0) ? null : 'لم يوقّع التعهد',
+          x.security_exam_passed ? null : 'لم يجتز اختبار الوعي الأمني',
+        ].filter(Boolean).join(' و');
+        return `<div class="msg-box msg-warn pending-banner">
+          <b>${blocked.length} متدرب لديه مهام لا يستطيع رؤيتها</b>
+          <div class="pending-note">المهام مُسندة فعلاً، لكن المنصة تحجبها حتى يكتمل شرطا الدخول.
+            نبّه المتدرب لإكمالهما — لا يلزمك إجراء آخر.</div>
+          <div class="blocked-list">
+            ${blocked.map(x => `<div class="blocked-row">
+              <span class="br-name">${esc(x.full_name)}</span>
+              <span class="br-count">${taskAll[x.id]} مهمة</span>
+              <span class="br-why">${esc(why(x))}</span>
+            </div>`).join('')}
+          </div></div>`;
+      })()}
       ${(() => {
         const waiting = list.filter(x => x.status === 'pending_account');
         if (!waiting.length || !state.isAdminOrManager) return '';
