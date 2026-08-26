@@ -139,6 +139,9 @@
   .kpi-l { display: block; font-size: 13px; color: #3D4A59; }
   .kpi-s { display: block; font-size: 11.5px; color: #6B7A8C; margin-top: 3px; }
   .kpi-warn { background: rgba(184,134,10,.1); border-color: rgba(184,134,10,.35); }
+  .pending-banner { margin-bottom: 14px; }
+  .pending-note { font-size: 13px; font-weight: 300; margin: 4px 0 10px; opacity: .85; }
+  .pending-list { display: flex; flex-wrap: wrap; gap: 8px; }
   .kpi-warn .kpi-n { color: #8A6100; }
   .panel-note { font-size: 13px; color: #6B7A8C; margin: -6px 0 16px; font-weight: 300; }
   .role-sel { padding: 6px 10px; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 13px; }
@@ -2106,6 +2109,17 @@ async function renderTraineesTab(main) {
   main.innerHTML = `
     <div class="panel">
       <h2>المتدربون <span style="font-size:12px;font-weight:normal;color:var(--muted)">— ${scopeNote} (${list.length})</span></h2>
+      ${(() => {
+        const waiting = list.filter(x => x.status === 'pending_account');
+        if (!waiting.length || !state.isAdminOrManager) return '';
+        return `<div class="msg-box msg-warn pending-banner">
+          <b>${waiting.length} متدرب قُبل ولا يستطيع الدخول</b>
+          <div class="pending-note">القبول يُنشئ سجل المتدرب فقط. أنشئ له حساب دخول ليتمكن من استخدام المنصة.</div>
+          <div class="pending-list">
+            ${waiting.map(x => `<button class="small gold" onclick="viewTraineeDetail('${x.id}')">
+              إنشاء حساب لـ ${esc(x.full_name)}</button>`).join('')}
+          </div></div>`;
+      })()}
       <input id="traineeSearch" type="search" placeholder="ابحث بالاسم أو الرقم أو المسار أو المشرف..." oninput="lpFilterRows('traineeSearch','tr-row')" style="max-width:420px;margin-bottom:12px">
       <div style="overflow-x:auto">
       <table>
