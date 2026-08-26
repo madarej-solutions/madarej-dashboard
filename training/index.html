@@ -142,6 +142,12 @@
   .pending-banner { margin-bottom: 14px; }
   .pending-note { font-size: 13px; font-weight: 300; margin: 4px 0 10px; opacity: .85; }
   .pending-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cred-row { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,.07); font-size: 13.5px; }
+  .cred-row span { color: #6B7A8C; font-size: 12.5px; }
+  .cred-row code { font-size: 14px; font-weight: 600; user-select: all; }
+  .cred-note { font-size: 12.5px; color: #6B7A8C; margin-top: 10px; line-height: 1.7; font-weight: 300; }
+  .cred-note code { font-size: 12px; }
   .kpi-warn .kpi-n { color: #8A6100; }
   .panel-note { font-size: 13px; color: #6B7A8C; margin: -6px 0 16px; font-weight: 300; }
   .role-sel { padding: 6px 10px; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 13px; }
@@ -2393,23 +2399,43 @@ async function createTempAccountAction(traineeId) {
     const payload = { trainee_id: traineeId, starts_at: starts, ends_at: ends };
     if (username) payload.username = username;
     const data = await authedFetch('create-temp-account', payload);
-    const credsText = `اسم المستخدم: ${data.username}\nكلمة المرور: ${data.temporary_password}`;
+    // الدخول بالبريد لا باسم المستخدم — signInWithPassword يقبل البريد فقط.
+    const loginEmail = data.login_email || '';
+    const credsText = [
+      'رابط الدخول: https://training.madarej.sa',
+      'البريد الإلكتروني: ' + loginEmail,
+      'كلمة المرور المؤقتة: ' + data.temporary_password,
+    ].join('\n');
+
     msgEl.innerHTML = `
       <div class="credential-box">
-        <b>تم إنشاء الحساب! سلّم هذه البيانات للمتدرب خارج النظام فوراً — لن تظهر مرة أخرى:</b><br>
-        اسم المستخدم: <code>${esc(data.username)}</code><br>
-        كلمة المرور: <code>${esc(data.temporary_password)}</code><br>
-        <button class="small" style="margin-top:8px" id="copyCredsBtn">نسخ بيانات الدخول</button>
+        <b>تم إنشاء الحساب. انسخ هذه البيانات الآن — لن تظهر مرة أخرى.</b>
+        <div class="cred-row"><span>رابط الدخول</span><code dir="ltr">training.madarej.sa</code></div>
+        <div class="cred-row"><span>البريد الإلكتروني</span><code dir="ltr">${esc(loginEmail)}</code></div>
+        <div class="cred-row"><span>كلمة المرور المؤقتة</span><code dir="ltr">${esc(data.temporary_password)}</code></div>
+        <div class="cred-note">يدخل المتدرب بالبريد وكلمة المرور. اسم المستخدم
+          <code dir="ltr">${esc(data.username || '')}</code> معرّف داخلي للعرض فقط ولا يُستخدم في الدخول.</div>
+        <div class="actions-row" style="margin-top:10px">
+          <button class="small gold" id="copyCredsBtn">نسخ بيانات الدخول</button>
+          <button class="small secondary" id="doneCredsBtn">سلّمتها — إغلاق</button>
+        </div>
       </div>`;
+
     document.getElementById('copyCredsBtn').addEventListener('click', async () => {
+      const b = document.getElementById('copyCredsBtn');
       try {
         await navigator.clipboard.writeText(credsText);
-        const b = document.getElementById('copyCredsBtn');
         b.textContent = 'تم النسخ ✓';
         setTimeout(() => { b.textContent = 'نسخ بيانات الدخول'; }, 2000);
-      } catch { alert('تعذّر النسخ التلقائي — انسخ النص يدوياً.'); }
+      } catch { alert('تعذّر النسخ التلقائي — انسخ النص يدوياً من الصندوق.'); }
     });
-    setTimeout(() => viewTraineeDetail(traineeId), 8000);
+
+    // لا اختفاء تلقائي: الصندوق يبقى حتى يؤكّد الموظف أنه سلّم البيانات.
+    document.getElementById('doneCredsBtn').addEventListener('click', () => {
+      if (confirm('هل سلّمت بيانات الدخول للمتدرب؟ لن تظهر كلمة المرور مرة أخرى.')) {
+        viewTraineeDetail(traineeId);
+      }
+    });
   } catch (err) {
     msgEl.innerHTML = `<div class="msg-box msg-error">${esc(err.message)}</div>`;
   }
