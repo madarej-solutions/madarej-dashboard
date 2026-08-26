@@ -148,6 +148,19 @@
   .cred-row code { font-size: 14px; font-weight: 600; user-select: all; }
   .cred-note { font-size: 12.5px; color: #6B7A8C; margin-top: 10px; line-height: 1.7; font-weight: 300; }
   .cred-note code { font-size: 12px; }
+  .policy-gate { max-width: 760px; }
+  .policy-block { margin-bottom: 22px; }
+  .policy-block h3 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; font-size: 16px; }
+  .policy-ver { font-size: 11px; font-family: ui-monospace, monospace; color: #6B7A8C;
+    background: rgba(0,0,0,.05); padding: 1px 6px; border-radius: 8px; }
+  .policy-text { max-height: 240px; overflow-y: auto; white-space: pre-wrap; line-height: 1.9;
+    font-size: 13.5px; padding: 14px 16px; border: 1px solid rgba(0,0,0,.13); border-radius: 6px;
+    background: rgba(0,0,0,.02); }
+  .policy-ack { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13.5px; }
+  .policy-ack input[type=checkbox] { width: 17px; height: 17px; margin: 0; flex: 0 0 auto; }
+  .policy-ack input[type=text] { flex: 1; padding: 8px 10px; margin: 0;
+    border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 13.5px; }
+  .policy-ack input:disabled + span, .policy-ack input:disabled { opacity: .55; }
   .kpi-warn .kpi-n { color: #8A6100; }
   .panel-note { font-size: 13px; color: #6B7A8C; margin: -6px 0 16px; font-weight: 300; }
   .role-sel { padding: 6px 10px; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 13px; }
@@ -1220,13 +1233,117 @@ function setActiveTabBtn(tabKey) {
 // واجهة المتدرب
 // ============================================================================
 
+// ترتيب البوابات: الشروط والخصوصية ← تعهد السرية ← اختبار الوعي الأمني.
+// الموافقة على الشروط تسبق التعهد لأنها شرط استخدام المنصة نفسها لا شرط رؤية المهام.
 async function checkNdaAndRenderTrainee() {
+  const { data: pending } = await sb.rpc('pending_policies');
+  if (pending && pending.length) {
+    await renderPolicyGate(pending);
+    return;
+  }
   const { data: valid } = await sb.rpc('has_valid_nda_signature');
   if (!valid) {
     await renderNdaGate();
   } else {
     await checkExamGatesAndRenderTrainee();
   }
+}
+
+const POLICY_TITLES = { privacy: 'سياسة الخصوصية', terms: 'شروط الاستخدام' };
+
+// كل وثيقة تُعرض بنصها كاملاً، ولا يُفعّل زر الموافقة إلا بعد التمرير إلى آخرها
+// وتعليم صندوقها — حتى لا تكون الموافقة نقرة عمياء.
+async function renderPolicyGate(pending) {
+  const main = document.getElementById('mainContent') || document.getElementById('app');
+  const blocks = pending.map((p, i) => `
+    <div class="policy-block">
+      <h3>${esc(POLICY_TITLES[p.policy_type] || p.policy_type)}
+        <span class="policy-ver">${esc(p.version_label)}</span></h3>
+      <div class="policy-text" id="pol${i}" onscroll="policyScrolled(${i})">${esc(p.full_text)}</div>
+      <label class="policy-ack">
+        <input type="checkbox" id="polAck${i}" disabled onchange="policyAckChanged()">
+        <span id="polAckLbl${i}">اقرأ الوثيقة كاملة لتتمكن من الموافقة</span>
+      </label>
+    </div>`).join('');
+
+  main.innerHTML = `
+    <div class="panel policy-gate">
+      <h2>قبل أن تبدأ</h2>
+      <p class="panel-note">وافق على الوثيقتين للمتابعة. تُحفظ موافقتك ببصمة نص النسخة التي قرأتها.</p>
+      ${blocks}
+      <label class="policy-ack">اسمك الكامل للتوثيق
+        <input type="text" id="polName" placeholder="الاسم الثلاثي" oninput="policyAckChanged()">
+      </label>
+      <div id="polMsg"></div>
+      <div class="actions-row" style="margin-top:12px">
+        <button class="gold" id="polBtn" disabled onclick='submitPolicies(${JSON.stringify(pending.map(p => p.id))})'>
+          أوافق وأتابع</button>
+        <button class="secondary" onclick="logout()">تسجيل خروج</button>
+      </div>
+    </div>`;
+  window.__polCount = pending.length;
+}
+
+function policyScrolled(i) {
+  const el = document.getElementById('pol' + i);
+  if (!el) return;
+  // هامش 24 بكسل يستوعب فروق التقريب بين المتصفحات
+  if (el.scrollTop + el.clientHeight < el.scrollHeight - 24) return;
+  const box = document.getElementById('polAck' + i);
+  const lbl = document.getElementById('polAckLbl' + i);
+  if (box && box.disabled) {
+    box.disabled = false;
+    if (lbl) lbl.textContent = 'قرأتُ الوثيقة وأوافق على ما فيها';
+  }
+}
+
+function policyAckChanged() {
+  const n = window.__polCount || 0;
+  let all = true;
+  for (let i = 0; i < n; i++) {
+    const b = document.getElementById('polAck' + i);
+    if (!b || !b.checked) { all = false; break; }
+  }
+  const name = (document.getElementById('polName') || {}).value || '';
+  const btn = document.getElementById('polBtn');
+  if (btn) btn.disabled = !(all && name.trim().length >= 3);
+}
+
+async function submitPolicies(ids) {
+  const btn = document.getElementById('polBtn');
+  const msg = document.getElementById('polMsg');
+  const name = document.getElementById('polName').value.trim();
+  btn.disabled = true; btn.textContent = 'جارِ الحفظ...';
+  try {
+    const { data: pending } = await sb.rpc('pending_policies');
+    const rows = [];
+    for (const p of (pending || [])) {
+      if (!ids.includes(p.id)) continue;
+      rows.push({
+        policy_version_id: p.id,
+        auth_user_id: state.session.user.id,
+        trainee_id: state.myTraineeId || null,
+        full_name_entered: name,
+        text_sha256: await sha256Hex(p.full_text),
+        session_info: { ua: navigator.userAgent.slice(0, 300), at: new Date().toISOString() },
+      });
+    }
+    if (rows.length) {
+      const { error } = await sb.from('policy_acceptances').insert(rows);
+      if (error) throw new Error(error.message);
+    }
+    await checkNdaAndRenderTrainee();
+  } catch (e) {
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(e.message || 'تعذّر حفظ الموافقة.')}</div>`;
+    btn.disabled = false; btn.textContent = 'أوافق وأتابع';
+  }
+}
+
+// بصمة نص الوثيقة تُحسب في المتصفح وتُخزَّن مع الموافقة، فتثبت ما وافق عليه فعلاً
+// حتى لو عُدّلت النسخة لاحقاً.
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ============================================================================
