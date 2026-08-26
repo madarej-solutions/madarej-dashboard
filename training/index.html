@@ -219,6 +219,17 @@
   .cred-row code { font-size: 14px; font-weight: 600; user-select: all; }
   .cred-note { font-size: 12.5px; color: #6B7A8C; margin-top: 10px; line-height: 1.7; font-weight: 300; }
   .cred-note code { font-size: 12px; }
+  .cert-checks { display: flex; flex-direction: column; gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 4px; }
+  .cert-check { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center;
+    background: var(--card); padding: 8px 11px; font-size: 13px; }
+  .cc-mark { font-weight: 700; text-align: center; }
+  .cert-check.ok .cc-mark { color: #39c939; }
+  .cert-check.no .cc-mark { color: #ef6b6b; }
+  .cc-label { color: var(--ink2); }
+  .cc-actual { font-size: 11.5px; color: var(--muted); font-family: ui-monospace, monospace; }
+  button.danger { background: rgba(208,59,59,.18); color: #ef6b6b; border: 1px solid rgba(208,59,59,.45); }
+  button.danger:hover:not(:disabled) { background: rgba(208,59,59,.3); }
   .policy-gate { max-width: 760px; }
   .policy-block { margin-bottom: 22px; }
   .policy-block h3 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; font-size: 16px; }
@@ -1767,7 +1778,12 @@ function renderCertificatesTable(certs, isStaffView) {
       <td>${statusLabel(c.certificate_type)}</td>
       <td>${fmtDate(c.issued_at)}</td>
       <td>${c.revoked ? badge('revoked') : badge('active')}</td>
-      <td><button class="small secondary" onclick="downloadCertificate('${c.id}')">تحميل PDF</button></td>
+      <td class="actions-row">
+        <button class="small secondary" onclick="downloadCertificate('${c.id}')">تحميل PDF</button>
+        ${isStaffView && state.isAdminOrManager && !c.revoked
+          ? `<button class="small danger" onclick="openRevokeCertModal('${c.id}','${esc(c.verification_code || '')}')">إلغاء</button>`
+          : ''}
+      </td>
     </tr>
   `).join('');
   return `<table><thead><tr><th>النوع</th><th>تاريخ الإصدار</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -2305,7 +2321,7 @@ async function renderTraineesTab(main) {
   const evalBy = count(evals, 'trainee_id');
   const certBy = count((certs || []).filter(c => !c.revoked), 'trainee_id');
   const taskAll = count(tasks, 'trainee_id');
-  const taskDone = count((tasks || []).filter(t => t.status === 'completed'), 'trainee_id');
+  const taskDone = count((tasks || []).filter(t => t.status === 'approved'), 'trainee_id');
 
   const tick = ok => ok
     ? '<span style="color:#1e7e34;font-weight:bold">✓</span>'
@@ -2721,35 +2737,115 @@ async function createEvaluationAction(traineeId) {
   await viewTraineeDetail(traineeId);
 }
 
+const CERT_TYPES = [
+  ['participation','شهادة التدريب'], ['completion','شهادة الإنجاز'], ['excellence','شهادة التميّز'],
+];
+
 function openIssueCertModal(traineeId) {
+  const opts = CERT_TYPES.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
   openModal(`
     <h3>إصدار شهادة</h3>
-    <label>نوع الشهادة</label>
-    <select id="icType">
-      <option value="completion">شهادة إتمام</option>
-      <option value="excellence">شهادة تفوق</option>
-      <option value="participation">شهادة مشاركة</option>
-    </select>
+    <label for="icType">نوع الشهادة</label>
+    <select id="icType" onchange="loadCertEligibility('${traineeId}')">${opts}</select>
+    <div id="icChecks"><div class="loading">جارِ فحص الاستحقاق...</div></div>
+    <div id="icOverrideWrap" style="display:none">
+      <label for="icOverride">سبب الإصدار استثناءً</label>
+      <p class="panel-note">يُحفظ في سجل التدقيق مع نتيجة الفحص. عشرة أحرف فأكثر.</p>
+      <input id="icOverride" type="text" placeholder="مثال: أنهى تدريبه في نظام سابق وتم التحقق من ملفه">
+    </div>
     <div id="icMsg"></div>
     <div class="modal-actions">
-      <button class="gold" onclick="issueCertAction('${traineeId}')">إصدار</button>
+      <button class="gold" id="icBtn" onclick="issueCertAction('${traineeId}')">إصدار</button>
       <button class="secondary" onclick="closeModal()">إلغاء</button>
-    </div>
-  `);
+    </div>`);
+  loadCertEligibility(traineeId);
+}
+
+// يعرض الشروط قبل الإصدار: الموظف يرى *لماذا* لا يستحق، لا مجرد رفض.
+async function loadCertEligibility(traineeId) {
+  const box = document.getElementById('icChecks');
+  const type = document.getElementById('icType').value;
+  box.innerHTML = '<div class="loading">جارِ فحص الاستحقاق...</div>';
+  const { data, error } = await sb.rpc('certificate_eligibility',
+    { p_trainee_id: traineeId, p_certificate_type: type });
+  if (error) { box.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
+
+  const checks = (data && data.checks) || [];
+  const rows = checks.map(c => `
+    <div class="cert-check ${c.pass ? 'ok' : 'no'}">
+      <span class="cc-mark">${c.pass ? '✓' : '✕'}</span>
+      <span class="cc-label">${esc(c.label)}</span>
+      <span class="cc-actual">${esc(String(c.actual))}</span>
+    </div>`).join('') || '<div class="panel-note">لا شروط على هذا النوع.</div>';
+
+  const ok = !!(data && data.eligible);
+  box.innerHTML = `
+    <div class="msg-box ${ok ? 'msg-success' : 'msg-warn'}" style="margin-bottom:8px">
+      ${ok ? 'مستحق — كل الشروط مكتملة' : 'غير مستحق — شروط ناقصة'}</div>
+    <div class="cert-checks">${rows}</div>`;
+
+  const w = document.getElementById('icOverrideWrap');
+  if (w) w.style.display = ok ? 'none' : '';
+  const btn = document.getElementById('icBtn');
+  if (btn) btn.textContent = ok ? 'إصدار' : 'إصدار استثناءً';
 }
 
 async function issueCertAction(traineeId) {
   const type = document.getElementById('icType').value;
   const msgEl = document.getElementById('icMsg');
-  const { data: certId, error } = await sb.rpc('issue_certificate', { p_trainee_id: traineeId, p_certificate_type: type });
-  if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
-  try {
-    await authedFetch('certificate-pdf', { certificate_id: certId });
-  } catch (e) { /* توليد PDF قد يحتاج إعادة محاولة لاحقاً من "تحميل PDF" — لا نفشل الإصدار بسببه */ }
+  const btn = document.getElementById('icBtn');
+  const ov = document.getElementById('icOverride');
+  const reason = ov && ov.offsetParent !== null ? (ov.value || '').trim() : '';
+
+  btn.disabled = true;
+  const { data: certId, error } = await sb.rpc('issue_certificate', {
+    p_trainee_id: traineeId, p_certificate_type: type,
+    p_override_reason: reason || null,
+  });
+  if (error) {
+    msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`;
+    btn.disabled = false;
+    return;
+  }
+  try { await authedFetch('certificate-pdf', { certificate_id: certId }); }
+  catch (e) { /* توليد PDF يُعاد لاحقاً من زر التحميل — لا يُفشل الإصدار */ }
   closeModal();
   await viewTraineeDetail(traineeId);
 }
 
+// الإلغاء كان مستحيلاً رغم وجود أعمدة revoked — فشهادة بالخطأ تبقى قابلة للتحقق أبداً.
+function openRevokeCertModal(certId, code) {
+  openModal(`
+    <h3>إلغاء شهادة</h3>
+    <div class="msg-box msg-warn">الإلغاء لا رجعة فيه. ستظهر الشهادة «ملغاة» لكل من يتحقق منها
+      برمزها <code dir="ltr">${esc(code || '')}</code>.</div>
+    <label for="rcReason">سبب الإلغاء</label>
+    <p class="panel-note">يظهر في صفحة التحقق العامة. عشرة أحرف فأكثر.</p>
+    <input id="rcReason" type="text" placeholder="مثال: صدرت بناءً على بيانات غير صحيحة">
+    <div id="rcMsg"></div>
+    <div class="modal-actions">
+      <button class="danger" id="rcBtn" onclick="revokeCertAction('${certId}')">تأكيد الإلغاء</button>
+      <button class="secondary" onclick="closeModal()">تراجع</button>
+    </div>`);
+}
+
+async function revokeCertAction(certId) {
+  const msg = document.getElementById('rcMsg');
+  const btn = document.getElementById('rcBtn');
+  const reason = (document.getElementById('rcReason').value || '').trim();
+  if (reason.length < 10) {
+    msg.innerHTML = '<div class="msg-box msg-error">اكتب سبباً مفصلاً (10 أحرف فأكثر).</div>';
+    return;
+  }
+  btn.disabled = true;
+  const { error } = await sb.rpc('revoke_certificate', { p_certificate_id: certId, p_reason: reason });
+  if (error) {
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`;
+    btn.disabled = false; return;
+  }
+  closeModal();
+  await renderStaffTab(state.activeStaffTab || 'certificates');
+}
 async function renderTracksTab(main) {
   const { data: tracks } = await sb.from('training_tracks').select('*').order('created_at', { ascending: false });
   const rows = (tracks || []).map(t => `
