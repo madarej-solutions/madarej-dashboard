@@ -2091,8 +2091,13 @@ async function renderTraineesTab(main) {
       <td style="text-align:center">${evalBy[t.id] || 0}</td>
       <td style="text-align:center">${certBy[t.id] || 0}</td>
       <td>${badge(t.status)}</td>
+      <td class="actions-row" onclick="event.stopPropagation()">
+        ${t.status === 'pending_account' && state.isAdminOrManager
+          ? `<button class="small gold" onclick="viewTraineeDetail('${t.id}')">إنشاء حساب</button>`
+          : ''}
+      </td>
     </tr>`;
-  }).join('') || `<tr><td class="empty-row" colspan="10">لا يوجد متدربون بعد</td></tr>`;
+  }).join('') || `<tr><td class="empty-row" colspan="11">لا يوجد متدربون بعد</td></tr>`;
 
   const scopeNote = state.isAdminOrManager
     ? 'تعرض جميع المتدربين'
@@ -2108,7 +2113,7 @@ async function renderTraineesTab(main) {
           <th>الاسم</th><th>الرقم</th><th>المسار</th><th>المشرف</th>
           <th style="text-align:center">التعهد</th><th style="text-align:center">الاختبار</th>
           <th style="text-align:center">المهام</th><th style="text-align:center">التقييمات</th>
-          <th style="text-align:center">الشهادات</th><th>الحالة</th>
+          <th style="text-align:center">الشهادات</th><th>الحالة</th><th></th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -2339,7 +2344,7 @@ async function viewTraineeDetail(traineeId) {
         </div>
         <label for="taUsername">اسم المستخدم (اختياري — اتركه فارغاً للتوليد التلقائي)</label>
         <input id="taUsername" type="text" placeholder="مثال: ali.cyber01" style="direction:ltr;text-align:left">
-        <button class="gold" onclick="createTempAccountAction('${trainee.id}')">إنشاء حساب دخول مؤقت</button>
+        <button class="gold" id="taCreateBtn" onclick="createTempAccountAction('${trainee.id}')">إنشاء حساب دخول مؤقت</button>
         <div id="taMsg"></div>
       </div>
     ` : ''}
