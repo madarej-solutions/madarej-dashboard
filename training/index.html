@@ -1270,6 +1270,15 @@ function renderShell(kind) {
 }
 
 // على الشاشات الضيقة القائمة مطوية وتُفتح فوق المحتوى.
+// تُخفي عناصر التنقل أثناء البوابات الإلزامية (الموافقة، التعهد، الاختبار).
+// يبقى زر الخروج والبلاغ الأمني ظاهرين — حجب التنقل لا يعني حبس المستخدم.
+function setNavVisible(show) {
+  const nav = document.querySelector('.side .nav');
+  if (nav) nav.style.display = show ? '' : 'none';
+  const tg = document.querySelector('.side-toggle');
+  if (tg) tg.style.visibility = show ? '' : 'hidden';
+}
+
 function toggleSide() {
   const el = document.getElementById('sideNav');
   if (el) el.classList.toggle('open');
@@ -1354,6 +1363,7 @@ const POLICY_TITLES = { privacy: 'سياسة الخصوصية', terms: 'شروط
 // كل وثيقة تُعرض بنصها كاملاً، ولا يُفعّل زر الموافقة إلا بعد التمرير إلى آخرها
 // وتعليم صندوقها — حتى لا تكون الموافقة نقرة عمياء.
 async function renderPolicyGate(pending) {
+  setNavVisible(false);
   const main = document.getElementById('mainContent') || document.getElementById('app');
   const blocks = pending.map((p, i) => `
     <div class="policy-block">
@@ -1469,12 +1479,12 @@ async function checkExamGatesAndRenderTrainee() {
     }
   }
 
-  document.getElementById('tabsBar').classList.remove('hidden');
+  setNavVisible(true);
   await renderTraineeTab('tasks');
 }
 
 function renderExamIntro(scope) {
-  document.getElementById('tabsBar').classList.add('hidden');
+  setNavVisible(false);
   const main = document.getElementById('mainContent');
   const title = scope === 'security_awareness' ? 'اختبار الوعي الأمني الإلزامي' : 'اختبار';
   main.innerHTML = `
@@ -1502,7 +1512,7 @@ async function startExamFlow(scope) {
 }
 
 async function renderExamFlow(session) {
-  document.getElementById('tabsBar').classList.add('hidden');
+  setNavVisible(false);
   const main = document.getElementById('mainContent');
   main.innerHTML = `<div class="loading">جارِ تحميل السؤال...</div>`;
   try {
@@ -1580,7 +1590,7 @@ async function continueExamFlow() {
 }
 
 async function renderNdaGate() {
-  document.getElementById('tabsBar').classList.add('hidden');
+  setNavVisible(false);
   const main = document.getElementById('mainContent');
   main.innerHTML = `<div class="loading">جارِ تحميل اتفاقية عدم الإفشاء...</div>`;
 
@@ -1667,7 +1677,7 @@ async function submitNda(versionId) {
 
 async function renderTraineeTab(tab) {
   state.activeTraineeTab = tab;
-  document.getElementById('tabsBar').classList.remove('hidden');
+  setNavVisible(true);
   setActiveTabBtn(tab);
   const main = document.getElementById('mainContent');
   main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
