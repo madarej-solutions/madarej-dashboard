@@ -267,6 +267,13 @@
   .hc-fix { border: 1px solid var(--gold); border-radius: 10px; padding: 12px 14px;
     margin-top: 12px; font-size: 13.5px; line-height: 1.85; }
   .hc-raw { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .del-sec { font-size: 12px; color: var(--muted); margin: 16px 0 8px; }
+  .del-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 7px; }
+  .del-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px;
+    border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
+  .del-row span { color: var(--muted); }
+  .del-none { font-size: 12.5px; color: var(--muted); padding: 8px 0; }
+  .actions-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .hc-raw code { display: block; margin-top: 8px; padding: 10px; border: 1px solid var(--line);
     border-radius: 8px; direction: ltr; text-align: left; white-space: pre-wrap; word-break: break-word; }
 
@@ -2387,6 +2394,148 @@ async function acceptApplicationAction(appId) {
   await renderStaffTab('applications');
 }
 
+// ===== أرشفة المتدرب وحذفه — من لوحة المدير =====
+// الأرشفة توقف الحساب ولا تُتلف شيئاً، والحذف نهائي لا رجعة فيه.
+
+async function archiveTraineeAsk(id, name) {
+  openModal(`
+    <h2>أرشفة المتدرب</h2>
+    <p style="line-height:1.9">سيُنقل <b>${esc(name)}</b> إلى المؤرشفين، ويُلغى حساب دخوله فوراً.</p>
+    <div class="msg-box msg-ok">
+      <b>لا يُتلَف شيء</b>
+      <div class="pending-note">مهامه وتقييماته وشهاداته وساعاته تبقى كما هي، ويمكنك إعادة تنشيطه في أي وقت.</div>
+    </div>
+    <div class="field"><label>سبب الأرشفة (اختياري)</label>
+      <input id="arcReason" type="text" placeholder="انتهت مدة التدريب، انسحب، ..."></div>
+    <div id="arcMsg"></div>
+    <div class="modal-actions">
+      <button class="gold" id="arcBtn" onclick="archiveTraineeDo('${id}')">أرشفة</button>
+      <button class="secondary" onclick="closeModal()">إلغاء</button>
+    </div>`);
+}
+
+async function archiveTraineeDo(id) {
+  const btn = document.getElementById('arcBtn');
+  const reason = (document.getElementById('arcReason')?.value || '').trim();
+  if (btn) { btn.disabled = true; btn.textContent = 'جارِ الأرشفة...'; }
+
+  const { data: r, error } = await sb.rpc('archive_trainee',
+    { p_trainee_id: id, p_reason: reason || null });
+
+  if (error || !r?.ok) {
+    if (btn) { btn.disabled = false; btn.textContent = 'أرشفة'; }
+    document.getElementById('arcMsg').innerHTML =
+      `<div class="msg-box msg-error">${esc(r?.error || error?.message || 'تعذّرت الأرشفة')}</div>`;
+    return;
+  }
+  closeModal();
+  await renderStaffTab('trainees');
+}
+
+async function unarchiveTraineeDo(id, name) {
+  const { data: r, error } = await sb.rpc('unarchive_trainee', { p_trainee_id: id });
+  if (error || !r?.ok) {
+    openModal(`<h2>تعذّرت إعادة التنشيط</h2>
+      <div class="msg-box msg-error">${esc(r?.error || error?.message || '')}</div>
+      <div class="modal-actions"><button class="secondary" onclick="closeModal()">إغلاق</button></div>`);
+    return;
+  }
+  openModal(`<h2>أُعيد التنشيط</h2>
+    <p style="line-height:1.9">عاد <b>${esc(name)}</b> إلى المتدربين النشطين.</p>
+    <div class="msg-box msg-warn">${esc(r.note || '')}</div>
+    <div class="modal-actions"><button class="gold" onclick="closeModal();renderStaffTab('trainees')">تمام</button></div>`);
+}
+
+// ===== الحذف النهائي =====
+async function deleteTraineeAsk(id) {
+  openModal(`<div class="loading">جارِ حساب ما سيُحذف...</div>`);
+
+  const { data: p, error } = await sb.rpc('trainee_deletion_preview', { p_trainee_id: id });
+  if (error || !p || !p.full_name) {
+    openModal(`<h2>تعذّر التحميل</h2>
+      <div class="msg-box msg-error">${esc(error?.message || 'المتدرب غير موجود')}</div>
+      <div class="modal-actions"><button class="secondary" onclick="closeModal()">إغلاق</button></div>`);
+    return;
+  }
+
+  const n = v => Number(v || 0).toLocaleString('ar-SA');
+  const rows = obj => Object.entries(obj || {})
+    .filter(([, v]) => Number(v) > 0)
+    .map(([k, v]) => `<div class="del-row"><span>${esc(k)}</span><b>${esc(n(v))}</b></div>`)
+    .join('') || `<div class="del-none">لا شيء</div>`;
+
+  const irr = p.irreversible || {};
+  const heavy = Number(irr['شهادات صادرة'] || 0) > 0 || Number(irr['تعهد سرية موقّع'] || 0) > 0;
+
+  openModal(`
+    <h2>حذف نهائي — ${esc(p.full_name)}</h2>
+
+    <div class="msg-box msg-error">
+      <b>هذا الإجراء لا رجعة فيه</b>
+      <div class="pending-note">يُمحى ملف المتدرب وكل ما يتصل به وحساب دخوله. لا يمكن استرجاعه.
+        إن كنت تريد إيقافه مؤقتاً فقط، أغلق هذه النافذة واستخدم <b>الأرشفة</b>.</div>
+    </div>
+
+    ${heavy ? `<div class="msg-box msg-warn">
+      <b>انتبه: ستُتلَف سجلات لها أثر خارج المنصة</b>
+      <div class="pending-note">
+        ${Number(irr['شهادات صادرة'] || 0) > 0
+          ? `صدرت له <b>${n(irr['شهادات صادرة'])}</b> شهادة — أي رابط تحقق سُلّم لجهة خارجية سيتوقف عن العمل.<br>` : ''}
+        ${Number(irr['تعهد سرية موقّع'] || 0) > 0
+          ? `ولديه تعهد سرية موقّع — وهو مستند التزام قد تحتاجه لاحقاً.` : ''}
+      </div></div>` : ''}
+
+    <div class="del-sec">سجلات لها قيمة توثيقية</div>
+    <div class="del-grid">${rows(irr)}</div>
+
+    <div class="del-sec">عمله في المنصة</div>
+    <div class="del-grid">${rows(p.work)}</div>
+
+    ${Number((p.kept_anonymous || {})['ملاحظات عن مدارج'] || 0) > 0
+      ? `<div class="msg-box msg-ok"><b>يبقى بلا اسمه</b>
+          <div class="pending-note">${n(p.kept_anonymous['ملاحظات عن مدارج'])} ملاحظة رفعها عن مدارج تبقى في لوحة الملاحظات،
+          لكن تُفصل عن اسمه. الفائدة تبقى للشركة والبيانات الشخصية تُمحى.</div></div>`
+      : ''}
+
+    <div class="field">
+      <label>اكتب اسم المتدرب كاملاً لتأكيد الحذف</label>
+      <input id="delConfirm" type="text" placeholder="${esc(p.full_name)}" autocomplete="off">
+    </div>
+    <div id="delMsg"></div>
+
+    <div class="modal-actions">
+      <button class="danger" id="delBtn" onclick="deleteTraineeDo('${id}')">احذف نهائياً</button>
+      <button class="secondary" onclick="closeModal()">إلغاء</button>
+    </div>`);
+}
+
+async function deleteTraineeDo(id) {
+  const name = (document.getElementById('delConfirm')?.value || '').trim();
+  const msg = document.getElementById('delMsg');
+  if (!name) {
+    msg.innerHTML = `<div class="msg-box msg-error">اكتب اسم المتدرب لتأكيد الحذف.</div>`;
+    return;
+  }
+
+  const btn = document.getElementById('delBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'جارِ الحذف...'; }
+  msg.innerHTML = '';
+
+  let r;
+  try { r = await authedFetch('delete-trainee', { trainee_id: id, confirm_name: name }); }
+  catch (e) { r = { error: e.message || String(e) }; }
+
+  if (!r?.ok) {
+    if (btn) { btn.disabled = false; btn.textContent = 'احذف نهائياً'; }
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(r?.error || 'تعذّر الحذف')}
+      ${r?.expected_name ? `<div class="pending-note">الاسم المسجّل: <b>${esc(r.expected_name)}</b></div>` : ''}</div>`;
+    return;
+  }
+
+  closeModal();
+  await renderStaffTab('trainees');
+}
+
 async function renderTraineesTab(main) {
   main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
 
@@ -2433,6 +2582,13 @@ async function renderTraineesTab(main) {
         ${t.status === 'pending_account' && state.isAdminOrManager
           ? `<button class="small gold" onclick="viewTraineeDetail('${t.id}')">إنشاء حساب</button>`
           : ''}
+      
+        ${state.isAdminOrManager
+          ? (t.status === 'archived'
+              ? `<button class="small secondary" onclick="unarchiveTraineeDo('${t.id}',this.dataset.n)" data-n="${esc(t.full_name)}">إعادة تنشيط</button>`
+              : `<button class="small secondary" onclick="archiveTraineeAsk('${t.id}',this.dataset.n)" data-n="${esc(t.full_name)}">أرشفة</button>`)
+          : ''}
+        ${state.isAdmin ? `<button class="small danger" onclick="deleteTraineeAsk('${t.id}')">حذف</button>` : ''}
       </td>
     </tr>`;
   }).join('') || `<tr><td class="empty-row" colspan="11">لا يوجد متدربون بعد</td></tr>`;
