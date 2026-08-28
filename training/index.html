@@ -260,6 +260,15 @@
   .bar-wrap { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 14px; }
   .bar-fill { height: 100%; background: var(--gold); }
   .bar-lbl { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .hc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin-top: 12px; }
+  .hc-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 9px; font-size: 12.5px; }
+  .hc-row span { color: var(--muted); }
+  .hc-fix { border: 1px solid var(--gold); border-radius: 10px; padding: 12px 14px;
+    margin-top: 12px; font-size: 13.5px; line-height: 1.85; }
+  .hc-raw { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .hc-raw code { display: block; margin-top: 8px; padding: 10px; border: 1px solid var(--line);
+    border-radius: 8px; direction: ltr; text-align: left; white-space: pre-wrap; word-break: break-word; }
 
   /* ملاحظات مدارج */
   .ins-list { display: flex; flex-direction: column; gap: 12px; }
@@ -3005,6 +3014,46 @@ async function saveTrackExamNotes(trackId) {
 // إعدادات نظام الاختبارات التكيفي (للمدير العام / مدير التدريب)
 // ============================================================================
 
+// ===== فحص صحة خدمة الذكاء — يُشخّص العطل بدل تخمينه =====
+async function runAiHealthCheck() {
+  const box = document.getElementById('aiHealthBox');
+  const btn = document.getElementById('aiHealthBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'جارِ الفحص...'; }
+  box.innerHTML = `<div class="loading">جارِ الاتصال بخدمة الذكاء...</div>`;
+
+  let r;
+  try { r = await authedFetch('ai-health', {}); }
+  catch (e) { r = { ok: false, السبب: 'تعذّر تشغيل الفحص: ' + (e.message || e), الإجراء: 'أعِد المحاولة.' }; }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'إعادة الفحص'; }
+
+  if (r.error) {
+    box.innerHTML = `<div class="msg-box msg-error">${esc(r.error)}</div>`;
+    return;
+  }
+
+  const c = r.config || {};
+  const rows = [
+    ['المفتاح مضبوط', c['المفتاح_مضبوط'] ? 'نعم' : 'لا'],
+    ['يبدأ بـ sk-ant-', c['يبدأ_بـ_sk_ant'] ? 'نعم' : 'لا'],
+    ['طول المفتاح', String(c['طول_المفتاح'] ?? 0) + ' حرفاً'],
+    ['النموذج', c['النموذج'] || '— غير مضبوط —'],
+  ];
+  if (r.http) rows.push(['رمز الاستجابة', 'HTTP ' + r.http]);
+  if (r['زمن_الاستجابة_ملي']) rows.push(['زمن الاستجابة', r['زمن_الاستجابة_ملي'] + ' ملي ثانية']);
+
+  box.innerHTML = `
+    <div class="msg-box ${r.ok ? 'msg-ok' : 'msg-error'}">
+      <b>${r.ok ? 'خدمة الذكاء تعمل' : 'خدمة الذكاء متوقفة'}</b>
+      <div class="pending-note">${esc(r['السبب'] || '')}</div>
+    </div>
+    <div class="hc-grid">
+      ${rows.map(([k, v]) => `<div class="hc-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}
+    </div>
+    ${r['الإجراء'] ? `<div class="hc-fix"><div class="sc-lbl">الإجراء المطلوب</div>${esc(r['الإجراء'])}</div>` : ''}
+    ${r['نص_المزوّد'] ? `<details class="hc-raw"><summary>نص المزوّد الحرفي</summary><code>${esc(r['نص_المزوّد'])}</code></details>` : ''}`;
+}
+
 async function renderExamsSettingsTab(main) {
   const { data: cfg } = await sb.from('exam_system_config').select('*').maybeSingle();
   if (!cfg) {
@@ -3020,6 +3069,11 @@ async function renderExamsSettingsTab(main) {
         (Project Settings → Edge Functions → Secrets) — لا تُدخل المفتاح هنا ولا في الدردشة أبداً.
         اختبر التدفق فعلياً بحساب متدرب تجريبي قبل التفعيل على متدربين حقيقيين.
       </div>
+
+      <h3>فحص خدمة الذكاء</h3>
+      <p style="font-size:13px;color:var(--muted)">يجري استدعاءً أصغرياً ويخبرك بالعطل الدقيق وما تفعله — بدل تخمين السبب أو التنقيب في السجلات.</p>
+      <button class="gold" id="aiHealthBtn" onclick="runAiHealthCheck()">افحص الآن</button>
+      <div id="aiHealthBox" style="margin-top:12px"></div>
 
       <h3>بوابة اختبار الوعي الأمني الإلزامي قبل أول مهمة</h3>
       <p style="font-size:13px;color:var(--muted)">عند التفعيل، لن يصل أي متدرب لمهامه أو تقييماته حتى يجتاز اختبار الوعي الأمني. الحالة الحالية: ${cfg.security_gate_enabled ? badge('active') : '<span class="badge">معطّلة</span>'}</p>
