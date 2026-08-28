@@ -1,0 +1,13 @@
+# أسرار — لا تُرفع أبداً
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+
+# ملفات عمل مؤقتة
+_t.html
+_lib.js
+node_modules/
+.DS_Store
+Thumbs.db
