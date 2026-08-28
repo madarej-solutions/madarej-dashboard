@@ -213,6 +213,69 @@
   .pending-banner { margin-bottom: 14px; }
   .pending-note { font-size: 13px; font-weight: 300; margin: 4px 0 10px; opacity: .85; }
   .pending-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  /* حزمة اليوم */
+  .day-progress { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 12px;
+    font-size: 13px; color: var(--muted); }
+  .day-progress b { color: var(--text); font-size: 15px; }
+  .day-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .day-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+    background: var(--card-2, rgba(255,255,255,.02)); display: flex; flex-direction: column; gap: 10px; }
+  .day-card.is-done { opacity: .72; }
+  .day-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .day-chip { font-size: 11px; padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .day-chip.chip-gold { border-color: var(--gold); color: var(--gold); }
+  .day-mins { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .day-title { font-weight: 600; font-size: 14px; line-height: 1.55; flex: 1; }
+  .day-actions { display: flex; align-items: center; gap: 8px; }
+  .day-done { font-size: 12px; color: var(--gold); }
+
+  /* عرض السيناريو */
+  .sc-brief { line-height: 1.9; margin: 12px 0; font-size: 14px; }
+  .sc-ctx, .sc-spec { border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; margin: 12px 0; line-height: 1.85; font-size: 13.5px; }
+  .sc-lbl { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .sc-score { border: 1px solid var(--gold); border-radius: 10px; padding: 14px; margin: 14px 0; }
+  .sc-total { display: flex; align-items: baseline; gap: 8px; }
+  .sc-total b { font-size: 30px; color: var(--gold); }
+  .sc-total span { font-size: 12px; color: var(--muted); }
+  .sc-feedback { line-height: 1.9; font-size: 13.5px; margin: 10px 0 0; }
+  .sc-dims { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+  .sc-dim { display: grid; grid-template-columns: auto auto 1fr; gap: 10px;
+    align-items: baseline; font-size: 12.5px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .sc-dim-k { color: var(--muted); }
+  .sc-note { color: var(--muted); }
+
+  /* الاختبارات القصيرة */
+  .qz-wrap { display: flex; flex-direction: column; gap: 18px; margin: 14px 0; }
+  .qz-num { font-weight: 600; font-size: 14px; line-height: 1.7; margin-bottom: 10px; }
+  .qz-opts { display: flex; flex-direction: column; gap: 7px; }
+  .qz-opt { display: flex; align-items: flex-start; gap: 9px; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 9px; cursor: pointer; font-size: 13.5px; line-height: 1.6; }
+  .qz-opt.is-right { border-color: #2e7d5b; }
+  .qz-opt.is-wrong { border-color: #a33; }
+  .qz-why { margin-top: 9px; font-size: 12.5px; color: var(--muted); line-height: 1.75; }
+
+  /* شريط التقدم */
+  .bar-wrap { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 14px; }
+  .bar-fill { height: 100%; background: var(--gold); }
+  .bar-lbl { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+
+  /* ملاحظات مدارج */
+  .ins-list { display: flex; flex-direction: column; gap: 12px; }
+  .ins-card { border: 1px solid var(--line); border-right: 3px solid var(--gold);
+    border-radius: 10px; padding: 14px; }
+  .ins-card.is-strength { border-right-color: #2e7d5b; }
+  .ins-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .ins-area, .ins-by { font-size: 11px; color: var(--muted); }
+  .ins-by { margin-inline-start: auto; }
+  .ins-title { font-weight: 600; font-size: 14px; line-height: 1.6; margin-bottom: 6px; }
+  .ins-detail { font-size: 13px; line-height: 1.85; color: var(--muted); }
+  .ins-sugg { font-size: 13px; line-height: 1.8; margin-top: 9px; }
+  .ins-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+  .sev { font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); }
+  .sev-3 { border-color: var(--gold); color: var(--gold); }
+  .sev-4 { border-color: #c0562f; color: #e0885f; }
   .blocked-list { display: flex; flex-direction: column; gap: 6px; }
   .blocked-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
     font-size: 13px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,.08); }
@@ -1245,9 +1308,11 @@ const STAFF_NAV = [
   ['trainers','المدربون','🧑‍🏫'],      ['tracks','المسارات التدريبية','🧭'],
   ['accounts','الحسابات والصلاحيات','🔑'], ['hours','ساعات العمل','⏱'],
   ['exams','الاختبارات','📝'],          ['scenarios','السيناريوهات','🎯'],
+  ['insights','ملاحظات عن مدارج','💡'],
 ];
 const TRAINEE_NAV = [
-  ['tasks','مهامي','✅'], ['evaluations','تقييماتي','📈'], ['certificates','شهاداتي','🎓'],
+  ['today','يومي','☀️'],   ['info','معلوماتي','📊'],
+  ['tasks','مهامي','✅'],  ['evaluations','تقييماتي','📈'], ['certificates','شهاداتي','🎓'],
 ];
 
 function renderShell(kind) {
@@ -1498,7 +1563,7 @@ async function checkExamGatesAndRenderTrainee() {
   }
 
   setNavVisible(true);
-  await renderTraineeTab('tasks');
+  await renderTraineeTab('today');
 }
 
 function renderExamIntro(scope) {
@@ -1700,7 +1765,11 @@ async function renderTraineeTab(tab) {
   const main = document.getElementById('mainContent');
   main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
 
-  if (tab === 'tasks') {
+  if (tab === 'today') {
+    await renderTodayTab(main);
+  } else if (tab === 'info') {
+    await renderMyInfoTab(main);
+  } else if (tab === 'tasks') {
     const { data: tasks } = await sb.from('tasks').select('*').eq('trainee_id', state.myTraineeId).order('created_at', { ascending: false });
     main.innerHTML = `
       <div class="panel"><h2>مهامي</h2>${renderTasksTable(tasks || [], true)}</div>
@@ -1767,7 +1836,7 @@ async function submitTaskAction(taskId) {
   const { error } = await sb.rpc('submit_task', { p_task_id: taskId, p_submission_text: text || null, p_submission_url: url || null });
   if (error) { msgEl.innerHTML = `<div class="msg-box msg-error">${esc(error.message)}</div>`; return; }
   closeModal();
-  await renderTraineeTab('tasks');
+  await renderTraineeTab('today');
 }
 
 function renderEvaluationsTable(evals) {
@@ -1839,6 +1908,7 @@ async function renderStaffTab(tab) {
   else if (tab === 'tracks') await renderTracksTab(main);
   else if (tab === 'exams') await renderExamsSettingsTab(main);
   else if (tab === 'scenarios') await renderScenariosTab(main);
+  else if (tab === 'insights') await renderInsightsTab(main);
 }
 
 // ===== لوحة المعلومات =====
@@ -2991,6 +3061,468 @@ init();
 const SCENARIO_STATUS_AR = { draft: 'مسودة', approved: 'معتمد', archived: 'مؤرشف' };
 const SCENARIO_DIFF_AR = { 1: 'مبتدئ', 2: 'ممارس', 3: 'متقن', 4: 'خبير' };
 const scenarioState = { filter: 'draft', tracks: [], types: [] };
+
+// ===================== حزمة اليوم التدريبية =====================
+// تُولَّد من الذكاء عند أول دخول في اليوم: سيناريوهات مدارج والسوق،
+// وواجبات، واختبار يومي قصير، واختبار أسبوعي نهاية الأسبوع.
+
+const dayState = { bundle: null, busy: false };
+
+async function renderTodayTab(main) {
+  main.innerHTML = `<div class="loading">جارِ تجهيز يومك التدريبي...</div>`;
+
+  // بوابة الأمن: السيناريوهات والمهام محجوبة حتى يكتمل الشرطان.
+  const [{ data: ndaRows }, { data: me }] = await Promise.all([
+    sb.from('nda_signatures').select('id').eq('trainee_id', state.myTraineeId).limit(1),
+    sb.from('trainees').select('security_exam_passed, track_id').eq('id', state.myTraineeId).maybeSingle(),
+  ]);
+  const missing = [];
+  if (!(ndaRows || []).length) missing.push('توقيع تعهد السرية');
+  if (!me?.security_exam_passed) missing.push('اجتياز اختبار الوعي الأمني');
+
+  if (missing.length) {
+    main.innerHTML = `
+      <div class="panel">
+        <h2>يومك التدريبي</h2>
+        <div class="msg-box msg-warn">
+          <b>لم يُفتح لك التدريب بعد</b>
+          <div class="pending-note">ينقصك: ${esc(missing.join(' و'))}.
+            أكملهما ليبدأ وصول السيناريوهات والواجبات اليومية إليك.</div>
+        </div>
+      </div>`;
+    return;
+  }
+  if (!me?.track_id) {
+    main.innerHTML = `<div class="panel"><h2>يومك التدريبي</h2>
+      <div class="msg-box msg-warn">لم يُسنَد لك مسار تدريبي بعد. راجع مشرفك.</div></div>`;
+    return;
+  }
+
+  let gen;
+  try {
+    gen = await authedFetch('daily-bundle', {});
+  } catch (e) {
+    main.innerHTML = `<div class="panel"><h2>يومك التدريبي</h2>
+      <div class="msg-box msg-error">تعذّر تجهيز حزمة اليوم: ${esc(e.message || e)}</div>
+      <button class="secondary" onclick="renderTraineeTab('today')">إعادة المحاولة</button></div>`;
+    return;
+  }
+  if (gen?.error) {
+    main.innerHTML = `<div class="panel"><h2>يومك التدريبي</h2>
+      <div class="msg-box msg-error">${esc(gen.error)}</div>
+      <button class="secondary" onclick="renderTraineeTab('today')">إعادة المحاولة</button></div>`;
+    return;
+  }
+  dayState.bundle = gen;
+  await paintToday(main);
+}
+
+async function paintToday(main) {
+  const bid = dayState.bundle?.bundle_id;
+  const [{ data: assigns }, { data: tasks }, { data: quizzes }] = await Promise.all([
+    sb.from('scenario_assignments')
+      .select('id, scenario_title_snapshot, status, started_at, deadline_at, scenarios(type_code, time_limit_minutes)')
+      .eq('trainee_id', state.myTraineeId).eq('bundle_id', bid).order('assigned_at'),
+    sb.from('tasks').select('*').eq('trainee_id', state.myTraineeId).eq('bundle_id', bid).order('created_at'),
+    sb.from('micro_quizzes').select('*').eq('trainee_id', state.myTraineeId)
+      .order('created_at', { ascending: false }).limit(10),
+  ]);
+
+  const A = assigns || [], T = tasks || [], Q = quizzes || [];
+  const daily = Q.find(q => q.kind === 'daily' && q.bundle_id === bid);
+  const weekly = Q.find(q => q.kind === 'weekly' && q.status !== 'scored');
+
+  const done = A.filter(a => a.status === 'submitted' || a.status === 'scored').length;
+  const tasksDone = T.filter(t => t.status === 'approved').length;
+
+  const typeLabel = c => c === 'madarej_audit' ? 'تشخيص مدارج'
+    : c === 'market_audit' ? 'تشخيص السوق' : 'سيناريو';
+
+  const scCard = a => {
+    const st = a.status;
+    const isDone = st === 'submitted' || st === 'scored';
+    const kind = a.scenarios?.type_code;
+    return `<div class="day-card ${isDone ? 'is-done' : ''}">
+      <div class="day-card-top">
+        <span class="day-chip ${kind === 'madarej_audit' ? 'chip-gold' : ''}">${esc(typeLabel(kind))}</span>
+        <span class="day-mins">${Number(a.scenarios?.time_limit_minutes || 0)} د</span>
+      </div>
+      <div class="day-title">${esc(a.scenario_title_snapshot)}</div>
+      <div class="day-actions">
+        ${isDone
+          ? `<span class="day-done">تم ${st === 'scored' ? 'التقييم' : 'التسليم'}</span>
+             <button class="small secondary" onclick="openScenarioWork('${a.id}')">عرض</button>`
+          : `<button class="small gold" onclick="openScenarioWork('${a.id}')">${st === 'in_progress' ? 'متابعة' : 'ابدأ'}</button>`}
+      </div>
+    </div>`;
+  };
+
+  const quizCard = (q, label) => q ? `
+    <div class="day-card ${q.status === 'scored' ? 'is-done' : ''}">
+      <div class="day-card-top">
+        <span class="day-chip ${q.kind === 'weekly' ? 'chip-gold' : ''}">${esc(label)}</span>
+        <span class="day-mins">${Number(q.max_score || 0)} أسئلة</span>
+      </div>
+      <div class="day-title">${esc(q.title)}</div>
+      <div class="day-actions">
+        ${q.status === 'scored'
+          ? `<span class="day-done">${Number(q.score || 0)} من ${Number(q.max_score || 0)}</span>`
+          : `<button class="small gold" onclick="openQuiz('${q.id}')">ابدأ</button>`}
+      </div>
+    </div>` : '';
+
+  const today = new Date().toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>يومك التدريبي</h2>
+      <p class="panel-note">${esc(today)} — تولّدت لك اليوم بناءً على مسارك.</p>
+      <div class="day-progress">
+        <span><b>${done}</b> من <b>${A.length}</b> سيناريو</span>
+        <span><b>${tasksDone}</b> من <b>${T.length}</b> واجب</span>
+        ${daily ? `<span>الاختبار اليومي: <b>${daily.status === 'scored' ? 'تم' : 'بانتظارك'}</b></span>` : ''}
+      </div>
+    </div>
+
+    ${weekly ? `<div class="panel"><h2>اختبار الأسبوع</h2>
+      <p class="panel-note">يغطي ما مرّ بك من سيناريوهات هذا الأسبوع.</p>
+      <div class="day-grid">${quizCard(weekly, 'اختبار أسبوعي')}</div></div>` : ''}
+
+    <div class="panel">
+      <h2>سيناريوهات اليوم</h2>
+      <p class="panel-note">افتح الأصل المذكور في كل سيناريو وافحصه بنفسك قبل أن تجيب.</p>
+      ${A.length ? `<div class="day-grid">${A.map(scCard).join('')}</div>`
+                 : `<div class="msg-box msg-warn">لم تصل سيناريوهات اليوم بعد.</div>`}
+    </div>
+
+    ${daily ? `<div class="panel"><h2>الاختبار اليومي</h2>
+      <div class="day-grid">${quizCard(daily, 'اختبار يومي')}</div></div>` : ''}
+
+    <div class="panel">
+      <h2>واجبات اليوم</h2>
+      ${renderTasksTable(T, true)}
+    </div>`;
+}
+
+// ===== العمل على سيناريو =====
+async function openScenarioWork(assignmentId) {
+  openModal(`<div class="loading">جارِ الفتح...</div>`);
+
+  const { data: a } = await sb.from('scenario_assignments')
+    .select('*, scenarios(*)').eq('id', assignmentId).single();
+  if (!a || !a.scenarios) {
+    openModal(`<h2>تعذّر الفتح</h2><div class="modal-actions">
+      <button class="secondary" onclick="closeModal()">إغلاق</button></div>`);
+    return;
+  }
+
+  const s = a.scenarios;
+  const isDone = a.status === 'submitted' || a.status === 'scored';
+  const br = t => esc(t).replace(/\n/g, '<br>');
+
+  let scoreBlock = '';
+  if (a.status === 'scored') {
+    const { data: subs } = await sb.from('scenario_submissions')
+      .select('id').eq('assignment_id', a.id).order('version', { ascending: false }).limit(1);
+    const sub = (subs || [])[0];
+    if (sub) {
+      const { data: sc } = await sb.from('scenario_scores')
+        .select('final_total, ai_feedback, ai_breakdown').eq('submission_id', sub.id).maybeSingle();
+      if (sc) {
+        const rows = Object.entries(sc.ai_breakdown || {}).map(([k, v]) =>
+          `<div class="sc-dim"><span class="sc-dim-k">${esc(k)}</span>
+             <b>${Number(v?.score ?? 0)}</b>
+             <span class="sc-note">${esc(v?.note || '')}</span></div>`).join('');
+        scoreBlock = `
+          <div class="sc-score">
+            <div class="sc-total"><span>درجتك</span><b>${Number(sc.final_total || 0)}</b><span>من ١٠٠</span></div>
+            ${sc.ai_feedback ? `<p class="sc-feedback">${br(sc.ai_feedback)}</p>` : ''}
+            ${rows ? `<div class="sc-dims">${rows}</div>` : ''}
+          </div>`;
+      }
+    }
+  }
+
+  openModal(`
+    <h2>${esc(a.scenario_title_snapshot)}</h2>
+    <div class="sc-brief">${br(s.brief)}</div>
+    ${s.context_material ? `<div class="sc-ctx"><div class="sc-lbl">المرفق</div>${br(s.context_material)}</div>` : ''}
+    <div class="sc-spec"><div class="sc-lbl">المخرج المطلوب</div>${br(s.deliverable_spec)}</div>
+    ${scoreBlock}
+    ${isDone ? '' : `
+      <div class="field"><label>إجابتك</label>
+        <textarea id="scAnswer" rows="10" placeholder="اذكر ما رأيته بالضبط — عنواناً أو تاريخاً أو نصاً حرفياً — لا انطباعات عامة."></textarea></div>
+      <div class="field"><label>رابط المخرج (اختياري)</label>
+        <input id="scUrl" type="url" placeholder="https://..."></div>
+      <div id="scMsg"></div>`}
+    <div class="modal-actions">
+      ${isDone ? '' : `<button class="gold" id="scSubmitBtn" onclick="submitScenarioAction('${a.id}')">تسليم وتقييم</button>`}
+      <button class="secondary" onclick="closeModal()">إغلاق</button>
+    </div>`);
+
+  if (!isDone && !a.started_at) await sb.rpc('scenario_start', { p_assignment_id: a.id });
+}
+
+async function submitScenarioAction(assignmentId) {
+  if (dayState.busy) return;
+  const txt = (document.getElementById('scAnswer')?.value || '').trim();
+  const url = (document.getElementById('scUrl')?.value || '').trim();
+  const msg = document.getElementById('scMsg');
+
+  if (txt.length < 40 && !url) {
+    msg.innerHTML = `<div class="msg-box msg-error">اكتب إجابة أوفى — أربعون حرفاً على الأقل، أو أرفق رابط المخرج.</div>`;
+    return;
+  }
+
+  dayState.busy = true;
+  const btn = document.getElementById('scSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'جارِ التسليم...'; }
+  msg.innerHTML = '';
+
+  const { data: res, error } = await sb.rpc('scenario_submit',
+    { p_assignment_id: assignmentId, p_text: txt, p_url: url || null });
+
+  if (error || !res?.ok) {
+    dayState.busy = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'تسليم وتقييم'; }
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(res?.error || error?.message || 'تعذّر التسليم')}</div>`;
+    return;
+  }
+
+  if (btn) btn.textContent = 'جارِ التقييم...';
+  // التسليم محفوظ حتى لو تأخّر التقييم — لا نُسقط عمل المتدرب لخطأ في المقيّم.
+  try { await authedFetch('scenario-score', { submission_id: res.submission_id }); } catch (_) {}
+
+  dayState.busy = false;
+  closeModal();
+  await renderTraineeTab('today');
+}
+
+// ===== الاختبارات القصيرة =====
+async function openQuiz(quizId) {
+  openModal(`<div class="loading">جارِ التحميل...</div>`);
+  const [{ data: q }, { data: qs }, { data: ans }] = await Promise.all([
+    sb.from('micro_quizzes').select('*').eq('id', quizId).single(),
+    sb.from('micro_quiz_questions').select('*').eq('quiz_id', quizId).order('sort_order'),
+    sb.from('micro_quiz_answers').select('*').eq('quiz_id', quizId),
+  ]);
+  if (!q) { closeModal(); return; }
+
+  const answered = new Map((ans || []).map(a => [a.question_id, a]));
+  const scored = q.status === 'scored';
+
+  const body = (qs || []).map((item, i) => {
+    const a = answered.get(item.id);
+    const opts = (item.options || []).map((o, oi) => {
+      const picked = a?.chosen_index === oi;
+      const right = scored && item.correct_index === oi;
+      const wrong = scored && picked && item.correct_index !== oi;
+      return `<label class="qz-opt ${right ? 'is-right' : ''} ${wrong ? 'is-wrong' : ''}">
+        <input type="radio" name="q_${item.id}" value="${oi}" ${picked ? 'checked' : ''} ${scored ? 'disabled' : ''}>
+        <span>${esc(o)}</span></label>`;
+    }).join('');
+    return `<div class="qz-q">
+      <div class="qz-num">${i + 1}. ${esc(item.question)}</div>
+      <div class="qz-opts">${opts}</div>
+      ${scored && item.rationale ? `<div class="qz-why">${esc(item.rationale)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  openModal(`
+    <h2>${esc(q.title)}</h2>
+    ${q.intro ? `<p class="panel-note">${esc(q.intro)}</p>` : ''}
+    ${scored ? `<div class="msg-box msg-ok">نتيجتك: ${Number(q.score || 0)} من ${Number(q.max_score || 0)}</div>` : ''}
+    <div class="qz-wrap">${body}</div>
+    <div id="qzMsg"></div>
+    <div class="modal-actions">
+      ${scored ? '' : `<button class="gold" id="qzBtn" onclick="submitQuizAction('${quizId}')">تسليم الإجابات</button>`}
+      <button class="secondary" onclick="closeModal()">إغلاق</button>
+    </div>`);
+}
+
+async function submitQuizAction(quizId) {
+  const { data: qs } = await sb.from('micro_quiz_questions')
+    .select('id, correct_index').eq('quiz_id', quizId).order('sort_order');
+  const items = qs || [];
+  const picks = [];
+  for (const item of items) {
+    const sel = document.querySelector(`input[name="q_${item.id}"]:checked`);
+    if (!sel) {
+      document.getElementById('qzMsg').innerHTML =
+        `<div class="msg-box msg-error">أجب عن كل الأسئلة قبل التسليم.</div>`;
+      return;
+    }
+    picks.push({
+      quiz_id: quizId, question_id: item.id, chosen_index: Number(sel.value),
+      is_correct: Number(sel.value) === item.correct_index,
+    });
+  }
+
+  const btn = document.getElementById('qzBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'جارِ التسليم...'; }
+
+  const { error } = await sb.from('micro_quiz_answers').insert(picks);
+  if (error) {
+    if (btn) { btn.disabled = false; btn.textContent = 'تسليم الإجابات'; }
+    document.getElementById('qzMsg').innerHTML =
+      `<div class="msg-box msg-error">${esc(error.message)}</div>`;
+    return;
+  }
+
+  const score = picks.filter(p => p.is_correct).length;
+  await sb.from('micro_quizzes').update({
+    status: 'scored', score, max_score: items.length,
+    submitted_at: new Date().toISOString(), scored_at: new Date().toISOString(),
+  }).eq('id', quizId);
+
+  closeModal();
+  await renderTraineeTab('today');
+}
+
+// ===================== لوحة "معلوماتي" =====================
+async function renderMyInfoTab(main) {
+  main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
+  const { data: st, error } = await sb.rpc('my_training_stats');
+  if (error || !st || !Object.keys(st).length) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل مؤشراتك.</div></div>`;
+    return;
+  }
+  const n = v => Number(v || 0).toLocaleString('ar-SA', { maximumFractionDigits: 1 });
+  const card = (label, value, sub) =>
+    `<div class="kpi"><span class="kpi-n">${esc(value === null || value === undefined ? '—' : n(value))}</span>
+      <span class="kpi-l">${esc(label)}</span>${sub ? `<span class="kpi-s">${esc(sub)}</span>` : ''}</div>`;
+
+  const pct = st.scenarios_assigned ? Math.round(st.scenarios_submitted / st.scenarios_assigned * 100) : 0;
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>معلوماتي</h2>
+      <p class="panel-note">صورة أثرك في التدريب حتى اليوم.</p>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-lbl">أنجزت ${n(st.scenarios_submitted)} من ${n(st.scenarios_assigned)} سيناريو (${pct}٪)</div>
+    </div>
+
+    <div class="panel">
+      <div class="kpi-sec">السيناريوهات</div>
+      <div class="kpi-grid">
+        ${card('سيناريوهات أنجزتها', st.scenarios_submitted)}
+        ${card('قيد العمل', st.scenarios_open, 'تنتظرك')}
+        ${card('متوسط درجتك', st.scenario_avg, 'من ١٠٠')}
+        ${card('أيام نشطة', st.active_days)}
+      </div>
+
+      <div class="kpi-sec">الواجبات</div>
+      <div class="kpi-grid">
+        ${card('واجبات معتمدة', st.tasks_done)}
+        ${card('مفتوحة', st.tasks_open)}
+        ${card('متأخرة', st.tasks_overdue, st.tasks_overdue ? 'تحتاج انتباهك' : '')}
+        ${card('إجمالي الواجبات', st.tasks_total)}
+      </div>
+
+      <div class="kpi-sec">الاختبارات</div>
+      <div class="kpi-grid">
+        ${card('اختبارات يومية', st.quiz_daily_done)}
+        ${card('اختبارات أسبوعية', st.quiz_weekly_done)}
+        ${card('متوسط النتيجة', st.quiz_avg_pct, '٪')}
+        ${card('نقاطك', st.points)}
+      </div>
+
+      <div class="kpi-sec">أثرك في مدارج</div>
+      <div class="kpi-grid">
+        ${card('نواقص رصدتها', st.insights_gaps)}
+        ${card('نقاط قوة رصدتها', st.insights_strengths)}
+        ${card('اعتمدتها الإدارة', st.insights_adopted, 'قيد التنفيذ أو منجزة')}
+        ${card('أوسمة', st.badges)}
+      </div>
+    </div>`;
+}
+
+// ===================== ملاحظات مدارج — للإدارة =====================
+const INSIGHT_AREA = {
+  social: 'التواصل الاجتماعي', website: 'الموقع', seo: 'الظهور في البحث',
+  content: 'المحتوى', brand: 'الهوية', service: 'الخدمة',
+  pricing: 'التسعير', hiring: 'التوظيف', other: 'أخرى',
+};
+const INSIGHT_SEV = { 1: 'تحسين', 2: 'متوسط', 3: 'مهم', 4: 'عاجل' };
+
+async function renderInsightsTab(main) {
+  main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
+  const { data: b, error } = await sb.rpc('madarej_insights_board');
+  if (error || !b || !Object.keys(b).length) {
+    main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل الملاحظات.</div></div>`;
+    return;
+  }
+  const n = v => Number(v || 0).toLocaleString('ar-SA');
+  const AREA = INSIGHT_AREA, SEV = INSIGHT_SEV;
+
+  const areaRows = (b.by_area || []).map(a => `
+    <tr><td>${esc(AREA[a.area] || a.area)}</td>
+      <td>${n(a.gaps)}</td><td>${n(a.strengths)}</td>
+      <td>${a.urgent ? `<span class="sev sev-4">${n(a.urgent)}</span>` : '—'}</td></tr>`).join('');
+
+  const gapCard = g => `
+    <div class="ins-card">
+      <div class="ins-top">
+        <span class="sev sev-${Number(g.severity) || 2}">${esc(SEV[g.severity] || '')}</span>
+        <span class="ins-area">${esc(AREA[g.area] || g.area)}</span>
+        <span class="ins-by">${esc(g.trainee || 'متدرب')}</span>
+      </div>
+      <div class="ins-title">${esc(g.title)}</div>
+      <div class="ins-detail">${esc(g.detail)}</div>
+      ${g.suggestion ? `<div class="ins-sugg"><b>مقترح:</b> ${esc(g.suggestion)}</div>` : ''}
+      <div class="ins-actions">
+        <button class="small gold" onclick="setInsightStatus('${g.id}','in_progress')">نعمل عليها</button>
+        <button class="small secondary" onclick="setInsightStatus('${g.id}','done')">أُنجزت</button>
+        <button class="small danger" onclick="setInsightStatus('${g.id}','dismissed')">تُطرح</button>
+      </div>
+    </div>`;
+
+  const strCard = s => `
+    <div class="ins-card is-strength">
+      <div class="ins-top">
+        <span class="ins-area">${esc(AREA[s.area] || s.area)}</span>
+        <span class="ins-by">${esc(s.trainee || 'متدرب')}</span>
+      </div>
+      <div class="ins-title">${esc(s.title)}</div>
+      <div class="ins-detail">${esc(s.detail)}</div>
+    </div>`;
+
+  main.innerHTML = `
+    <div class="panel">
+      <h2>ملاحظات المتدربين عن مدارج</h2>
+      <p class="panel-note">مستخلصة آلياً من إجابات المتدربين حين يفحصون أصول مدارج الرقمية بأنفسهم.</p>
+      <div class="kpi-grid">
+        <div class="kpi"><span class="kpi-n">${n(b.new_count)}</span><span class="kpi-l">جديدة</span><span class="kpi-s">لم تُراجع</span></div>
+        <div class="kpi"><span class="kpi-n">${n(b.gaps_open)}</span><span class="kpi-l">نواقص مفتوحة</span></div>
+        <div class="kpi"><span class="kpi-n">${n(b.strengths)}</span><span class="kpi-l">نقاط قوة</span></div>
+        <div class="kpi"><span class="kpi-n">${n(b.total)}</span><span class="kpi-l">الإجمالي</span></div>
+      </div>
+    </div>
+
+    ${areaRows ? `<div class="panel"><h2>التوزيع حسب المجال</h2>
+      <table><thead><tr><th>المجال</th><th>نواقص</th><th>نقاط قوة</th><th>عاجل</th></tr></thead>
+      <tbody>${areaRows}</tbody></table></div>` : ''}
+
+    <div class="panel">
+      <h2>نواقص تنتظر عملاً</h2>
+      ${(b.top_gaps || []).length ? `<div class="ins-list">${(b.top_gaps || []).map(gapCard).join('')}</div>`
+        : `<div class="msg-box msg-ok">لا توجد نواقص مفتوحة.</div>`}
+    </div>
+
+    <div class="panel">
+      <h2>نقاط قوة نبني عليها</h2>
+      ${(b.top_strengths || []).length ? `<div class="ins-list">${(b.top_strengths || []).map(strCard).join('')}</div>`
+        : `<div class="msg-box msg-warn">لم تُرصد نقاط قوة بعد.</div>`}
+    </div>`;
+}
+
+async function setInsightStatus(id, status) {
+  const { error } = await sb.from('madarej_insights')
+    .update({ status, reviewed_at: new Date().toISOString() }).eq('id', id);
+  if (error) { openModal(`<h2>تعذّر التحديث</h2><p>${esc(error.message)}</p>
+    <div class="modal-actions"><button class="secondary" onclick="closeModal()">إغلاق</button></div>`); return; }
+  await renderStaffTab('insights');
+}
 
 async function renderScenariosTab(main) {
   const [{ data: tracks }, { data: types }] = await Promise.all([
