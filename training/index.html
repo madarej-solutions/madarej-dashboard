@@ -277,6 +277,8 @@
   .hc-tier.is-ok .hc-badge { border-color: #2e7d5b; color: #4a9d76; }
   .hc-tier.is-bad .hc-badge { border-color: #c0562f; color: #e0885f; }
   .hc-use { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; line-height: 1.6; }
+  .hc-note { font-size: 11.5px; color: var(--muted); line-height: 1.7; margin-top: 8px;
+    padding-top: 8px; border-top: 1px solid var(--line); }
   .hc-tier .hc-row { border: 0; padding: 5px 0; }
   .hc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin-top: 12px; }
   .hc-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px;
@@ -3395,6 +3397,7 @@ async function runAiHealthCheck() {
         </div>
         <div class="hc-use">${esc(t['الاستخدام'] || '')}</div>
         <div class="hc-row"><span>النموذج</span><b>${esc(t['النموذج'] || '—')}</b></div>
+        ${t['التحويل'] ? `<div class="hc-note">${esc(t['التحويل'])}</div>` : ''}
         ${okT
           ? `<div class="hc-row"><span>زمن الاستجابة</span><b>${esc(String(t['الزمن_ملي'] ?? '—'))} ملي</b></div>`
           : `<div class="hc-fix"><div class="sc-lbl">السبب</div>${esc(t['السبب'] || '')}
@@ -3419,6 +3422,8 @@ async function runAiHealthCheck() {
 
     <div class="hc-grid">
       <div class="hc-row"><span>المزوّد</span><b>${esc(c['المزوّد'] || '—')}</b></div>
+      <div class="hc-row"><span>ترتيب المحاولة</span><b>${esc(c['ترتيب_المحاولة'] || '—')}</b></div>
+      <div class="hc-row"><span>التحويل التلقائي</span><b>${esc(c['التحويل_التلقائي'] || '—')}</b></div>
       <div class="hc-row"><span>مفتاح ChatGPT</span><b>${c['مفتاح_OpenAI_موجود'] ? 'موجود' : 'لا'}</b></div>
       <div class="hc-row"><span>مفتاح Claude</span><b>${c['مفتاح_Anthropic_موجود'] ? 'موجود' : 'لا'}</b></div>
       <div class="hc-row"><span>معرّف مساحة العمل</span><b>${c['معرّف_مساحة_العمل_مضبوط'] ? 'مضبوط' : 'لا'}</b></div>
