@@ -265,6 +265,19 @@
   .bar-wrap { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 14px; }
   .bar-fill { height: 100%; background: var(--gold); }
   .bar-lbl { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .hc-tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px; margin-top: 14px; }
+  .hc-tier { border: 1px solid var(--line); border-radius: 10px; padding: 14px;
+    border-top: 3px solid var(--line); }
+  .hc-tier.is-ok { border-top-color: #2e7d5b; }
+  .hc-tier.is-bad { border-top-color: #c0562f; }
+  .hc-tier-head { display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; margin-bottom: 4px; }
+  .hc-badge { font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); }
+  .hc-tier.is-ok .hc-badge { border-color: #2e7d5b; color: #4a9d76; }
+  .hc-tier.is-bad .hc-badge { border-color: #c0562f; color: #e0885f; }
+  .hc-use { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; line-height: 1.6; }
+  .hc-tier .hc-row { border: 0; padding: 5px 0; }
   .hc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin-top: 12px; }
   .hc-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px;
     border: 1px solid var(--line); border-radius: 9px; font-size: 12.5px; }
@@ -3352,7 +3365,7 @@ async function saveTrackExamNotes(trackId) {
 // إعدادات نظام الاختبارات التكيفي (للمدير العام / مدير التدريب)
 // ============================================================================
 
-// ===== فحص صحة خدمة الذكاء — يُشخّص العطل بدل تخمينه =====
+// ===== فحص صحة خدمة الذكاء — يعرض النموذجين: القوي والخفيف =====
 async function runAiHealthCheck() {
   const box = document.getElementById('aiHealthBox');
   const btn = document.getElementById('aiHealthBtn');
@@ -3361,7 +3374,7 @@ async function runAiHealthCheck() {
 
   let r;
   try { r = await authedFetch('ai-health', {}); }
-  catch (e) { r = { ok: false, السبب: 'تعذّر تشغيل الفحص: ' + (e.message || e), الإجراء: 'أعِد المحاولة.' }; }
+  catch (e) { r = { error: 'تعذّر تشغيل الفحص: ' + (e.message || e) }; }
 
   if (btn) { btn.disabled = false; btn.textContent = 'إعادة الفحص'; }
 
@@ -3371,25 +3384,48 @@ async function runAiHealthCheck() {
   }
 
   const c = r.config || {};
-  const rows = [
-    ['المفتاح مضبوط', c['المفتاح_مضبوط'] ? 'نعم' : 'لا'],
-    ['يبدأ بـ sk-ant-', c['يبدأ_بـ_sk_ant'] ? 'نعم' : 'لا'],
-    ['طول المفتاح', String(c['طول_المفتاح'] ?? 0) + ' حرفاً'],
-    ['النموذج', c['النموذج'] || '— غير مضبوط —'],
-  ];
-  if (r.http) rows.push(['رمز الاستجابة', 'HTTP ' + r.http]);
-  if (r['زمن_الاستجابة_ملي']) rows.push(['زمن الاستجابة', r['زمن_الاستجابة_ملي'] + ' ملي ثانية']);
+  const tier = (t, name) => {
+    if (!t) return '';
+    const okT = t['يعمل'];
+    return `
+      <div class="hc-tier ${okT ? 'is-ok' : 'is-bad'}">
+        <div class="hc-tier-head">
+          <b>${esc(name)}</b>
+          <span class="hc-badge">${okT ? 'يعمل' : 'متوقف'}</span>
+        </div>
+        <div class="hc-use">${esc(t['الاستخدام'] || '')}</div>
+        <div class="hc-row"><span>النموذج</span><b>${esc(t['النموذج'] || '—')}</b></div>
+        ${okT
+          ? `<div class="hc-row"><span>زمن الاستجابة</span><b>${esc(String(t['الزمن_ملي'] ?? '—'))} ملي</b></div>`
+          : `<div class="hc-fix"><div class="sc-lbl">السبب</div>${esc(t['السبب'] || '')}
+             ${t['الإجراء'] ? `<div class="sc-lbl" style="margin-top:8px">الإجراء</div>${esc(t['الإجراء'])}` : ''}</div>
+             ${t['نص_المزوّد'] ? `<details class="hc-raw"><summary>نص المزوّد</summary><code>${esc(t['نص_المزوّد'])}</code></details>` : ''}`}
+      </div>`;
+  };
+
+  const secrets = Array.isArray(c['أسرار_تراها_الدالة']) ? c['أسرار_تراها_الدالة'] : [];
 
   box.innerHTML = `
     <div class="msg-box ${r.ok ? 'msg-ok' : 'msg-error'}">
-      <b>${r.ok ? 'خدمة الذكاء تعمل' : 'خدمة الذكاء متوقفة'}</b>
-      <div class="pending-note">${esc(r['السبب'] || '')}</div>
+      <b>${r.ok ? 'خدمة الذكاء تعمل' : 'خدمة الذكاء متعثّرة'}</b>
+      <div class="pending-note">${esc(r['السبب'] || '')}
+        ${!r.ok && r['الإجراء'] ? `<br><b>الإجراء:</b> ${esc(r['الإجراء'])}` : ''}</div>
     </div>
+
+    <div class="hc-tiers">
+      ${tier(r['النموذج_القوي'], 'النموذج القوي')}
+      ${tier(r['النموذج_الخفيف'], 'النموذج الخفيف')}
+    </div>
+
     <div class="hc-grid">
-      ${rows.map(([k, v]) => `<div class="hc-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}
+      <div class="hc-row"><span>المزوّد</span><b>${esc(c['المزوّد'] || '—')}</b></div>
+      <div class="hc-row"><span>مفتاح ChatGPT</span><b>${c['مفتاح_OpenAI_موجود'] ? 'موجود' : 'لا'}</b></div>
+      <div class="hc-row"><span>مفتاح Claude</span><b>${c['مفتاح_Anthropic_موجود'] ? 'موجود' : 'لا'}</b></div>
+      <div class="hc-row"><span>معرّف مساحة العمل</span><b>${c['معرّف_مساحة_العمل_مضبوط'] ? 'مضبوط' : 'لا'}</b></div>
     </div>
-    ${r['الإجراء'] ? `<div class="hc-fix"><div class="sc-lbl">الإجراء المطلوب</div>${esc(r['الإجراء'])}</div>` : ''}
-    ${r['نص_المزوّد'] ? `<details class="hc-raw"><summary>نص المزوّد الحرفي</summary><code>${esc(r['نص_المزوّد'])}</code></details>` : ''}`;
+
+    ${secrets.length ? `<details class="hc-raw"><summary>الأسرار التي تراها الدوال (${secrets.length})</summary>
+      <code>${esc(secrets.join('\n'))}</code></details>` : ''}`;
 }
 
 async function renderExamsSettingsTab(main) {
