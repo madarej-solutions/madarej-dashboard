@@ -88,6 +88,17 @@
   .logo { font-weight: 700; font-size: 16px; }
   .logo span { color: var(--gold); font-weight: 400; font-size: 13px; }
   .logo-sub { color: var(--muted); font-size: 11px; margin: 2px 0 16px; }
+  .bi-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .bi-head h2 { margin: 0; }
+  .bi-grid { display: grid; gap: 0; margin-top: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .bi-row { display: grid; grid-template-columns: 120px minmax(0, 1fr);
+    align-items: baseline; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid var(--border); }
+  .bi-lbl { font-size: 12px; color: var(--muted); }
+  .bi-val { font-size: 14px; overflow-wrap: anywhere; }
+  .bi-empty { color: var(--muted); opacity: .6; font-size: 13px; }
+  .bi-edit { margin-top: 14px; }
   .tm-live { display: flex; align-items: baseline; gap: 10px; margin-top: 14px;
     padding: 14px 16px; border: 1px solid var(--gold, #c8a45c); border-radius: 12px; }
   .tm-live-lbl { font-size: 12px; color: var(--muted); }
@@ -1431,6 +1442,100 @@ const TRAINEE_NAV = [
   ['tasks','مهامي','✅'],  ['evaluations','تقييماتي','📈'], ['certificates','شهاداتي','🎓'],
 ];
 
+// ===== بطاقة المعلومات الأساسية في «معلوماتي» =====
+// تظهر للمتدرب والمدرّب والمدير. البريد يأتي من auth.users عبر my_basic_info،
+// فالمتصفح لا يقرأ ذلك الجدول مباشرة.
+
+const STUDY_LEVELS = {
+  diploma: 'دبلوم', bachelor: 'بكالوريوس', master: 'ماجستير',
+  phd: 'دكتوراه', high_school: 'ثانوية',
+};
+
+function biRow(label, value, opts) {
+  const o = opts || {};
+  const shown = (value === null || value === undefined || value === '')
+    ? `<span class="bi-empty">${esc(o.emptyHint || 'غير مسجَّل')}</span>`
+    : `<span${o.ltr ? ' dir="ltr"' : ''}>${esc(String(value))}</span>`;
+  return `<div class="bi-row"><span class="bi-lbl">${esc(label)}</span><span class="bi-val">${shown}</span></div>`;
+}
+
+function basicInfoHtml(info) {
+  const i = info || {};
+  const isTrainee = !!i.is_trainee;
+  const roleLabel = i.role ? (ROLE_LABELS[i.role] || i.role) : (isTrainee ? 'متدرب' : '—');
+
+  const core = [
+    biRow('الاسم', i.full_name),
+    biRow('البريد الإلكتروني', i.email, { ltr: true }),
+    biRow('التخصص', i.specialty, { emptyHint: i.can_edit_specialty ? 'أضِفه من «تعديل»' : 'غير مسجَّل' }),
+    biRow('رقم الجوال', i.phone, { ltr: true, emptyHint: 'أضِفه من «تعديل»' }),
+    biRow('الصفة', roleLabel),
+  ].join('');
+
+  const extra = isTrainee ? [
+    biRow('الرقم التدريبي', i.trainee_number, { ltr: true }),
+    biRow('المسار التدريبي', i.track_name),
+    biRow('الجامعة', i.university),
+    biRow('المرحلة الدراسية', i.study_level ? (STUDY_LEVELS[i.study_level] || i.study_level) : null),
+    biRow('مدة التدريب', (i.start_date && i.end_date)
+      ? `${fmtDate(i.start_date)} — ${fmtDate(i.end_date)}` : null),
+  ].join('') : '';
+
+  return `
+    <div class="panel">
+      <div class="bi-head">
+        <h2>المعلومات الأساسية</h2>
+        <button class="small" onclick="biToggleEdit()" id="biEditBtn">تعديل</button>
+      </div>
+      <div class="bi-grid" id="biView">${core}${extra}</div>
+
+      <div class="bi-edit" id="biEdit" hidden>
+        <div class="acc-form">
+          <div><label>رقم الجوال</label>
+            <input id="biPhone" type="tel" dir="ltr" placeholder="05xxxxxxxx" value="${esc(i.phone || '')}"></div>
+          ${i.can_edit_specialty ? `<div><label>التخصص</label>
+            <input id="biSpecialty" type="text" placeholder="مثال: محاسبة" value="${esc(i.specialty || '')}"></div>` : ''}
+        </div>
+        <p class="panel-note" style="margin-top:10px">
+          ${i.can_edit_specialty ? '' : 'التخصص مأخوذ من مسارك التدريبي، ويعدّله المشرف. '}يُحفظ فور الضغط.</p>
+        <button class="small gold" onclick="biSave(this)">حفظ</button>
+        <button class="small" onclick="biToggleEdit()">إلغاء</button>
+        <div id="biMsg" style="margin-top:10px"></div>
+      </div>
+    </div>`;
+}
+
+function biToggleEdit() {
+  const v = document.getElementById('biView');
+  const e = document.getElementById('biEdit');
+  const b = document.getElementById('biEditBtn');
+  if (!v || !e) return;
+  const editing = e.hidden;
+  e.hidden = !editing;
+  v.hidden = editing;
+  b.textContent = editing ? 'رجوع' : 'تعديل';
+}
+
+async function biSave(btn) {
+  const msg = document.getElementById('biMsg');
+  const phone = (document.getElementById('biPhone').value || '').trim();
+  const specEl = document.getElementById('biSpecialty');
+  btn.disabled = true;
+  try {
+    const { data, error } = await sb.rpc('update_my_contact', {
+      p_phone: phone, p_specialty: specEl ? (specEl.value || '').trim() : null,
+    });
+    if (error) throw new Error(error.message);
+    // نعيد رسم البطاقة بالمعطيات العائدة بدل إعادة تحميل التبويب كله
+    const panel = document.getElementById('biView').closest('.panel');
+    panel.outerHTML = basicInfoHtml(data);
+  } catch (e) {
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // ===== نبض النشاط: يسجّل دقيقة واحدة لكل دقيقة حضور فعلي =====
 // لا ينبض والتبويب مخفي — فالوقت المسجّل حضور حقيقي لا تبويب منسيّ مفتوح.
 
@@ -1496,7 +1601,9 @@ function timePanelHtml(a) {
 // ===== معلوماتي لفريق التدريب =====
 async function renderStaffInfoTab(main) {
   main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
-  const { data: a } = await sb.rpc('my_activity_summary');
+  const [{ data: a }, { data: bi }] = await Promise.all([
+    sb.rpc('my_activity_summary'), sb.rpc('my_basic_info'),
+  ]);
 
   const [{ count: trainees }, { count: scored }, { count: openIns }] = await Promise.all([
     sb.from('trainees').select('id', { count: 'exact', head: true }).eq('status', 'active'),
@@ -1507,6 +1614,7 @@ async function renderStaffInfoTab(main) {
   const n = v => toArabicDigits(Number(v || 0).toLocaleString('en-US'));
 
   main.innerHTML = `
+    ${basicInfoHtml(bi)}
     ${timePanelHtml(a)}
     <div class="panel">
       <h2>لمحة عن التدريب</h2>
@@ -4132,8 +4240,8 @@ async function submitQuizAction(quizId) {
 // ===================== لوحة "معلوماتي" =====================
 async function renderMyInfoTab(main) {
   main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
-  const [{ data: st, error }, { data: act }] = await Promise.all([
-    sb.rpc('my_training_stats'), sb.rpc('my_activity_summary'),
+  const [{ data: st, error }, { data: act }, { data: bi }] = await Promise.all([
+    sb.rpc('my_training_stats'), sb.rpc('my_activity_summary'), sb.rpc('my_basic_info'),
   ]);
   if (error || !st || !Object.keys(st).length) {
     main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل مؤشراتك.</div></div>`;
@@ -4147,8 +4255,10 @@ async function renderMyInfoTab(main) {
   const pct = st.scenarios_assigned ? Math.round(st.scenarios_submitted / st.scenarios_assigned * 100) : 0;
 
   main.innerHTML = `
+    ${basicInfoHtml(bi)}
+
     <div class="panel">
-      <h2>معلوماتي</h2>
+      <h2>مؤشراتي</h2>
       <p class="panel-note">صورة أثرك في التدريب حتى اليوم.</p>
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
       <div class="bar-lbl">أنجزت ${n(st.scenarios_submitted)} من ${n(st.scenarios_assigned)} سيناريو (${pct}٪)</div>
