@@ -122,7 +122,7 @@
   .side-toggle { display: none; background: var(--surface2); border: 1px solid var(--border);
     color: var(--ink2); border-radius: 8px; padding: 6px 11px; font-size: 15px; cursor: pointer; }
   /* على أضيق الشاشات يزاحم الاسمُ زرَّ الدخول، فيبقى الرمز وحده. */
-  @media (max-width: 420px) { .lp-logo img.lp-logo-word { display: none; } }
+  @media (max-width: 340px) { .lp-logo img.lp-logo-word { display: none; } }
 
   @media (max-width: 900px) {
     .app-shell { grid-template-columns: 1fr; }
@@ -462,7 +462,7 @@
                transition: color .15s ease-out; }
   .lp-signin:hover:not(:disabled) { background: none; color: rgba(159,182,206,.75); }
 
-  .lp-hero { position: relative; z-index: 10; margin-top: auto; padding-bottom: 64px; padding-inline: 24px; text-align: center; }
+  .lp-hero { position: relative; z-index: 10; margin-top: auto; padding-bottom: 120px; padding-inline: 24px; text-align: center; }
 
 
   .lp-h1 { margin: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 200;
@@ -479,16 +479,6 @@
             color: rgba(255,255,255,.62); padding: 8px 16px;
             border: 1px solid rgba(159,182,206,.26); border-radius: 999px; white-space: nowrap; }
 
-  .lp-cta { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            height: 91px; width: 264px; max-width: 100%; margin-top: 56px; padding-inline: 24px;
-            font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: .04em;
-            color: #fff; background: #131A22; border: 1px solid #9FB6CE; border-radius: 0; cursor: pointer;
-            transition: all .3s ease-out; box-shadow: inset 0 0 54px 0 rgba(96,124,155,.9);
-            clip-path: polygon(16px 0,calc(100% - 16px) 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 calc(100% - 16px),0 16px); }
-  .lp-cta:hover:not(:disabled) { background: #131A22; box-shadow: inset 0 0 54px 0 rgba(126,157,190,.95); }
-  .lp-cta .c { position: absolute; width: 32px; height: 2px; background: #9FB6CE; }
-  .lp-cta .c1 { top: 6.5px; left: 6.5px; transform: rotate(-45deg) translateX(-50%); transform-origin: top; }
-  .lp-cta .c2 { bottom: 6.5px; right: 6.5px; transform: rotate(-45deg) translateX(50%); }
 
   /* لوحة الدخول فوق الهيرو */
   .lp-auth { position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center;
@@ -592,10 +582,9 @@
     .lp-logo { gap: 11px; }
     .lp-logo-mark { height: 40px; }
     .lp-logo-word { height: 22px; }
-    .lp-hero { padding-bottom: 48px; }
+    .lp-hero { padding-bottom: 84px; }
     .lp-points { gap: 8px; margin-top: 20px; }
     .lp-points li { font-size: 12.5px; padding: 7px 13px; }
-    .lp-cta { height: 72px; margin-top: 36px; }
   }
 
 </style>
@@ -738,10 +727,6 @@ function renderLogin(errorMsg) {
           <li>شهادة قابلة للتحقق</li>
         </ul>
 
-        <button type="button" class="lp-cta" onclick="lpOpenLogin()">
-          <span class="c c1"></span><span class="c c2"></span>
-          [ ابدأ الآن ]
-        </button>
       </div>
 
       <div class="lp-auth" id="lpAuth" role="dialog" aria-modal="true" aria-labelledby="lpAuthTitle" onclick="lpBackdrop(event)">
