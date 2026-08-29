@@ -460,12 +460,9 @@
   .lp-hero { position: relative; z-index: 10; margin-top: auto; padding-bottom: 64px; padding-inline: 24px; text-align: center; }
 
 
-  .lp-hero-logo { width: clamp(88px, 13vw, 132px); height: clamp(88px, 13vw, 132px);
-           border-radius: 9999px; display: block; margin: 0 auto 28px;
-           box-shadow: 0 0 0 1px rgba(159,182,206,.28), 0 18px 60px -18px rgba(159,182,206,.5); }
-
   .lp-h1 { margin: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 200;
-           font-size: clamp(44px, 9.5vw, 104px); line-height: 1.18; letter-spacing: -.02em; }
+           font-size: clamp(22px, 6.4vw, 92px); line-height: 1.22; letter-spacing: -.02em;
+           white-space: nowrap; }
   .lp-h1 em { font-family: Amiri, serif; font-weight: 400; font-style: italic; }
   .lp-sub { margin: 28px auto 0; max-width: 640px; font-size: clamp(17px, 2.1vw, 21px);
             font-weight: 300; line-height: 1.85; color: rgba(255,255,255,.72); text-wrap: balance; }
@@ -589,7 +586,6 @@
     .lp-nav { display: none; }
     .lp-logo img { width: 56px; height: 56px; }
     .lp-hero { padding-bottom: 48px; }
-    .lp-hero-logo { margin-bottom: 20px; }
     .lp-points { gap: 8px; margin-top: 20px; }
     .lp-points li { font-size: 12.5px; padding: 7px 13px; }
     .lp-cta { height: 72px; margin-top: 36px; }
@@ -718,9 +714,7 @@ function renderLogin(errorMsg) {
 
       <div class="lp-hero">
 
-        <img class="lp-hero-logo" src="./logo-madarij.jpg" alt="مدارج للاستشارات الإدارية والمالية">
-
-        <h1 class="lp-h1">تدرّب على عمل<br><em>حقيقي</em></h1>
+        <h1 class="lp-h1">تدرّب على عمل <em>حقيقي</em></h1>
 
         <p class="lp-sub">كل يوم يصلك تحدٍّ من أرض الواقع: تفحص، وتقرّر، وتُقيَّم عليه مهنيًا.
           وتتخرّج بشهادة موثّقة تُثبت ما <b>تستطيع فعله</b> — لا ما حضرته.</p>
