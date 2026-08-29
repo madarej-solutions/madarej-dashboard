@@ -411,6 +411,10 @@
   .kpi-warn .kpi-n { color: #8A6100; }
   .panel-note { font-size: 13px; color: #6B7A8C; margin: -6px 0 16px; font-weight: 300; }
   .role-sel { padding: 6px 10px; border: 1px solid rgba(0,0,0,.15); border-radius: 4px; font: inherit; font-size: 13px; }
+  .acc-form { display: grid; gap: 12px 16px; margin-top: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .acc-form label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .acc-form input, .acc-form select { width: 100%; margin-bottom: 0; }
   .hours-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: end; }
   .hours-form label { display: block; font-size: 12px; color: #6B7A8C; margin-bottom: 4px; }
   .hours-form input, .hours-form select { width: 100%; padding: 8px 10px; border: 1px solid rgba(0,0,0,.15);
@@ -2341,6 +2345,141 @@ async function renderDashboardTab(main) {
 // وset_user_role تمنع إزالة آخر مدير حتى لا يُقفل أحد على نفسه.
 const ROLE_LABELS = { admin: 'مدير', training_manager: 'مدير تدريب', supervisor: 'مشرف', trainee: 'متدرب' };
 
+// ===== إنشاء الحسابات ومنح الأدوار =====
+// قبل هذا لم يكن للمدير طريق لإنشاء متدرب ولا مدرّب من الواجهة إطلاقاً:
+// المتدرب يدخل بطلب تسجيل ذاتي ثم قبول، والمدرّب لا طريق له البتة رغم
+// وجود الدالة على الخادم منذ شهر.
+
+const ACC_ROLE_OPTS = [
+  ['supervisor', 'مدرّب / مشرف'],
+  ['training_manager', 'مدير تدريب'],
+  ['admin', 'مدير عام'],
+  ['trainee', 'متدرب'],
+];
+
+function accCredsBox(title, email, password, sent, sentErr) {
+  const mail = sent
+    ? `<div class="cred-note">أُرسلت البيانات إلى <b dir="ltr">${esc(email)}</b>.</div>`
+    : `<div class="cred-note"><b>تعذّر إرسال البريد</b> — سلّم البيانات بنفسك.
+         ${sentErr ? `<span style="opacity:.7">(${esc(String(sentErr))})</span>` : ''}</div>`;
+  return `
+    <div class="credential-box">
+      <b>${esc(title)} — انسخ كلمة المرور الآن، لن تظهر مرة أخرى.</b>
+      <div class="cred-row"><span>رابط الدخول</span><code dir="ltr">training.madarej.sa</code></div>
+      <div class="cred-row"><span>البريد الإلكتروني</span><code dir="ltr">${esc(email)}</code></div>
+      <div class="cred-row"><span>كلمة المرور</span><code dir="ltr">${esc(password)}</code></div>
+      ${mail}
+    </div>`;
+}
+
+// ---------- متدرب جديد: السجل والحساب والدخول في خطوة واحدة ----------
+async function accCreateTrainee(btn) {
+  const g = id => (document.getElementById(id).value || '').trim();
+  const msg = document.getElementById('accTraineeMsg');
+  const name = g('ntName'), email = g('ntEmail');
+  const start = g('ntStart'), end = g('ntEnd'), track = g('ntTrack');
+
+  if (!name || !email || !start || !end) {
+    msg.innerHTML = `<div class="msg-box msg-error">الاسم والبريد وتاريخا التدريب مطلوبة.</div>`;
+    return;
+  }
+  btn.disabled = true;
+  msg.innerHTML = `<div class="msg-box">جارِ إنشاء الحساب وإرسال البيانات...</div>`;
+  try {
+    const payload = { action: 'create_trainee', full_name: name, email, start_date: start, end_date: end };
+    if (track) payload.track_id = track;
+    if (g('ntPhone')) payload.phone = g('ntPhone');
+    const d = await authedFetch('admin-accounts', payload);
+    msg.innerHTML = accCredsBox(
+      `أُنشئ المتدرب ${name} (${d.trainee_number || ''})`,
+      d.login_email, d.temporary_password, d.email_sent, d.email_error);
+    ['ntName', 'ntEmail', 'ntPhone'].forEach(i => { document.getElementById(i).value = ''; });
+  } catch (e) {
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ---------- عضو فريق: يُنشئ حساباً جديداً أو يمنح الدور لحساب قائم ----------
+async function accGrantRole(btn) {
+  const g = id => (document.getElementById(id).value || '').trim();
+  const msg = document.getElementById('accStaffMsg');
+  const name = g('nsName'), email = g('nsEmail'), role = g('nsRole');
+
+  if (!email || !role) {
+    msg.innerHTML = `<div class="msg-box msg-error">البريد والدور مطلوبان.</div>`;
+    return;
+  }
+  btn.disabled = true;
+  msg.innerHTML = `<div class="msg-box">جارِ التنفيذ...</div>`;
+  try {
+    const d = await authedFetch('admin-accounts',
+      { action: 'grant_role', full_name: name, email, role });
+    const label = (ACC_ROLE_OPTS.find(r => r[0] === d.role) || [, d.role])[1];
+    if (d.created) {
+      msg.innerHTML = accCredsBox(`أُنشئ حساب ${name} بدور «${label}»`,
+        d.login_email, d.temporary_password, d.email_sent, d.email_error);
+    } else {
+      const was = d.previous_role
+        ? (ACC_ROLE_OPTS.find(r => r[0] === d.previous_role) || [, d.previous_role])[1]
+        : 'بلا دور';
+      msg.innerHTML = `<div class="msg-box msg-success">
+        الحساب موجود مسبقاً، وغُيّر دوره من «${esc(was)}» إلى «${esc(label)}».
+        كلمة مروره لم تتغيّر.</div>`;
+    }
+    ['nsName', 'nsEmail'].forEach(i => { document.getElementById(i).value = ''; });
+    await refreshAccountsTable();
+  } catch (e) {
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ---------- كلمة مرور جديدة لحساب قائم ----------
+async function accResetPassword(btn, userId, name) {
+  if (!confirm(`تعيين كلمة مرور جديدة لـ«${name}»؟\n\nكلمة مروره الحالية ستتوقف فوراً، وتُرسل الجديدة إلى بريده.`)) return;
+  const msg = document.getElementById('roleMsg');
+  btn.disabled = true;
+  msg.innerHTML = `<div class="msg-box">جارِ تعيين كلمة مرور جديدة...</div>`;
+  try {
+    const d = await authedFetch('admin-accounts', { action: 'reset_password', user_id: userId });
+    msg.innerHTML = accCredsBox(`كلمة مرور جديدة لـ${name}`,
+      d.login_email, d.new_password, d.email_sent, d.email_error);
+    msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    msg.innerHTML = `<div class="msg-box msg-error">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function refreshAccountsTable() {
+  const host = document.getElementById('accTableHost');
+  if (!host) return;
+  const { data: rows } = await sb.rpc('admin_list_accounts');
+  host.innerHTML = accountsTableHtml(rows || []);
+}
+
+function accountsTableHtml(list) {
+  const opts = cur => ['', 'admin', 'training_manager', 'supervisor', 'trainee']
+    .map(r => `<option value="${r}" ${cur === r || (!cur && !r) ? 'selected' : ''}>${r ? esc(ROLE_LABELS[r]) : '— بلا دور —'}</option>`).join('');
+
+  const body = list.map(a => `
+    <tr>
+      <td>${esc(a.full_name || '—')}</td>
+      <td dir="ltr">${esc(a.email || '—')}</td>
+      <td>${a.social_handle ? '<span class="src-staff">فريق لوحة التواصل</span>' : (a.is_trainee ? '<span class="src-self">متدرب</span>' : '')}</td>
+      <td>${a.last_sign_in_at ? fmtDate(a.last_sign_in_at) : '<span style="opacity:.5">لم يدخل بعد</span>'}</td>
+      <td><select class="role-sel" data-uid="${esc(a.id)}" data-prev="${esc(a.role || '')}" onchange="changeRole(this)">${opts(a.role)}</select></td>
+      <td><button class="small" onclick="accResetPassword(this, '${esc(a.id)}', '${esc((a.full_name || 'الحساب').replace(/'/g, ''))}')">كلمة مرور جديدة</button></td>
+    </tr>`).join('') || `<tr><td class="empty-row" colspan="6">لا توجد حسابات</td></tr>`;
+
+  return `<table><thead><tr><th>الاسم</th><th>البريد</th><th>الانتماء</th><th>آخر دخول</th><th>الدور</th><th></th></tr></thead>
+    <tbody>${body}</tbody></table>`;
+}
+
 async function renderAccountsTab(main) {
   if (!state.isAdminOrManager) {
     main.innerHTML = `<div class="panel"><div class="msg-box msg-warn">إدارة الصلاحيات متاحة للمدير فقط.</div></div>`;
@@ -2351,26 +2490,49 @@ async function renderAccountsTab(main) {
     main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل الحسابات: ${esc(error.message)}</div></div>`;
     return;
   }
-  const list = rows || [];
-  const opts = cur => ['', 'admin', 'training_manager', 'supervisor', 'trainee']
-    .map(r => `<option value="${r}" ${cur === r || (!cur && !r) ? 'selected' : ''}>${r ? esc(ROLE_LABELS[r]) : '— بلا دور —'}</option>`).join('');
-
-  const body = list.map(a => `
-    <tr>
-      <td>${esc(a.full_name || '—')}</td>
-      <td dir="ltr">${esc(a.email || '—')}</td>
-      <td>${a.social_handle ? '<span class="src-staff">فريق لوحة التواصل</span>' : (a.is_trainee ? '<span class="src-self">متدرب</span>' : '')}</td>
-      <td>${a.last_sign_in_at ? fmtDate(a.last_sign_in_at) : '<span style="opacity:.5">لم يدخل بعد</span>'}</td>
-      <td><select class="role-sel" data-uid="${esc(a.id)}" onchange="changeRole(this)">${opts(a.role)}</select></td>
-    </tr>`).join('') || `<tr><td class="empty-row" colspan="5">لا توجد حسابات</td></tr>`;
+  const { data: tracks } = await sb.from('training_tracks')
+    .select('id, name').order('name');
+  const trackOpts = (tracks || [])
+    .map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+  const roleOpts = ACC_ROLE_OPTS
+    .map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
+  const today = new Intl.DateTimeFormat('en-CA',
+    { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
   main.innerHTML = `
+    <div class="panel">
+      <h2>متدرب جديد</h2>
+      <p class="panel-note">يُنشأ سجلّ المتدرب وحساب دخوله معاً، وتُرسل كلمة المرور إلى بريده.</p>
+      <div class="acc-form">
+        <div><label>الاسم الكامل</label><input id="ntName" type="text" placeholder="الاسم كما يُكتب في الشهادة"></div>
+        <div><label>البريد الإلكتروني</label><input id="ntEmail" type="email" dir="ltr" placeholder="name@example.com"></div>
+        <div><label>الجوال (اختياري)</label><input id="ntPhone" type="tel" dir="ltr" placeholder="05xxxxxxxx"></div>
+        <div><label>المسار التدريبي</label><select id="ntTrack"><option value="">بلا مسار</option>${trackOpts}</select></div>
+        <div><label>بداية التدريب</label><input id="ntStart" type="date" value="${today}"></div>
+        <div><label>نهاية التدريب</label><input id="ntEnd" type="date"></div>
+      </div>
+      <button class="small gold" style="margin-top:12px" onclick="accCreateTrainee(this)">إنشاء المتدرب وإرسال بياناته</button>
+      <div id="accTraineeMsg" style="margin-top:12px"></div>
+    </div>
+
+    <div class="panel">
+      <h2>عضو فريق أو منح دور</h2>
+      <p class="panel-note">أدخل الاسم والبريد والدور. إن كان للشخص حساب فسيُمنح الدور فقط،
+        وإلا أُنشئ له حساب جديد وأُرسلت له بياناته.</p>
+      <div class="acc-form">
+        <div><label>الاسم الكامل</label><input id="nsName" type="text" placeholder="مطلوب للحساب الجديد"></div>
+        <div><label>البريد الإلكتروني</label><input id="nsEmail" type="email" dir="ltr" placeholder="name@madarej.sa"></div>
+        <div><label>الدور</label><select id="nsRole">${roleOpts}</select></div>
+      </div>
+      <button class="small" style="margin-top:12px" onclick="accGrantRole(this)">تنفيذ</button>
+      <div id="accStaffMsg" style="margin-top:12px"></div>
+    </div>
+
     <div class="panel">
       <h2>الحسابات والصلاحيات</h2>
       <p class="panel-note">غيّر الدور من القائمة ويُحفظ فوراً. «مدير» و«مدير تدريب» يريان كل شيء، و«مشرف» يرى متدربيه فقط.</p>
       <div id="roleMsg"></div>
-      <table><thead><tr><th>الاسم</th><th>البريد</th><th>الانتماء</th><th>آخر دخول</th><th>الدور</th></tr></thead>
-      <tbody>${body}</tbody></table>
+      <div id="accTableHost">${accountsTableHtml(rows || [])}</div>
     </div>`;
 }
 
