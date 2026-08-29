@@ -88,6 +88,13 @@
   .logo { font-weight: 700; font-size: 16px; }
   .logo span { color: var(--gold); font-weight: 400; font-size: 13px; }
   .logo-sub { color: var(--muted); font-size: 11px; margin: 2px 0 16px; }
+  .ses-clock { display: flex; align-items: center; gap: 7px; margin-bottom: 16px;
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface2); font-size: 12px; }
+  .ses-ic { opacity: .65; flex: 0 0 auto; }
+  .ses-val { font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+  .ses-clock.is-long .ses-val { color: var(--gold, #c8a45c); }
+  .ses-since { margin-inline-start: auto; opacity: .55; font-size: 11px; white-space: nowrap; }
   .user-card { display: flex; gap: 9px; align-items: center; background: var(--surface2);
     border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; margin-bottom: 16px; }
   .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--active); color: #fff;
@@ -1360,6 +1367,7 @@ async function doLogin() {
 }
 
 async function logout() {
+  stopSessionClock();
   await sb.auth.signOut();
   Object.assign(state, { session: null, isAdminOrManager: false, isAdmin: false, isStaff: false, myTraineeId: null, myTrainee: null });
   renderLogin();
@@ -1421,6 +1429,55 @@ const TRAINEE_NAV = [
   ['tasks','مهامي','✅'],  ['evaluations','تقييماتي','📈'], ['certificates','شهاداتي','🎓'],
 ];
 
+// ===== مؤشر وقت الجلسة — يظهر لكل الأدوار في الشريط الجانبي =====
+// يبدأ من أول دخول في هذا التبويب ويبقى عبر تحديث الصفحة (sessionStorage)،
+// فتحديث الصفحة لا يصفّر عدّاد المتدرب. يُصفَّر عند الخروج فقط.
+
+const SESSION_KEY = 'madarejSessionStart';
+
+// أرقام عربية-هندية لتتسق مع بقية الواجهة.
+function toArabicDigits(s) {
+  return String(s).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+}
+
+function startSessionClock() {
+  let t = Number(sessionStorage.getItem(SESSION_KEY) || 0);
+  if (!t || Number.isNaN(t)) {
+    t = Date.now();
+    try { sessionStorage.setItem(SESSION_KEY, String(t)); } catch (_) {}
+  }
+  state.sessionStart = t;
+
+  if (state.sessionTimer) clearInterval(state.sessionTimer);
+
+  const since = document.getElementById('sesSince');
+  if (since) {
+    since.textContent = 'منذ ' + new Date(t).toLocaleTimeString('ar-SA',
+      { hour: '2-digit', minute: '2-digit' });
+  }
+
+  const tick = () => {
+    const el = document.getElementById('sesVal');
+    if (!el) { clearInterval(state.sessionTimer); state.sessionTimer = null; return; }
+    const sec = Math.max(0, Math.floor((Date.now() - state.sessionStart) / 1000));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const pad = n => String(n).padStart(2, '0');
+    el.textContent = toArabicDigits(h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`);
+    el.parentElement.classList.toggle('is-long', sec >= 4 * 3600);
+  };
+
+  tick();
+  state.sessionTimer = setInterval(tick, 1000);
+}
+
+function stopSessionClock() {
+  if (state.sessionTimer) { clearInterval(state.sessionTimer); state.sessionTimer = null; }
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+  state.sessionStart = null;
+}
+
 function renderShell(kind) {
   const email = state.session.user.email;
   const isStaff = kind === 'staff';
@@ -1442,6 +1499,11 @@ function renderShell(kind) {
           <div class="user-meta"><div class="user-role">${isStaff ? 'فريق التدريب' : 'متدرب'}</div>
             <div class="user-mail" dir="ltr" title="${who}">${who}</div></div>
         </div>
+        <div class="ses-clock" id="sesClock" title="الوقت منذ دخولك">
+          <span class="ses-ic">⏱</span>
+          <span class="ses-val" id="sesVal">٠٠:٠٠</span>
+          <span class="ses-since" id="sesSince"></span>
+        </div>
         <nav class="nav">${items}</nav>
         <div class="side-foot">
           <button class="nav-btn danger" onclick="openEmergencyReportModal()"><span class="ic">🚨</span><span>بلاغ أمني طارئ</span></button>
@@ -1456,6 +1518,8 @@ function renderShell(kind) {
         <div class="main" id="mainContent"><div class="loading">جارِ التحميل...</div></div>
       </div>
     </div>`;
+
+  startSessionClock();
 }
 
 // على الشاشات الضيقة القائمة مطوية وتُفتح فوق المحتوى.
