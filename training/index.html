@@ -88,6 +88,10 @@
   .logo { font-weight: 700; font-size: 16px; }
   .logo span { color: var(--gold); font-weight: 400; font-size: 13px; }
   .logo-sub { color: var(--muted); font-size: 11px; margin: 2px 0 16px; }
+  .tm-live { display: flex; align-items: baseline; gap: 10px; margin-top: 14px;
+    padding: 14px 16px; border: 1px solid var(--gold, #c8a45c); border-radius: 12px; }
+  .tm-live-lbl { font-size: 12px; color: var(--muted); }
+  .tm-live b { font-size: 30px; font-variant-numeric: tabular-nums; color: var(--gold, #c8a45c); }
   .ses-clock { display: flex; align-items: center; gap: 7px; margin-bottom: 16px;
     padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px;
     background: var(--surface2); font-size: 12px; }
@@ -1368,6 +1372,7 @@ async function doLogin() {
 
 async function logout() {
   stopSessionClock();
+  stopActivityPing();
   await sb.auth.signOut();
   Object.assign(state, { session: null, isAdminOrManager: false, isAdmin: false, isStaff: false, myTraineeId: null, myTrainee: null });
   renderLogin();
@@ -1423,11 +1428,101 @@ const STAFF_NAV = [
   ['accounts','الحسابات والصلاحيات','🔑'], ['hours','ساعات العمل','⏱'],
   ['exams','الاختبارات','📝'],          ['scenarios','السيناريوهات','🎯'],
   ['insights','ملاحظات عن مدارج','💡'],
+  ['myinfo','معلوماتي','📊'],
 ];
 const TRAINEE_NAV = [
   ['today','يومي','☀️'],   ['info','معلوماتي','📊'],
   ['tasks','مهامي','✅'],  ['evaluations','تقييماتي','📈'], ['certificates','شهاداتي','🎓'],
 ];
+
+// ===== نبض النشاط: يسجّل دقيقة واحدة لكل دقيقة حضور فعلي =====
+// لا ينبض والتبويب مخفي — فالوقت المسجّل حضور حقيقي لا تبويب منسيّ مفتوح.
+
+function startActivityPing() {
+  if (state.pingTimer) clearInterval(state.pingTimer);
+  const ping = async () => {
+    if (document.hidden) return;
+    try { await sb.rpc('record_activity'); } catch (_) { /* انقطاع مؤقت لا يعني شيئاً */ }
+  };
+  ping();
+  state.pingTimer = setInterval(ping, 60000);
+  document.removeEventListener('visibilitychange', ping);
+  document.addEventListener('visibilitychange', ping);
+}
+
+function stopActivityPing() {
+  if (state.pingTimer) { clearInterval(state.pingTimer); state.pingTimer = null; }
+}
+
+// يحوّل الدقائق إلى صيغة مقروءة: «٣ ساعات و١٥ دقيقة».
+function fmtMinutes(mins) {
+  const n = Math.max(0, Math.round(Number(mins) || 0));
+  const ar = v => toArabicDigits(v);
+  if (n < 60) return `${ar(n)} دقيقة`;
+  const h = Math.floor(n / 60), m = n % 60;
+  const hp = h === 1 ? 'ساعة' : h === 2 ? 'ساعتان' : h <= 10 ? `${ar(h)} ساعات` : `${ar(h)} ساعة`;
+  return m ? `${hp} و${ar(m)} دقيقة` : hp;
+}
+
+// لوحة الوقت — تُستخدم في «معلوماتي» للمتدرب وللموظف.
+function timePanelHtml(a) {
+  const total = Number(a?.total_minutes || 0);
+  const today = Number(a?.today_minutes || 0);
+  const week = Number(a?.week_minutes || 0);
+  const days = Number(a?.days_active || 0);
+  const avg = days ? Math.round(total / days) : 0;
+
+  return `
+    <div class="panel">
+      <h2>وقتك على المنصة</h2>
+      <p class="panel-note">يُحتسب حضوراً فعلياً — لا يُحسب وقت تبويب مفتوح وأنت غائب عنه.</p>
+
+      <div class="tm-live">
+        <span class="tm-live-lbl">جلستك الآن</span>
+        <b id="sesLive">٠٠:٠٠</b>
+      </div>
+
+      <div class="kpi-grid" style="margin-top:14px">
+        <div class="kpi"><span class="kpi-n">${esc(fmtMinutes(total))}</span>
+          <span class="kpi-l">الإجمالي التراكمي</span>
+          <span class="kpi-s">منذ أول دخول</span></div>
+        <div class="kpi"><span class="kpi-n">${esc(fmtMinutes(today))}</span>
+          <span class="kpi-l">اليوم</span></div>
+        <div class="kpi"><span class="kpi-n">${esc(fmtMinutes(week))}</span>
+          <span class="kpi-l">هذا الأسبوع</span></div>
+        <div class="kpi"><span class="kpi-n">${esc(toArabicDigits(days))}</span>
+          <span class="kpi-l">أيام حضرت فيها</span>
+          <span class="kpi-s">${days ? 'بمعدل ' + esc(fmtMinutes(avg)) + ' يومياً' : ''}</span></div>
+      </div>
+    </div>`;
+}
+
+// ===== معلوماتي لفريق التدريب =====
+async function renderStaffInfoTab(main) {
+  main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
+  const { data: a } = await sb.rpc('my_activity_summary');
+
+  const [{ count: trainees }, { count: scored }, { count: openIns }] = await Promise.all([
+    sb.from('trainees').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    sb.from('scenario_assignments').select('id', { count: 'exact', head: true }).eq('status', 'scored'),
+    sb.from('madarej_insights').select('id', { count: 'exact', head: true }).in('status', ['new', 'reviewed']),
+  ]);
+
+  const n = v => toArabicDigits(Number(v || 0).toLocaleString('en-US'));
+
+  main.innerHTML = `
+    ${timePanelHtml(a)}
+    <div class="panel">
+      <h2>لمحة عن التدريب</h2>
+      <div class="kpi-grid">
+        <div class="kpi"><span class="kpi-n">${n(trainees)}</span><span class="kpi-l">متدربون نشطون</span></div>
+        <div class="kpi"><span class="kpi-n">${n(scored)}</span><span class="kpi-l">سيناريوهات مُقيَّمة</span></div>
+        <div class="kpi"><span class="kpi-n">${n(openIns)}</span><span class="kpi-l">ملاحظات تنتظر مراجعتك</span></div>
+      </div>
+    </div>`;
+
+  startSessionClock();
+}
 
 // ===== مؤشر وقت الجلسة — يظهر لكل الأدوار في الشريط الجانبي =====
 // يبدأ من أول دخول في هذا التبويب ويبقى عبر تحديث الصفحة (sessionStorage)،
@@ -1466,6 +1561,8 @@ function startSessionClock() {
     const pad = n => String(n).padStart(2, '0');
     el.textContent = toArabicDigits(h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`);
     el.parentElement.classList.toggle('is-long', sec >= 4 * 3600);
+    const live = document.getElementById('sesLive');
+    if (live) live.textContent = el.textContent;
   };
 
   tick();
@@ -1520,6 +1617,7 @@ function renderShell(kind) {
     </div>`;
 
   startSessionClock();
+  startActivityPing();
 }
 
 // على الشاشات الضيقة القائمة مطوية وتُفتح فوق المحتوى.
@@ -2186,6 +2284,7 @@ async function renderStaffTab(tab) {
   else if (tab === 'exams') await renderExamsSettingsTab(main);
   else if (tab === 'scenarios') await renderScenariosTab(main);
   else if (tab === 'insights') await renderInsightsTab(main);
+  else if (tab === 'myinfo') await renderStaffInfoTab(main);
 }
 
 // ===== لوحة المعلومات =====
@@ -3879,7 +3978,9 @@ async function submitQuizAction(quizId) {
 // ===================== لوحة "معلوماتي" =====================
 async function renderMyInfoTab(main) {
   main.innerHTML = `<div class="loading">جارِ التحميل...</div>`;
-  const { data: st, error } = await sb.rpc('my_training_stats');
+  const [{ data: st, error }, { data: act }] = await Promise.all([
+    sb.rpc('my_training_stats'), sb.rpc('my_activity_summary'),
+  ]);
   if (error || !st || !Object.keys(st).length) {
     main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل مؤشراتك.</div></div>`;
     return;
@@ -3898,6 +3999,8 @@ async function renderMyInfoTab(main) {
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
       <div class="bar-lbl">أنجزت ${n(st.scenarios_submitted)} من ${n(st.scenarios_assigned)} سيناريو (${pct}٪)</div>
     </div>
+
+    ${timePanelHtml(act)}
 
     <div class="panel">
       <div class="kpi-sec">السيناريوهات</div>
@@ -3932,6 +4035,8 @@ async function renderMyInfoTab(main) {
         ${card('أوسمة', st.badges)}
       </div>
     </div>`;
+
+  startSessionClock();
 }
 
 // ===================== ملاحظات مدارج — للإدارة =====================
