@@ -121,6 +121,9 @@
   .top h1 { font-size: 16px; font-weight: 700; margin: 0; }
   .side-toggle { display: none; background: var(--surface2); border: 1px solid var(--border);
     color: var(--ink2); border-radius: 8px; padding: 6px 11px; font-size: 15px; cursor: pointer; }
+  /* على أضيق الشاشات يزاحم الاسمُ زرَّ الدخول، فيبقى الرمز وحده. */
+  @media (max-width: 420px) { .lp-logo img.lp-logo-word { display: none; } }
+
   @media (max-width: 900px) {
     .app-shell { grid-template-columns: 1fr; }
     .side { position: fixed; inset-inline-end: -260px; top: 0; width: 250px; z-index: 40;
@@ -445,8 +448,10 @@
   .lp-headwrap { position: absolute; z-index: 50; top: 0; right: 0; width: 100%; padding-top: 56px; pointer-events: none; }
   .lp-header { display: flex; align-items: center; justify-content: space-between;
                max-width: 1440px; margin-inline: auto; padding-inline: 48px; pointer-events: auto; }
-  .lp-logo { display: block; flex: none; }
-  .lp-logo img { width: 76px; height: 76px; border-radius: 9999px; display: block; }
+  .lp-logo { display: flex; align-items: center; gap: 14px; flex: none; }
+  .lp-logo img { display: block; width: auto; }
+  .lp-logo-mark { height: 54px; }
+  .lp-logo-word { height: 30px; }
   .lp-nav { position: absolute; right: 50%; transform: translateX(50%); display: flex; align-items: center;
             gap: 40px; font-size: 14px; font-weight: 400; letter-spacing: .06em; }
   .lp-nav a { color: rgba(255,255,255,.6); transition: color .15s ease-out; }
@@ -584,7 +589,9 @@
     .lp-header { padding-inline: 24px; }
     .lp-headwrap { padding-top: 28px; }
     .lp-nav { display: none; }
-    .lp-logo img { width: 56px; height: 56px; }
+    .lp-logo { gap: 11px; }
+    .lp-logo-mark { height: 40px; }
+    .lp-logo-word { height: 22px; }
     .lp-hero { padding-bottom: 48px; }
     .lp-points { gap: 8px; margin-top: 20px; }
     .lp-points li { font-size: 12.5px; padding: 7px 13px; }
@@ -597,14 +604,17 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=Amiri:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <script src="./particles.js"></script>
 <meta name="description" content="تدرّب على عمل حقيقي مع مدارج: مهام يومية من أرض الواقع، تقييم مهني لكل تسليم، وشهادة موثّقة قابلة للتحقق.">
-<link rel="icon" type="image/jpeg" href="./logo-madarij.jpg">
+<link rel="icon" type="image/png" href="./favicon.png">
+<link rel="apple-touch-icon" href="./favicon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="مدارج">
 <meta property="og:locale" content="ar_SA">
 <meta property="og:title" content="منصة تدريب مدارج">
 <meta property="og:description" content="مهام يومية من أرض الواقع، تقييم مهني لكل تسليم، وشهادة موثّقة تُثبت ما تستطيع فعله.">
-<meta property="og:image" content="https://training.madarej.sa/logo-madarij.jpg">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://training.madarej.sa/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#131A22">
 </head>
 <body>
@@ -701,7 +711,10 @@ function renderLogin(errorMsg) {
 
       <div class="lp-headwrap">
         <header class="lp-header">
-          <a class="lp-logo" href="#" onclick="return false"><img src="./logo-madarij.jpg" alt="مدارج للاستشارات الإدارية والمالية"></a>
+          <a class="lp-logo" href="#" onclick="return false" aria-label="مدارج للاستشارات الإدارية والمالية">
+            <img class="lp-logo-mark" src="./logo-mark.png" alt="" width="596" height="512">
+            <img class="lp-logo-word" src="./logo-wordmark.png" alt="" width="1171" height="256">
+          </a>
           <nav class="lp-nav">
             <a href="#" onclick="lpOpenTracks(); return false;">المسارات</a>
             <a href="#" onclick="lpOpenTrainers(); return false;">المدربون</a>
