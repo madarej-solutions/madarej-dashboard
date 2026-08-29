@@ -423,11 +423,22 @@
   .lp-hero { position: relative; z-index: 10; margin-top: auto; padding-bottom: 64px; padding-inline: 24px; text-align: center; }
 
 
+  .lp-hero-logo { width: clamp(88px, 13vw, 132px); height: clamp(88px, 13vw, 132px);
+           border-radius: 9999px; display: block; margin: 0 auto 28px;
+           box-shadow: 0 0 0 1px rgba(159,182,206,.28), 0 18px 60px -18px rgba(159,182,206,.5); }
+
   .lp-h1 { margin: 0; font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 200;
-           font-size: clamp(34px, 7vw, 72px); line-height: 1.25; letter-spacing: -.01em; }
+           font-size: clamp(44px, 9.5vw, 104px); line-height: 1.18; letter-spacing: -.02em; }
   .lp-h1 em { font-family: Amiri, serif; font-weight: 400; font-style: italic; }
-  .lp-sub { margin: 32px auto 0; max-width: 460px; font-size: 16px; font-weight: 300; line-height: 1.7;
-            color: rgba(255,255,255,.6); text-wrap: balance; }
+  .lp-sub { margin: 28px auto 0; max-width: 640px; font-size: clamp(17px, 2.1vw, 21px);
+            font-weight: 300; line-height: 1.85; color: rgba(255,255,255,.72); text-wrap: balance; }
+  .lp-sub b { font-weight: 500; color: #fff; }
+
+  .lp-points { list-style: none; margin: 26px auto 0; padding: 0; max-width: 720px;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .lp-points li { font-size: 13.5px; font-weight: 300; letter-spacing: .01em;
+            color: rgba(255,255,255,.62); padding: 8px 16px;
+            border: 1px solid rgba(159,182,206,.26); border-radius: 999px; white-space: nowrap; }
 
   .lp-cta { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             height: 91px; width: 264px; max-width: 100%; margin-top: 56px; padding-inline: 24px;
@@ -541,7 +552,10 @@
     .lp-nav { display: none; }
     .lp-logo img { width: 56px; height: 56px; }
     .lp-hero { padding-bottom: 48px; }
-    .lp-cta { height: 72px; margin-top: 40px; }
+    .lp-hero-logo { margin-bottom: 20px; }
+    .lp-points { gap: 8px; margin-top: 20px; }
+    .lp-points li { font-size: 12.5px; padding: 7px 13px; }
+    .lp-cta { height: 72px; margin-top: 36px; }
   }
 
 </style>
@@ -549,13 +563,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@200;300;400;500;600;700&family=Amiri:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <script src="./particles.js"></script>
-<meta name="description" content="منصة تدريب مدارج — من التقديم إلى الشهادة، بمسار واحد موثّق.">
+<meta name="description" content="تدرّب على عمل حقيقي مع مدارج: مهام يومية من أرض الواقع، تقييم مهني لكل تسليم، وشهادة موثّقة قابلة للتحقق.">
 <link rel="icon" type="image/jpeg" href="./logo-madarij.jpg">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="مدارج">
 <meta property="og:locale" content="ar_SA">
 <meta property="og:title" content="منصة تدريب مدارج">
-<meta property="og:description" content="من التقديم إلى الشهادة، بمسار واحد موثّق.">
+<meta property="og:description" content="مهام يومية من أرض الواقع، تقييم مهني لكل تسليم، وشهادة موثّقة تُثبت ما تستطيع فعله.">
 <meta property="og:image" content="https://training.madarej.sa/logo-madarij.jpg">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#131A22">
@@ -667,9 +681,18 @@ function renderLogin(errorMsg) {
 
       <div class="lp-hero">
 
-        <h1 class="lp-h1">افتح آفاق نموّك<br><em>المستقبلي</em></h1>
+        <img class="lp-hero-logo" src="./logo-madarij.jpg" alt="مدارج للاستشارات الإدارية والمالية">
 
-        <p class="lp-sub">منصة تدريب مدارج — من التقديم إلى الشهادة، بمسار واحد موثّق</p>
+        <h1 class="lp-h1">تدرّب على عمل<br><em>حقيقي</em></h1>
+
+        <p class="lp-sub">كل يوم يصلك تحدٍّ من أرض الواقع: تفحص، وتقرّر، وتُقيَّم عليه مهنيًا.
+          وتتخرّج بشهادة موثّقة تُثبت ما <b>تستطيع فعله</b> — لا ما حضرته.</p>
+
+        <ul class="lp-points">
+          <li>مهام من واقع مدارج</li>
+          <li>تقييم مهني لكل تسليم</li>
+          <li>شهادة قابلة للتحقق</li>
+        </ul>
 
         <button type="button" class="lp-cta" onclick="lpOpenLogin()">
           <span class="c c1"></span><span class="c c2"></span>
