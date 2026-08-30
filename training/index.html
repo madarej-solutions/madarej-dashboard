@@ -2156,8 +2156,11 @@ async function renderNdaGate() {
   const main = document.getElementById('mainContent');
   main.innerHTML = `<div class="loading">جارِ تحميل اتفاقية عدم الإفشاء...</div>`;
 
+  // التصفية بالنوع لازمة: الجدول يحوي التعهّد وسياسة الخصوصية وشروط
+  // الاستخدام معاً وكلها نافذة، فبدونها يُعرض أحدثها لا التعهّد.
   const { data: ndaVersion, error } = await sb.from('nda_policy_versions')
-    .select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    .select('*').eq('is_active', true).eq('policy_type', 'nda')
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
 
   if (error || !ndaVersion) {
     main.innerHTML = `<div class="panel"><div class="msg-box msg-error">تعذّر تحميل نص اتفاقية عدم الإفشاء. تواصل مع الإدارة.</div></div>`;
