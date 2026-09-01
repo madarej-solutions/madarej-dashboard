@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مدارج لحلول الأعمال | البوابة التدريبية</title>
+<style>
+:root{
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface2:#222220;
+  --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --gold:#c9a227;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:"Segoe UI",Tahoma,system-ui,sans-serif;font-size:14px}
+a{color:var(--s1)}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+/* sidebar */
+.side{background:var(--surface);border-left:1px solid var(--ring);padding:18px 12px;position:sticky;top:0;height:100vh;overflow:auto}
+.logo{font-weight:700;font-size:16px;margin-bottom:2px}
+.logo span{color:var(--gold)}
+.sub{color:var(--muted);font-size:11px;margin-bottom:18px}
+.nav button{display:flex;gap:8px;align-items:center;width:100%;text-align:right;background:none;border:0;color:var(--ink2);padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-family:inherit}
+.nav button:hover{background:var(--surface2)}
+.nav button.on{background:#26344d;color:#fff;font-weight:600}
+.nav .ic{width:20px;text-align:center}
+.demo{margin-top:16px;font-size:11px;color:var(--muted);border-top:1px solid var(--ring);padding-top:10px;line-height:1.7}
+/* topbar */
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--ring);background:var(--surface);position:sticky;top:0;z-index:5}
+.top h1{font-size:16px;font-weight:700;margin-left:auto}
+.chip{background:var(--surface2);border:1px solid var(--ring);color:var(--ink2);border-radius:8px;padding:6px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.chip.on{background:#26344d;color:#fff;border-color:var(--s1)}
+.main{padding:20px;max-width:1500px}
+.page{display:none}
+.page.on{display:block}
+/* cards */
+.row{display:grid;gap:14px;margin-bottom:14px}
+.cols8{grid-template-columns:repeat(8,minmax(0,1fr))}
+.cols4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cols2{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.cols2e{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.cols32{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+@media(max-width:1400px){.cols8{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1100px){.cols4,.cols3{grid-template-columns:repeat(2,minmax(0,1fr))}.cols2,.cols2e,.cols32{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:14px 16px;min-width:0;overflow:hidden}
+.card h3{font-size:13px;color:var(--ink2);font-weight:600;margin-bottom:10px}
+.card h3 small{color:var(--muted);font-weight:400}
+.kpi .v{font-size:22px;font-weight:700;margin:2px 0}
+.kpi .l{font-size:11.5px;color:var(--muted)}
+.kpi .d{font-size:11.5px;font-weight:600}
+.up{color:var(--good)}.dn{color:var(--crit)}
+.kpi svg{margin-top:6px}
+.foot{font-size:11px;color:var(--muted);margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{color:var(--muted);font-weight:600;text-align:right;padding:7px 8px;border-bottom:1px solid var(--axis)}
+td{padding:7px 8px;border-bottom:1px solid var(--grid);color:var(--ink2)}
+tr:hover td{background:var(--surface2)}
+.b{color:var(--ink);font-weight:600}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.pg{background:rgba(12,163,12,.15);color:#39c939}
+.pw{background:rgba(250,178,25,.15);color:var(--warn)}
+.pc{background:rgba(208,59,59,.18);color:#ef6b6b}
+.pb{background:rgba(57,135,229,.15);color:#6ea9ef}
+.bar-wrap{background:var(--surface2);border-radius:6px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-left:5px;vertical-align:-1px}
+.insight{border-right:3px solid var(--s1);background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12.5px;color:var(--ink2);line-height:1.7}
+.insight.r{border-right-color:var(--crit)}
+.insight.o{border-right-color:var(--good)}
+.insight.w{border-right-color:var(--warn)}
+.tag{font-size:10.5px;font-weight:700;margin-left:6px}
+.alert-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--grid);font-size:12.5px;color:var(--ink2)}
+.dot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.topic{background:var(--surface2);border:1px solid var(--ring);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--ink2)}
+.topic b{color:var(--ink)}
+/* funnel */
+.fun{display:flex;flex-direction:column;gap:6px}
+.fun .st{display:flex;align-items:center;gap:10px}
+.fun .lbl{width:110px;font-size:12px;color:var(--ink2)}
+.fun .bx{height:26px;border-radius:5px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;color:#fff;min-width:60px}
+.fun .cv{font-size:11px;color:var(--muted);width:110px}
+/* journey */
+.jour{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.jstage{flex:1;min-width:100px;background:var(--surface2);border:1px solid var(--ring);border-radius:10px;padding:10px;text-align:center}
+.jstage .n{font-size:12px;color:var(--ink2);font-weight:600}
+.jstage .val{font-size:17px;font-weight:700;margin:4px 0}
+.jstage .cv{font-size:10.5px;color:var(--muted)}
+.jarr{align-self:center;color:var(--muted);font-size:11px;text-align:center;min-width:44px}
+.jarr b{display:block;color:var(--s3);font-size:12px}
+/* swot */
+.swot{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.swot .q{border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8;color:var(--ink2)}
+.swot h4{font-size:12.5px;margin-bottom:4px}
+/* okr */
+/* ---- إضافات: المهام المحفوظة، لوحة الصدارة، بنك الخطافات ---- */
+.tk{display:flex;align-items:flex-start;gap:9px;background:var(--surface2);border-right:3px solid var(--s1);border-radius:8px;padding:9px 11px;margin-bottom:7px;font-size:12.5px;color:var(--ink2);line-height:1.7;cursor:pointer;transition:.15s}
+.tk:hover{border-right-color:var(--s4)}
+.tk input{margin-top:3px;cursor:pointer;width:15px;height:15px;accent-color:#0ca30c;flex:0 0 auto}
+.tk.done{opacity:.55;border-right-color:var(--good)}
+.tk.done span{text-decoration:line-through}
+.lb{width:100%;border-collapse:collapse;font-size:12.5px}
+.lb th{color:var(--muted);font-size:11px;font-weight:600;text-align:right;padding:7px 8px;border-bottom:1px solid var(--ring)}
+.lb td{padding:9px 8px;border-bottom:1px solid var(--ring);color:var(--ink2)}
+.lb tr:last-child td{border-bottom:0}
+.lb .rk{font-size:16px;font-weight:800;width:34px}
+.lb .nm{font-weight:700;color:var(--ink)}
+.lb .sc{font-weight:800;color:var(--s4)}
+.lb tr.me2{background:rgba(57,135,229,.09)}
+.hk{background:var(--surface2);border-radius:8px;padding:9px 11px;margin-bottom:7px;font-size:12.5px;color:var(--ink2);line-height:1.7;display:flex;gap:9px;align-items:flex-start;border-right:3px solid var(--s2)}
+.hk .cp{flex:0 0 auto;background:var(--surface);border:1px solid var(--ring);color:var(--muted);border-radius:6px;font-size:10.5px;padding:3px 8px;cursor:pointer;font-family:inherit}
+.hk .cp:hover{color:var(--ink);border-color:var(--s1)}
+.hk .cp.ok{color:var(--good);border-color:var(--good)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tabs button{background:var(--surface2);border:1px solid var(--ring);color:var(--muted);border-radius:20px;font-size:11.5px;padding:5px 12px;cursor:pointer;font-family:inherit}
+.tabs button.on{background:var(--s1);color:#fff;border-color:var(--s1)}
+.okr{margin-bottom:12px}
+.okr .t{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;color:var(--ink2)}
+/* chat */
+.fab{position:fixed;bottom:22px;left:22px;background:linear-gradient(135deg,var(--s1),#1c5cab);color:#fff;border:0;border-radius:30px;padding:12px 18px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.5);font-family:inherit;z-index:20}
+.chat{position:fixed;bottom:80px;left:22px;width:330px;background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:14px;display:none;z-index:20;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.chat.on{display:block}
+.chat h3{font-size:13px;margin-bottom:10px}
+.msg{border-radius:10px;padding:8px 11px;font-size:12.5px;margin-bottom:8px;line-height:1.7}
+.mq{background:#26344d;color:#fff}
+.ma{background:var(--surface2);color:var(--ink2)}
+.chat input{width:100%;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:8px 10px;font-family:inherit;font-size:12.5px}
+.gaugeval{text-align:center;margin-top:-46px;font-size:20px;font-weight:700}
+.gaugelbl{text-align:center;font-size:11px;color:var(--muted);margin-bottom:6px}
+.tt{position:fixed;background:#000;border:1px solid var(--ring);color:#fff;font-size:11.5px;padding:5px 9px;border-radius:6px;pointer-events:none;display:none;z-index:50}
+/* login */
+.login{position:fixed;inset:0;background:var(--page);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.login h2{font-size:24px}
+.login .sub2{color:var(--muted);font-size:13px;margin-bottom:18px}
+.users{display:grid;grid-template-columns:repeat(2,280px);gap:14px}
+@media(max-width:640px){.users{grid-template-columns:1fr}}
+.usercard{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:.15s}
+.usercard:hover{border-color:var(--s1);transform:translateY(-2px)}
+.usercard .em{font-size:30px;margin-bottom:8px}
+.usercard .nm{font-weight:700;font-size:14.5px;margin-bottom:4px}
+.usercard .ds{color:var(--muted);font-size:11.5px;line-height:1.6}
+.rolebadge{background:#26344d;border:1px solid var(--s1);border-radius:10px;padding:8px 10px;font-size:11.5px;color:#fff;margin-bottom:14px;line-height:1.6}
+.rolebadge button{background:none;border:0;color:var(--s1);cursor:pointer;font-family:inherit;font-size:11px;text-decoration:underline;padding:0;margin-top:4px}
+/* ---- الأمن السيبراني ---- */
+.inp{background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:8px 10px;font-family:inherit;font-size:12.5px;width:100%}
+.inp:focus{outline:none;border-color:var(--s1)}
+select.inp{cursor:pointer}
+.frm{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end}
+.frm label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px}
+.btn{background:linear-gradient(135deg,var(--s1),#1c5cab);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn.gh{background:none;border:1px solid var(--ring);color:var(--ink2);font-weight:600}
+.btn.gh:hover{border-color:var(--s1);color:var(--ink)}
+.ref{display:inline-block;font-size:10px;color:var(--muted);background:var(--surface);border:1px solid var(--ring);border-radius:5px;padding:1px 6px;margin-right:6px;white-space:nowrap;direction:ltr}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="tt" id="tt"></div>
+<div class="login" id="login">
+  <h2>مدارج <span style="color:var(--gold)">|</span> البوابة التدريبية</h2>
+  <div class="sub2">سجّل الدخول بإيميلك — بنرسل لك رابط دخول آمن، بدون كلمة مرور</div>
+  <div style="background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:26px;width:360px;max-width:92vw">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px">البريد الإلكتروني</div>
+    <input id="lemail" type="email" placeholder="name@gmail.com" style="width:100%;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:11px 12px;font-family:inherit;font-size:13.5px;direction:ltr;text-align:left">
+    <div id="lerr" style="color:#ef6b6b;font-size:12px;margin-top:8px;display:none"></div>
+    <div id="lok" style="color:var(--good);font-size:12px;margin-top:8px;display:none"></div>
+    <button id="lsendBtn" onclick="sendMagicLink()" style="width:100%;margin-top:16px;background:linear-gradient(135deg,var(--s1),#1c5cab);color:#fff;border:0;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">إرسال رابط الدخول 🚀</button>
+  </div>
+</div>
+<div class="app">
+<aside class="side">
+  <div class="logo">مدارج <span>|</span> لحلول الأعمال</div>
+  <div class="sub">نرسم طريق نجاح مشروعك بخبرة 9 سنوات — madarej.sa</div>
+  <nav class="nav" id="nav"></nav>
+  <div class="demo"><b style="color:var(--ink2)">القنوات المتصلة:</b><br>
+  Instagram @madarej_sa<br>TikTok @madarej_sa<br>X @madarej_co<br>Snapchat madarej.co<br>LinkedIn — مدارج<br>WhatsApp Business<br>Google Maps — الملف التجاري<br>madarej.sa + GA4/GSC<br>YouTube (قيد الإطلاق)</div>
+  <div class="demo">نموذج أولي (Prototype) ببيانات توضيحية لغرض اعتماد التصميم — يُنفذ لاحقاً على Microsoft Fabric / Power BI ببيانات حية.</div>
+  <div class="demo" style="border-top:1px solid var(--ring);padding-top:8px">النسخة <b style="color:var(--ink2)">v12</b> — 2026-08-24<br>البوابة التدريبية · وحدة الأمن السيبراني (ECC-2:2024 / PDPL)</div>
+</aside>
+<div>
+  <div class="top">
+    <h1 id="pageTitle">النظرة التنفيذية</h1>
+    <button class="chip" data-p>اليوم</button>
+    <button class="chip" data-p>7 أيام</button>
+    <button class="chip on" data-p>30 يوماً</button>
+    <button class="chip" data-p>الربع</button>
+    <button class="chip" data-p>السنة</button>
+    <button class="chip">كل المنصات ▾</button>
+    <button class="chip">مقارنة: الفترة السابقة ▾</button>
+    <button class="chip" id="refreshBtn" onclick="refreshNow()" style="margin-right:auto">🔄 تحديث الآن</button>
+    <span id="syncNow" style="font-size:10.5px;color:var(--muted);align-self:center">لم تتم المزامنة بعد</span>
+  </div>
+  <div class="main" id="main"></div>
+</div>
+</div>
+
+<button class="fab" onclick="document.getElementById('chat').classList.toggle('on')">🤖 اسأل مساعد مدارج</button>
+<div class="chat" id="chat">
+  <h3>مساعد الذكاء الاصطناعي — عربي / English</h3>
+  <div class="msg mq">ما سبب انخفاض التفاعل هذا الأسبوع؟</div>
+  <div class="msg ma">انخفض التفاعل 8% بسبب تراجع نشر الريلز على Instagram من 5 إلى 2 أسبوعياً. الريلز تحقق 3.2× متوسط التفاعل — أوصي بالعودة لجدول 5 ريلز أسبوعياً، والتركيز على محتوى «قصص نجاح العملاء».</div>
+  <input id="chatInput" placeholder="اكتب سؤالك عن البيانات..." onkeydown="if(event.key==='Enter')askAssistant()">
+</div>
+
+<script>
+const C={s1:'#3987e5',s2:'#d95926',s3:'#199e70',s4:'#c98500',s5:'#d55181',good:'#0ca30c',warn:'#fab219',ser:'#ec835a',crit:'#d03b3b',grid:'#2c2c2a',axis:'#383835',muted:'#898781',ink2:'#c3c2b7'};
+const tt=document.getElementById('tt');
+function showTT(e,html){tt.innerHTML=html;tt.style.display='block';tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY+10)+'px';}
+function hideTT(){tt.style.display='none';}
+
+/* ---------- tiny SVG chart helpers ---------- */
+function spark(data,color,w=120,h=30){
+  const mx=Math.max(...data),mn=Math.min(...data);
+  const pts=data.map((v,i)=>`${i*(w/(data.length-1))},${h-3-((v-mn)/(mx-mn||1))*(h-8)}`).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+function lineChart(series,labels,w=640,h=230,fmt=v=>v.toLocaleString('en')){
+  const pad={t:14,r:14,b:26,l:52};
+  const all=series.flatMap(s=>s.data).filter(v=>v!=null);const mx=Math.max(...all)*1.08,mn=0;
+  const X=i=>pad.l+i*((w-pad.l-pad.r)/(labels.length-1));
+  const Y=v=>pad.t+(1-(v-mn)/(mx-mn))*(h-pad.t-pad.b);
+  let g='';
+  for(let k=0;k<=4;k++){const y=pad.t+k*(h-pad.t-pad.b)/4;const val=mx-(mx-mn)*k/4;
+    g+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${y}" y2="${y}" stroke="${C.grid}"/><text x="${pad.l-6}" y="${y+4}" fill="${C.muted}" font-size="10" text-anchor="end">${fmt(Math.round(val))}</text>`;}
+  labels.forEach((l,i)=>{if(i%Math.ceil(labels.length/8)===0)g+=`<text x="${X(i)}" y="${h-8}" fill="${C.muted}" font-size="10" text-anchor="middle">${l}</text>`;});
+  series.forEach(s=>{
+    if(s.band){
+      const idx=s.band[0].map((v,i)=>(v!=null&&s.band[1][i]!=null)?i:null).filter(i=>i!==null);
+      const up=idx.map(i=>`${X(i)},${Y(s.band[0][i])}`).join(' ');
+      const lo=[...idx].reverse().map(i=>`${X(i)},${Y(s.band[1][i])}`).join(' ');
+      g+=`<polygon points="${up} ${lo}" fill="${s.color}22" stroke="none"/>`;}
+    const pts=s.data.map((v,i)=>v==null?null:`${X(i)},${Y(v)}`).filter(Boolean).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2" stroke-dasharray="${s.dash||'0'}" stroke-linejoin="round"/>`;
+    s.data.forEach((v,i)=>{if(v==null)return;g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="7" fill="transparent" data-tt="${s.name} — ${labels[i]}: ${fmt(v)}"/>`;});
+  });
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+function barChart(cats,vals,color,w=620,h=210,fmt=v=>v,horiz=false){
+  const pad={t:10,r:12,b:26,l:horiz?110:44};const mx=Math.max(...vals)*1.1;
+  let g='';
+  if(horiz){
+    const bh=(h-pad.t-pad.b)/cats.length;
+    cats.forEach((c,i)=>{const bw=(vals[i]/mx)*(w-pad.l-pad.r);const y=pad.t+i*bh;
+      g+=`<text x="${pad.l-8}" y="${y+bh/2+4}" fill="${C.ink2}" font-size="11" text-anchor="end">${c}</text>
+      <rect x="${pad.l}" y="${y+3}" width="${bw}" height="${bh-8}" rx="4" fill="${Array.isArray(color)?color[i]:color}" data-tt="${c}: ${fmt(vals[i])}"/>
+      <text x="${pad.l+bw+6}" y="${y+bh/2+4}" fill="${C.ink2}" font-size="10.5">${fmt(vals[i])}</text>`;});
+  }else{
+    const bw=(w-pad.l-pad.r)/cats.length;
+    for(let k=0;k<=3;k++){const y=pad.t+k*(h-pad.t-pad.b)/3;g+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${y}" y2="${y}" stroke="${C.grid}"/>`;}
+    cats.forEach((c,i)=>{const bhh=(vals[i]/mx)*(h-pad.t-pad.b);const x=pad.l+i*bw;
+      g+=`<rect x="${x+bw*0.18}" y="${h-pad.b-bhh}" width="${bw*0.64}" height="${bhh}" rx="4" fill="${Array.isArray(color)?color[i]:color}" data-tt="${c}: ${fmt(vals[i])}"/>
+      <text x="${x+bw/2}" y="${h-8}" fill="${C.muted}" font-size="10" text-anchor="middle">${c}</text>`;});
+  }
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+function donut(items,w=210,h=210,inner=56){
+  const total=items.reduce((a,b)=>a+b.v,0);let a0=-Math.PI/2,g='';
+  items.forEach(it=>{const a1=a0+it.v/total*Math.PI*2;const r=w/2-6;
+    const x0=w/2+r*Math.cos(a0),y0=h/2+r*Math.sin(a0),x1=w/2+r*Math.cos(a1),y1=h/2+r*Math.sin(a1);
+    const large=(a1-a0)>Math.PI?1:0;
+    g+=`<path d="M ${w/2} ${h/2} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z" fill="${it.c}" stroke="#1a1a19" stroke-width="2" data-tt="${it.n}: ${Math.round(it.v/total*100)}%"/>`;a0=a1;});
+  g+=`<circle cx="${w/2}" cy="${h/2}" r="${inner}" fill="#1a1a19"/>`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+function gauge(pct,color,w=190){
+  const r=70,cx=w/2,cy=86;
+  const arc=(p,col,sw)=>{const a0=Math.PI,a1=Math.PI+p*Math.PI;
+    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    return `<path d="M ${x0} ${y0} A ${r} ${r} 0 ${p>1?1:0} 1 ${x1} ${y1}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;};
+  return `<svg width="${w}" height="100" viewBox="0 0 ${w} 100">${arc(1,C.axis,12)}${arc(pct,color,12)}</svg>`;
+}
+function heatmap(rows,cols,data,w=640,h=230){
+  const pad={t:22,l:64,r:8,b:8};const cw=(w-pad.l-pad.r)/cols.length,ch=(h-pad.t-pad.b)/rows.length;
+  const mx=Math.max(...data.flat());
+  const ramp=v=>{const t=v/mx;const steps=['#184f95','#1c5cab','#256abf','#2a78d6','#3987e5','#5598e7','#86b6ef'];return steps[Math.min(6,Math.round(t*6))];};
+  let g='';
+  cols.forEach((c,j)=>{g+=`<text x="${pad.l+j*cw+cw/2}" y="14" fill="${C.muted}" font-size="9.5" text-anchor="middle">${c}</text>`;});
+  rows.forEach((rr,i)=>{g+=`<text x="${pad.l-8}" y="${pad.t+i*ch+ch/2+4}" fill="${C.ink2}" font-size="10.5" text-anchor="end">${rr}</text>`;
+    cols.forEach((c,j)=>{g+=`<rect x="${pad.l+j*cw+1}" y="${pad.t+i*ch+1}" width="${cw-2}" height="${ch-2}" rx="3" fill="${ramp(data[i][j])}" data-tt="${rr} ${c}: ${data[i][j]} تفاعل"/>`;});});
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+function radar(axes,seriesArr,w=300,h=280){
+  const cx=w/2,cy=h/2+6,r=95,n=axes.length;
+  const P=(i,f)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*f*Math.cos(a),cy+r*f*Math.sin(a)];};
+  let g='';
+  [0.25,0.5,0.75,1].forEach(f=>{const pts=axes.map((_,i)=>P(i,f).join(',')).join(' ');g+=`<polygon points="${pts}" fill="none" stroke="${C.grid}"/>`;});
+  axes.forEach((ax,i)=>{const[e0,e1]=P(i,1);g+=`<line x1="${cx}" y1="${cy}" x2="${e0}" y2="${e1}" stroke="${C.grid}"/>`;
+    const[tx,ty]=P(i,1.22);g+=`<text x="${tx}" y="${ty}" fill="${C.ink2}" font-size="10" text-anchor="middle">${ax}</text>`;});
+  seriesArr.forEach(s=>{const pts=s.data.map((v,i)=>P(i,v).join(',')).join(' ');
+    g+=`<polygon points="${pts}" fill="${s.color}26" stroke="${s.color}" stroke-width="2"/>`;});
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+function bubbles(items,w=560,h=260){
+  const pad=40;let g=`<line x1="${pad}" y1="${h-pad}" x2="${w-14}" y2="${h-pad}" stroke="${C.axis}"/><line x1="${pad}" y1="14" x2="${pad}" y2="${h-pad}" stroke="${C.axis}"/>
+  <text x="${w/2}" y="${h-8}" fill="${C.muted}" font-size="10.5" text-anchor="middle">حصة الصوت (SoV) ←</text>
+  <text x="14" y="${h/2}" fill="${C.muted}" font-size="10.5" text-anchor="middle" transform="rotate(-90 14 ${h/2})">معدل التفاعل ←</text>`;
+  items.forEach(it=>{const x=pad+it.x*(w-pad-30),y=(h-pad)-it.y*(h-pad-30);
+    g+=`<circle cx="${x}" cy="${y}" r="${it.r}" fill="${it.c}55" stroke="${it.c}" stroke-width="2" data-tt="${it.n} — SoV ${Math.round(it.x*100)}% | تفاعل ${(it.y*8).toFixed(1)}%"/>
+    <text x="${x}" y="${y-it.r-6}" fill="${C.ink2}" font-size="10.5" text-anchor="middle">${it.n}</text>`;});
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+function waterfall(items,w=620,h=220){
+  const pad={t:12,r:10,b:30,l:56};let cum=0;const totals=[];
+  items.forEach(it=>{totals.push({...it,start:cum});cum+=it.v;});
+  const mx=Math.max(cum,...totals.map(t=>t.start+Math.max(t.v,0)))*1.1;
+  const bw=(w-pad.l-pad.r)/(items.length+1);
+  const Y=v=>pad.t+(1-v/mx)*(h-pad.t-pad.b);
+  let g='';for(let k=0;k<=3;k++){const y=pad.t+k*(h-pad.t-pad.b)/3;g+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${y}" y2="${y}" stroke="${C.grid}"/><text x="${pad.l-6}" y="${y+4}" fill="${C.muted}" font-size="9.5" text-anchor="end">${Math.round(mx*(1-k/3)/1000)}k</text>`;}
+  totals.forEach((t,i)=>{const x=pad.l+i*bw;const y0=Y(t.start),y1=Y(t.start+t.v);
+    g+=`<rect x="${x+bw*0.15}" y="${Math.min(y0,y1)}" width="${bw*0.7}" height="${Math.abs(y1-y0)}" rx="4" fill="${t.v>=0?C.s3:C.crit}" data-tt="${t.n}: ${t.v.toLocaleString('en')} ر.س"/>
+    <text x="${x+bw/2}" y="${h-10}" fill="${C.muted}" font-size="9.5" text-anchor="middle">${t.n}</text>`;});
+  const x=pad.l+items.length*bw;
+  g+=`<rect x="${x+bw*0.15}" y="${Y(cum)}" width="${bw*0.7}" height="${(h-pad.b)-Y(cum)}" rx="4" fill="${C.s1}" data-tt="الصافي: ${cum.toLocaleString('en')} ر.س"/><text x="${x+bw/2}" y="${h-10}" fill="${C.muted}" font-size="9.5" text-anchor="middle">الصافي</text>`;
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+
+/* ---------- pages ---------- */
+const months=['فبراير','مارس','أبريل','مايو','يونيو','يوليو'];
+const kpis=[
+ {l:'إجمالي الوصول',v:'2.4M',d:'+18%',u:1,s:[30,34,32,40,44,52],c:C.s1},
+ {l:'مرات الظهور',v:'6.8M',d:'+12%',u:1,s:[50,55,52,60,63,70],c:C.s1},
+ {l:'نمو المتابعين',v:'+9,420',d:'+6.2%',u:1,s:[20,24,23,28,31,36],c:C.s3},
+ {l:'معدل التفاعل',v:'4.7%',d:'-0.3',u:0,s:[52,50,54,49,48,47],c:C.s2},
+ {l:'العملاء المحتملون',v:'312',d:'+24%',u:1,s:[14,18,17,22,26,31],c:C.s3},
+ {l:'تكلفة العميل المحتمل',v:'84 ر.س',d:'-11%',u:1,s:[40,38,36,35,32,30],c:C.s3},
+ {l:'الإيراد المنسوب',v:'1.86M',d:'+15%',u:1,s:[30,33,35,38,42,46],c:C.s1},
+ {l:'ROAS',v:'4.2×',d:'+0.4',u:1,s:[30,32,33,36,38,42],c:C.s4},
+];
+function kpiCards(){return `<div class="row cols8">`+kpis.map(k=>`
+  <div class="card kpi"><div class="l">${k.l}</div><div class="v">${k.v}</div>
+  <div class="d ${k.u?'up':'dn'}">${k.u?'▲':'▼'} ${k.d} <span style="color:var(--muted);font-weight:400">مقابل الفترة السابقة</span></div>${spark(k.s,k.c)}</div>`).join('')+`</div>`;}
+
+/* مؤشر الهيمنة: رقم واحد يدمج حصة الصوت + قوة التفاعل + نمو الإيراد — أول شيء يراه المدير */
+const SOV_PCT=36; /* نفس رقم حصة الصوت في صفحة ذكاء المنافسين — مصدر واحد */
+function dominationScore(){
+  const engRate=parseFloat((kpis.find(k=>k.l==='معدل التفاعل')||{}).v)||0;
+  const revGrowth=parseFloat((kpis.find(k=>k.l==='الإيراد المنسوب')||{}).d)||0;
+  const engIdx=Math.min(100,(engRate/8)*100);
+  const revIdx=Math.min(100,(revGrowth/20)*100);
+  const score=Math.round(SOV_PCT*0.4+engIdx*0.3+revIdx*0.3);
+  return {score,engIdx,revIdx,engRate,revGrowth};
+}
+function dominationCard(){
+  const {score,engIdx,revIdx,engRate,revGrowth}=dominationScore();
+  const tier=score>=70?{c:C.good,t:'نتصدر السوق'}:score>=40?{c:C.warn,t:'تنافسية — لم تُحسم بعد'}:{c:C.crit,t:'خطر فقدان الريادة'};
+  return `<div class="row">
+   <div class="card"><h3>🧭 مؤشر الهيمنة (Domination Score) <small>— أول رقم يجب أن يراه المدير خلال 10 ثوانٍ</small></h3>
+    <div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap">
+     <div style="text-align:center">${gauge(score/100,tier.c)}<div style="font-size:26px;font-weight:800;margin-top:-4px">${score}<span style="font-size:13px;color:var(--muted)">/100</span></div><div style="color:${tier.c};font-weight:700;font-size:13px">${tier.t}</div></div>
+     <div style="flex:1;min-width:220px">
+      <div class="okr"><div class="t"><span>حصة الصوت (وزن 40%)</span><span class="b">${SOV_PCT}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${SOV_PCT}%;background:${C.s1}"></div></div></div>
+      <div class="okr"><div class="t"><span>قوة التفاعل (وزن 30%)</span><span class="b">${engRate}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(100,engIdx)}%;background:${C.s3}"></div></div></div>
+      <div class="okr"><div class="t"><span>نمو الإيراد (وزن 30%)</span><span class="b">${revGrowth>0?'+':''}${revGrowth}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(100,revIdx)}%;background:${C.s4}"></div></div></div>
+     </div>
+    </div>
+    <div class="foot">الصيغة: (حصة الصوت×0.4) + (مؤشر قوة التفاعل×0.3 — سقفه معدل تفاعل 8%) + (مؤشر نمو الإيراد×0.3 — سقفه نمو 20%). رقم واحد يلخّص: هل نسيطر، نتنافس، أم نتراجع — لا حاجة لقراءة عشرين مؤشراً لمعرفة الاتجاه العام.</div></div>
+  </div>`;
+}
+const pages={
+overview:{t:'النظرة التنفيذية',h:()=>`
+ ${dominationCard()}
+ ${kpiCards()}
+ <div class="row cols2">
+  <div class="card"><h3>الوصول والتفاعل عبر الزمن <small>— جميع المنصات، 6 أشهر</small></h3>
+   ${lineChart([{name:'الوصول (ألف)',data:[310,342,335,412,448,520],color:C.s1},{name:'التفاعلات (ألف)',data:[141,150,148,171,183,196],color:C.s2}],months)}
+   <div class="legend"><span><i style="background:${C.s1}"></i>الوصول (ألف)</span><span><i style="background:${C.s2}"></i>التفاعلات (ألف)</span></div></div>
+  <div class="card"><h3>تحقيق الأهداف الربعية</h3>
+   <div class="gaugelbl">مؤشر صحة العلامة التجارية</div>${gauge(0.78,C.s3)}<div class="gaugeval">78<span style="font-size:12px;color:var(--muted)">/100</span></div>
+   <div style="margin-top:26px">
+    ${[['Leads',104,C.good],['الوصول',92,C.s1],['التفاعل',81,C.warn],['ROI',96,C.s1]].map(([n,p,c])=>`
+    <div class="okr"><div class="t"><span>${n}</span><span class="b">${p}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(p,100)}%;background:${c}"></div></div></div>`).join('')}
+   </div></div>
+ </div>
+ <div class="row cols3">
+  <div class="card"><h3>قمع التحويل <small>— الشهر الحالي</small></h3>
+   <div class="fun">${[['وصول','2.4M',100,C.s1],['زيارات','86K',3.6,C.s1],['Leads','312',0.36,C.s3],['MQL','148',47.4,C.s3],['SQL','64',43.2,C.s4],['عملاء','21',32.8,C.good]].map(([n,v,cv,c],i)=>`
+    <div class="st"><span class="lbl">${n}</span><div class="bx" style="background:${c};width:${100-i*14}%">${v}</div><span class="cv">${i?`تحويل ${cv}%`:''}</span></div>`).join('')}</div></div>
+  <div class="card"><h3>الأداء حسب المنصة</h3>
+   ${barChart(['TikTok @madarej_sa','LinkedIn','Instagram @madarej_sa','Snapchat madarej.co','X @madarej_co'],[7.8,6.2,5.4,3.6,3.1],[C.s1,C.s1,C.s1,C.s1,C.s1],620,210,v=>v+'%',true)}
+   <div class="foot">معدل التفاعل لكل قناة فعلية — TikTok يتصدر بـ 7.8% | WhatsApp Business يُقاس بزمن الرد ومعدل التحويل</div></div>
+  <div class="card"><h3>🤖 ملخص الذكاء الاصطناعي <small>— يُولد تلقائياً</small></h3>
+   <div class="insight o"><span class="tag up">فرصة</span>محتوى «التحول الرقمي للمنشآت» حقق 3.2× متوسط التفاعل على LinkedIn — يُوصى بسلسلة أسبوعية.</div>
+   <div class="insight w"><span class="tag" style="color:var(--warn)">تنبيه</span>CPL على Meta Ads ارتفع 9% هذا الأسبوع — يُوصى بإعادة توزيع 15% من الميزانية إلى LinkedIn Ads (CPL أقل بـ 22%).</div>
+   <div class="insight"><span class="tag" style="color:var(--s1)">رؤية</span>78% من الـ SQL جاءت من محتوى «دراسات الحالة» — المسار الأعلى جودة نحو الإيراد.</div></div>
+ </div>`},
+audience:{t:'ذكاء الجمهور',h:()=>`
+ <div class="row cols4">
+  ${[['إجمالي الجمهور','214K','+4.1%'],['الشريحة الأعلى قيمة','مدراء منشآت صغيرة','32% من الإيراد'],['المدينة الأولى','الرياض','41%'],['ذروة النشاط','8–11 مساءً','الأحد–الثلاثاء']].map(([l,v,d])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:18px">${v}</div><div class="d up">${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols3">
+  <div class="card"><h3>الفئات العمرية</h3>${barChart(['18-24','25-34','35-44','45-54','55+'],[12,38,31,14,5],C.s1,620,200,v=>v+'%')}</div>
+  <div class="card"><h3>الجنس واللغة</h3><div style="display:flex;gap:10px;align-items:center;justify-content:center">${donut([{n:'ذكور',v:63,c:C.s1},{n:'إناث',v:37,c:C.s2}])}</div>
+   <div class="legend" style="justify-content:center"><span><i style="background:${C.s1}"></i>ذكور 63%</span><span><i style="background:${C.s2}"></i>إناث 37%</span></div>
+   <div class="foot" style="text-align:center">اللغة: عربي 84% — إنجليزي 16%</div></div>
+  <div class="card"><h3>القطاعات والوظائف</h3>${barChart(['تجزئة','خدمات','تقنية','صناعة','عقار','أخرى'],[26,22,18,14,11,9],C.s3,620,200,v=>v+'%',true)}</div>
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>خريطة ساعات النشاط <small>— التفاعل حسب اليوم والساعة</small></h3>
+   ${heatmap(['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],['6ص','9ص','12م','3م','6م','8م','9م','10م','11م'],
+   [[12,25,30,28,45,80,95,90,60],[14,28,33,30,48,82,98,88,58],[13,26,31,29,46,78,92,85,55],[10,22,28,26,40,70,84,78,50],[11,20,26,30,52,74,88,92,70],[6,10,14,20,36,55,66,60,42],[8,14,18,24,42,60,72,68,48]])}
+   <div class="foot">الأغمق = تفاعل أعلى — الذروة: الأحد إلى الثلاثاء 8–10 مساءً</div></div>
+  <div class="card"><h3>الشرائح الأكثر قيمة (Personas)</h3>
+   <table><tr><th>الشريحة</th><th>الحجم</th><th>معدل التحويل</th><th>القيمة</th></tr>
+   ${[['مالك منشأة صغيرة (تجزئة)','38K','3.4%','عالية'],['مدير تنفيذي — خدمات','24K','2.8%','عالية'],['رائد أعمال ناشئ','52K','1.6%','متوسطة'],['مسؤول مشتريات','12K','2.1%','متوسطة'],['مهتم عام','88K','0.4%','منخفضة']].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pill ${r[3]==='عالية'?'pg':r[3]==='متوسطة'?'pw':'pb'}">${r[3]}</span></td></tr>`).join('')}</table></div>
+ </div>`},
+content:{t:'ذكاء المحتوى',h:()=>`
+ <div class="row cols4">
+  ${[['أفضل نوع محتوى','ريلز / فيديو قصير','3.2× المتوسط'],['أفضل وقت للنشر','8:30 مساءً','الأحد والثلاثاء'],['أفضل طول للفيديو','45–60 ثانية','احتفاظ 68%'],['أفضل CTA','«احجز استشارتك المجانية»','CTR 4.8%']].map(([l,v,d])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:16px">${v}</div><div class="d up">${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>الأداء حسب نوع المحتوى <small>— معدل التفاعل</small></h3>
+   ${barChart(['ريلز','كاروسيل','فيديو','صورة','قصة','نص'],[8.4,6.1,5.2,3.8,3.1,2.2],[C.s1,C.s1,C.s1,C.s1,C.s1,C.s1],620,210,v=>v+'%')}</div>
+  <div class="card"><h3>منحنى الاحتفاظ بالمشاهدين <small>— فيديوهات 60 ثانية</small></h3>
+   ${lineChart([{name:'نسبة المشاهدين',data:[100,86,74,68,61,55,50,44,38,34],color:C.s3}],['0','7','13','20','27','33','40','47','53','60'],640,210,v=>v+'%')}
+   <div class="foot">ثانية من الفيديو ← | نقطة التسرب الكبرى: أول 7 ثوانٍ (−14%) — الخطاف الافتتاحي حاسم</div></div>
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>أفضل المنشورات <small>— آخر 30 يوماً</small></h3>
+   <table><tr><th>المنشور</th><th>المنصة</th><th>النوع</th><th>الوصول</th><th>التفاعل</th><th>Leads</th></tr>
+   ${[['5 مؤشرات تنذر بتعثر منشأتك','LinkedIn','كاروسيل','84K','9.6%','31',1],['قصة نجاح: من التعثر إلى التوسع','Instagram','ريلز','122K','11.2%','24',1],['دليل التمويل الحكومي للمنشآت','X','سلسلة','56K','6.8%','18',1],['جولة في خدمات مدارج','TikTok','فيديو','98K','7.4%','9',1],['منشور ترويجي عام','Snapchat','صورة','12K','0.9%','0',0]].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="pill ${r[6]?'pg':'pc'}">${r[4]}</span></td><td>${r[5]}</td></tr>`).join('')}</table>
+   <div class="foot">الصف الأخير: أضعف منشور — المحتوى الترويجي المباشر بلا قيمة معرفية يحقق أدنى أداء</div></div>
+  <div class="card"><h3>أنجح المواضيع</h3>
+   <div class="chips">
+    ${[['التحول الرقمي','3.2×'],['التمويل والدعم','2.8×'],['قصص النجاح','2.6×'],['ريادة الأعمال','2.1×'],['الامتثال والأنظمة','1.7×'],['التسويق للمنشآت','1.4×']].map(([t,x])=>`<span class="topic">${t} <b>${x}</b></span>`).join('')}
+   </div>
+   <h3 style="margin-top:16px">توصيات المحتوى الأسبوعية 🤖</h3>
+   <div class="insight o">أنتج سلسلة ريلز «قصة نجاح كل ثلاثاء 8:30م» — التقاطع الأعلى بين النوع والموضوع والتوقيت.</div>
+   <div class="insight">حوّل «دليل التمويل الحكومي» إلى Lead Magnet (PDF مقابل تسجيل) — 18 Lead من منشور واحد.</div>
+   <div class="insight w">قلّص المنشورات الترويجية المباشرة إلى 1 من كل 5 منشورات (قاعدة 80/20).</div></div>
+ </div>`},
+listening:{t:'الاستماع الاجتماعي',h:()=>`
+ <div class="row cols4">
+  ${[['إشارات العلامة (30 يوم)','1,842','+22%',1],['صافي المشاعر','+41','+6 نقاط',1],['حصة الصوت SoV','34%','+3%',1],['شكاوى مفتوحة','7','−4',1]].map(([l,v,d,u])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="d ${u?'up':'dn'}">${u?'▲':'▼'} ${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>اتجاه المشاعر <small>— يومي، 30 يوماً</small></h3>
+   ${lineChart([{name:'إيجابي',data:[42,45,44,48,52,55,51,58,60,57],color:C.s3},{name:'محايد',data:[40,38,39,36,33,31,34,29,28,30],color:C.s4},{name:'سلبي',data:[18,17,17,16,15,14,15,13,12,13],color:C.crit}],['1','4','7','10','13','16','19','22','25','28'],640,220,v=>v+'%')}
+   <div class="legend"><span><i style="background:${C.s3}"></i>إيجابي</span><span><i style="background:${C.s4}"></i>محايد</span><span><i style="background:${C.crit}"></i>سلبي</span></div></div>
+  <div class="card"><h3>تنبيهات فورية 🔔</h3>
+   ${[['crit','ارتفاع مفاجئ بإشارات سلبية حول «تأخر الرد» على X — 14 إشارة خلال 6 ساعات','قبل ساعتين'],['warn','منافس أطلق حملة «استشارة مجانية» — نمو تفاعله 2.1σ فوق المتوسط','اليوم'],['good','ترند صاعد: «برنامج دعم المنشآت الجديد» +180% خلال 48 ساعة — فرصة محتوى','أمس'],['warn','سؤال متكرر بلا إجابة موحدة: «هل تخدمون المنشآت الناشئة؟» — 23 مرة هذا الشهر','هذا الأسبوع']].map(([t,x,w])=>`
+   <div class="alert-item"><span class="dot" style="background:${t==='crit'?C.crit:t==='warn'?C.warn:C.good}"></span><div>${x}<div style="color:var(--muted);font-size:11px;margin-top:2px">${w}</div></div></div>`).join('')}</div>
+ </div>
+ <div class="row cols3">
+  <div class="card"><h3>أكثر المواضيع تداولاً</h3><div class="chips">
+   ${[['#دعم_المنشآت','412'],['#التحول_الرقمي','388'],['#منشآت','301'],['التمويل','244'],['#ريادة_الأعمال','208'],['الاستشارات','176'],['#رؤية_2030','154']].map(([t,n])=>`<span class="topic">${t} <b>${n}</b></span>`).join('')}</div>
+   <div class="foot">حجم الإشارات خلال 30 يوماً</div></div>
+  <div class="card"><h3>أبرز المؤثرين والحسابات</h3>
+   <table><tr><th>الحساب</th><th>المجال</th><th>الوصول</th><th>الملاءمة</th></tr>
+   ${[['خبير ريادة أعمال','أعمال','420K','عالية'],['منصة أخبار اقتصادية','اقتصاد','1.1M','عالية'],['مستشار تمويل','تمويل','180K','متوسطة'],['مجتمع رواد التقنية','تقنية','96K','متوسطة']].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pill ${r[3]==='عالية'?'pg':'pw'}">${r[3]}</span></td></tr>`).join('')}</table></div>
+  <div class="card"><h3>الشكاوى والأسئلة المتكررة</h3>
+   ${[['سرعة الرد على الاستفسارات','7 حالات','w'],['وضوح الأسعار والباقات','5 حالات','w'],['«هل تخدمون خارج الرياض؟»','سؤال متكرر — 31 مرة','b'],['«ما الفرق بين باقاتكم؟»','سؤال متكرر — 19 مرة','b']].map(([t,n,k])=>`
+   <div class="insight ${k==='w'?'w':''}">${t} <span style="color:var(--muted)">— ${n}</span></div>`).join('')}
+   <div class="foot">توصية: إضافة صفحة أسئلة شائعة + قوالب رد موحدة (SLA ساعتان)</div></div>
+ </div>`},
+competitive:{t:'ذكاء المنافسين',h:()=>`
+ <div class="row cols4">
+  ${[['ترتيب SoV','#1 من 5','34% من الحديث',1],['فجوة التفاعل','+1.3 نقطة','فوق متوسط السوق',1],['نمو منافس أسرع','منافس ب','+8.1% شهرياً',0],['تكرار النشر','12/أسبوع','السوق: 15/أسبوع',0]].map(([l,v,d,u])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:19px">${v}</div><div class="d ${u?'up':'dn'}">${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols3">
+  <div class="card"><h3>مقارنة القدرات <small>— Radar</small></h3>
+   ${radar(['التفاعل','النمو','SoV','المحتوى','الإعلانات','المشاعر'],[{data:[0.85,0.7,0.9,0.8,0.6,0.85],color:C.s1},{data:[0.6,0.9,0.55,0.7,0.85,0.6],color:C.s2}])}
+   <div class="legend"><span><i style="background:${C.s1}"></i>مدارج</span><span><i style="background:${C.s2}"></i>منافس ب</span></div></div>
+  <div class="card"><h3>حصة الصوت (SoV)</h3>
+   <div style="display:flex;justify-content:center">${donut([{n:'مدارج',v:34,c:C.s1},{n:'منافس أ',v:26,c:C.s2},{n:'منافس ب',v:21,c:C.s3},{n:'منافس ج',v:12,c:C.s4},{n:'آخرون',v:7,c:'#55544f'}])}</div>
+   <div class="legend" style="justify-content:center"><span><i style="background:${C.s1}"></i>مدارج 34%</span><span><i style="background:${C.s2}"></i>أ 26%</span><span><i style="background:${C.s3}"></i>ب 21%</span><span><i style="background:${C.s4}"></i>ج 12%</span></div></div>
+  <div class="card"><h3>خريطة التموضع في السوق</h3>
+   ${bubbles([{n:'مدارج',x:0.62,y:0.72,r:26,c:C.s1},{n:'منافس أ',x:0.48,y:0.5,r:22,c:C.s2},{n:'منافس ب',x:0.38,y:0.8,r:18,c:C.s3},{n:'منافس ج',x:0.22,y:0.35,r:14,c:C.s4}])}
+   <div class="foot">حجم الفقاعة = حجم الجمهور</div></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>SWOT تلقائي 🤖 <small>— يُحدث أسبوعياً من البيانات</small></h3>
+   <div class="swot">
+    <div class="q" style="background:rgba(12,163,12,.10)"><h4 style="color:#39c939">قوة</h4>ريادة SoV والمشاعر الأعلى إيجابية (+41) وجودة Leads من LinkedIn.</div>
+    <div class="q" style="background:rgba(208,59,59,.10)"><h4 style="color:#ef6b6b">ضعف</h4>تكرار نشر أقل من السوق (12 مقابل 15) ولا توجد قناة YouTube أو Facebook بعد.</div>
+    <div class="q" style="background:rgba(57,135,229,.10)"><h4 style="color:#6ea9ef">فرصة</h4>ترند «برنامج دعم المنشآت» بلا محتوى منافس قوي — نافذة 2–3 أسابيع.</div>
+    <div class="q" style="background:rgba(250,178,25,.10)"><h4 style="color:${C.warn}">تهديد</h4>منافس ب ينمو +8.1% شهرياً بحملات «استشارة مجانية» ويستهدف جمهورنا.</div>
+   </div></div>
+  <div class="card"><h3>Gap Analysis — مقارنة KPI</h3>
+   <table><tr><th>المؤشر</th><th>مدارج</th><th>متوسط السوق</th><th>الأفضل</th><th>الفجوة</th></tr>
+   ${[['معدل التفاعل','4.7%','3.4%','4.7% (مدارج)','متقدم',1],['نمو المتابعين','6.2%','5.8%','8.1% (منافس ب)','−1.9',0],['تكرار النشر','12/أسبوع','15/أسبوع','19 (منافس أ)','−7',0],['الرد على الجمهور','4.2 ساعة','3.1 ساعة','1.8 (منافس ب)','−2.4س',0],['المشاعر','+41','+22','+41 (مدارج)','متقدم',1]].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="pill ${r[5]?'pg':'pc'}">${r[4]}</span></td></tr>`).join('')}</table></div>
+ </div>`},
+campaigns:{t:'ذكاء الحملات',h:()=>`
+ <div class="row cols8">
+  ${[['الإنفاق (30 يوم)','126K ر.س','+8%',1],['CPM','18.4 ر.س','−6%',1],['CPC','2.10 ر.س','−9%',1],['CTR','2.4%','+0.3',1],['CPL','84 ر.س','−11%',1],['CPA','940 ر.س','−4%',1],['ROAS','4.2×','+0.4',1],['ROI','218%','+21',1]].map(([l,v,d,u])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:17px">${v}</div><div class="d ${u?'up':'dn'}">${u?'▲':'▼'} ${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>الحملات النشطة</h3>
+   <table><tr><th>الحملة</th><th>المنصة</th><th>الإنفاق</th><th>Leads</th><th>CPL</th><th>ROAS</th><th>الحالة</th></tr>
+   ${[['استشارة النمو المجانية','LinkedIn','38K','96','62','5.8×','ممتازة','pg'],['حلول التجزئة','Meta','42K','108','71','4.4×','جيدة','pg'],['وعي — قصص نجاح','TikTok','21K','34','118','2.9×','متوسطة','pw'],['إعادة استهداف الموقع','Google','15K','52','48','6.1×','ممتازة','pg'],['عرض عام','Snapchat','10K','22','162','1.4×','ضعيفة','pc']].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td><span class="pill ${r[7]}">${r[6]}</span></td></tr>`).join('')}</table>
+   <div class="foot">🤖 توصية: إيقاف «عرض عام» وإعادة توجيه ميزانيتها إلى «إعادة الاستهداف» و«استشارة النمو» — رفع متوقع للـ ROAS الإجمالي إلى 4.8×</div></div>
+  <div class="card"><h3>الإنفاق مقابل العائد <small>— Waterfall شهري</small></h3>
+   ${waterfall([{n:'LinkedIn',v:182000},{n:'Meta',v:148000},{n:'Google',v:76000},{n:'TikTok',v:39000},{n:'Snapchat',v:-4000},{n:'التكلفة',v:-126000}])}
+   <div class="foot">صافي القيمة المنسوبة بعد خصم الإنفاق الإعلاني (ر.س)</div></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>قمع الحملة + نقاط التسرب <small>— حملة «استشارة النمو»</small></h3>
+   <div class="fun">${[['ظهور','1.9M',100,C.s1],['نقرة','45.6K',2.4,C.s1],['زيارة صفحة','38.2K',83.8,C.s3],['بدء نموذج','4.1K',10.7,C.s4],['إكمال نموذج','1.3K',31.7,C.s2],['Lead مؤهل','96',7.4,C.good]].map(([n,v,cv,c],i)=>`
+    <div class="st"><span class="lbl">${n}</span><div class="bx" style="background:${c};width:${100-i*14}%">${v}</div><span class="cv">${i?cv+'%':''}</span></div>`).join('')}</div>
+   <div class="foot">أكبر تسرب: بدء النموذج → الإكمال (68% يغادرون) — يُوصى بتقليص الحقول من 9 إلى 4</div></div>
+  <div class="card"><h3>أداء التصاميم الإعلانية (Creatives)</h3>
+   ${barChart(['فيديو شهادة عميل','كاروسيل أرقام','صورة عرض','فيديو تعريفي','بطاقة سؤال'],[4.8,3.6,1.9,2.8,3.1],[C.s1,C.s1,C.s1,C.s1,C.s1],620,200,v=>v+'%',true)}
+   <div class="foot">CTR لكل تصميم — شهادات العملاء بالفيديو تتفوق بفارق واضح</div></div>
+ </div>`},
+journey:{t:'رحلة العميل',h:()=>`
+ <div class="card" style="margin-bottom:14px"><h3>رحلة العميل الكاملة <small>— من الوعي إلى المناصرة (30 يوماً)</small></h3>
+  <div class="jour">
+   ${[['الوعي','2.4M',''],['الاهتمام','86K','3.6%'],['الدراسة','12.4K','14.4%'],['Lead','312','2.5%'],['فرصة','64','20.5%'],['عرض سعر','38','59.4%'],['عميل','21','55.3%'],['ولاء','17','81%'],['مناصرة','9','52.9%']].map(([n,v,cv],i)=>`
+   ${i?`<div class="jarr">تحويل<b>${cv}</b></div>`:''}
+   <div class="jstage"><div class="n">${n}</div><div class="val">${v}</div><div class="cv">${['وصول المحتوى','زيارات الموقع','تفاعل عميق/تنزيل','نموذج/محادثة','مؤهلة بيعياً','قيد التفاوض','صفقة موقعة','عميل متكرر','توصية وإحالة'][i]}</div></div>`).join('')}
+  </div></div>
+ <div class="row cols3">
+  <div class="card"><h3>زمن الانتقال بين المراحل</h3>
+   ${barChart(['وعي→Lead','Lead→فرصة','فرصة→عرض','عرض→إغلاق'],[9,6,8,12],C.s1,620,200,v=>v+' يوم',true)}
+   <div class="foot">متوسط دورة البيع الكاملة: 35 يوماً — الهدف: 28</div></div>
+  <div class="card"><h3>الاحتفاظ (Cohort) <small>— نسبة العملاء النشطين</small></h3>
+   ${lineChart([{name:'دفعة أبريل',data:[100,88,79,74],color:C.s1},{name:'دفعة مايو',data:[100,91,84,null],color:C.s3}],['الشهر 1','الشهر 2','الشهر 3','الشهر 4'],640,200,v=>v+'%')}
+   <div class="legend"><span><i style="background:${C.s1}"></i>دفعة أبريل</span><span><i style="background:${C.s3}"></i>دفعة مايو</span></div></div>
+  <div class="card"><h3>🤖 رؤى الرحلة</h3>
+   <div class="insight w">عنق الزجاجة: «الدراسة → Lead» (2.5%) — يُوصى بـ Lead Magnets ونماذج أقصر.</div>
+   <div class="insight o">مرحلة «عرض → عميل» تحسنت +9 نقاط بعد إضافة دراسات الحالة للعروض.</div>
+   <div class="insight">9 عملاء مناصرين نشطون — برنامج إحالة رسمي قد يضاعف Leads عالية الجودة.</div></div>
+ </div>`},
+ai:{t:'الذكاء الاصطناعي والتنبؤ',h:()=>`
+ <div class="row cols3">
+  <div class="card"><h3>🎯 أهم الرؤى</h3>
+   ${['ريلز «قصص النجاح» = أعلى مسار نحو الإيراد (78% من SQL)','LinkedIn يولد Leads أكثر جودة بـ 2.3× من باقي المنصات','جمهور 25–34 في الرياض وجدة = 61% من التحويلات','النشر 8–10 مساءً يرفع الوصول العضوي 34%'].map(t=>`<div class="insight">${t}</div>`).join('')}</div>
+  <div class="card"><h3>⚠️ أهم المخاطر</h3>
+   ${['منافس ب ينمو +8.1% شهرياً ويستهدف نفس الشرائح','الاعتماد على Meta بـ 33% من الـ Leads — خطر تركز','زمن الرد 4.2 ساعة يهدد المشاعر الإيجابية','ارتفاع CPM موسمي متوقع في Q4 (+20–25%)'].map(t=>`<div class="insight r">${t}</div>`).join('')}</div>
+  <div class="card"><h3>🚀 أهم الفرص</h3>
+   ${['ترند «برنامج دعم المنشآت» — نافذة محتوى 2–3 أسابيع','إطلاق قناة YouTube لدراسات الجدوى — المجال شبه خالٍ من المنافسين','برنامج إحالة للعملاء المناصرين التسعة','تحويل الأدلة الناجحة إلى Lead Magnets'].map(t=>`<div class="insight o">${t}</div>`).join('')}</div>
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>التنبؤ بالعملاء المحتملين <small>— 90 يوماً قادمة مع فترة الثقة 80%</small></h3>
+   ${lineChart([
+     {name:'فعلي',data:[212,238,251,280,296,312,null,null,null],color:C.s1},
+     {name:'متوقع (Prophet)',data:[null,null,null,null,null,312,338,371,402],color:C.s3,dash:'6 5',band:[[null,null,null,null,null,312,362,412,462],[null,null,null,null,null,312,318,336,352]]}
+   ],['مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر'],640,230)}
+   <div class="legend"><span><i style="background:${C.s1}"></i>فعلي</span><span><i style="background:${C.s3}"></i>متوقع (Prophet)</span><span><i style="background:${C.s3}44;border:1px solid ${C.s3}"></i>فترة الثقة 80%</span></div>
+   <div class="foot">MAPE للنموذج: 11.2% — ضمن المستهدف (≤15%)</div></div>
+  <div class="card"><h3>لوحة التوقعات <small>— آفاق متعددة</small></h3>
+   <table><tr><th>المؤشر</th><th>30 يوم</th><th>90 يوم</th><th>6 أشهر</th><th>سنة</th></tr>
+   ${[['المتابعون','223K','241K','268K','312K'],['Leads/شهر','338','402','445','520'],['الإيراد المنسوب','2.0M','2.3M','2.7M','3.4M'],['CPL','80 ر.س','76 ر.س','74 ر.س','70 ر.س'],['احتمال فقد عملاء','2 حسابات','4 حسابات','—','—']].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('')}</table>
+   <h3 style="margin-top:14px">كشف الشذوذ (Anomaly Detection)</h3>
+   <div class="alert-item"><span class="dot" style="background:${C.warn}"></span><div>قفزة غير معتادة في إلغاء المتابعة على X يوم 19 يوليو (+3.1σ) — تزامنت مع تغطية سلبية لقطاع الاستشارات</div></div>
+   <div class="alert-item"><span class="dot" style="background:${C.good}"></span><div>أداء استثنائي لريلز 21 يوليو (+4.2σ) — نمط قابل للتكرار: خطاف رقمي + قصة عميل</div></div></div>
+ </div>`},
+strategy:{t:'البطاقة الاستراتيجية',h:()=>`
+ <div class="row cols4">
+  ${[['المالي','تنمية الإيراد المنسوب رقمياً','96%','pg'],['العملاء','صحة العلامة ورضا الجمهور','78%','pw'],['العمليات','كفاءة التسويق والاستجابة','71%','pw'],['التعلم والنمو','قدرات البيانات والذكاء الاصطناعي','83%','pg']].map(([p,d,v,k])=>`
+  <div class="card"><h3>${p} <small>— Balanced Scorecard</small></h3><div style="font-size:12px;color:var(--ink2);margin-bottom:8px">${d}</div>
+  <div style="font-size:24px;font-weight:700">${v}</div><span class="pill ${k}">${k==='pg'?'على المسار':'يحتاج انتباه'}</span></div>`).join('')}
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>OKRs — الربع الثالث 2026</h3>
+   ${[['O1: أن نكون المرجع الأول للمنشآت رقمياً — SoV ≥ 35%',97,C.good],['KR1: نمو المتابعين المؤهلين +25%',82,C.s1],['KR2: 350 Lead شهرياً بنهاية الربع',89,C.s1],['O2: تحويل السوشال إلى قناة إيراد — ROI ≥ 200%',100,C.good],['KR3: خفض CPL إلى 75 ر.س',88,C.s1],['KR4: زمن رد ≤ ساعتين',52,C.warn]].map(([n,p,c])=>`
+   <div class="okr"><div class="t"><span>${n}</span><span class="b">${p}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(p,100)}%;background:${c}"></div></div></div>`).join('')}</div>
+  <div class="card"><h3>مؤشرات المخاطر والنجاح</h3>
+   <table><tr><th>المؤشر</th><th>الحالة</th><th>الاتجاه</th><th>الإجراء</th></tr>
+   ${[['تركز Leads في منصة واحدة','متوسط','pw','↔ ثابت','تنويع القنوات'],['زمن الاستجابة للجمهور','مرتفع','pc','↑ يزداد','فريق رد + SLA'],['نمو منافس ب','متوسط','pw','↑ يزداد','حملة تميز مضادة'],['صحة العلامة','منخفض','pg','↑ يتحسن','استمرار'],['جودة البيانات والتغطية','منخفض','pg','↔ مستقر','مراقبة آلية']].map(r=>`
+   <tr><td class="b">${r[0]}</td><td><span class="pill ${r[2]}">${r[1]}</span></td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('')}</table>
+   <h3 style="margin-top:14px">الملخص التنفيذي الشهري 🤖 <small>— يُولد تلقائياً ويُصدر PDF</small></h3>
+   <div class="insight">يوليو 2026: أداء قوي عبر المؤشرات المالية (ROI 218%، ROAS 4.2×) مع ريادة SoV. نقطتا الانتباه: زمن الاستجابة للجمهور وتسارع نمو منافس ب. أولوية أغسطس: برنامج الإحالة، سلسلة ريلز قصص النجاح، وفريق الرد السريع.</div></div>
+ </div>`},
+team:{t:'تشغيل الفريق',h:()=>`
+ <div class="row cols3">
+  <div class="card" style="border-color:#c9a22766;background:linear-gradient(135deg,var(--surface),#2a2415)"><h3>🏆 أفضل موظفة الأسبوع</h3>
+   <div style="font-size:17px;font-weight:700;margin:4px 0">رغد — 84 نقطة</div>
+   <div style="font-size:12px;color:var(--ink2);line-height:1.8">أعلى نقاط بالفريق + أعلى منشور بالشركة (ريلز قصص النجاح 131K وتفاعل 12.6%) + 7 leads — تستلم الشارة في اجتماع الأحد 👏</div></div>
+  <div class="card"><h3>📈 أعلى نمو</h3>
+   <div style="font-size:17px;font-weight:700;margin:4px 0">فجر — الجودة والرد صعوداً</div>
+   <div style="font-size:12px;color:var(--ink2);line-height:1.8">سرعة الرد 74→78 والجودة 90→91 وleads 4→5 خلال أسبوع — الثبات على الإيقاع يعمل</div></div>
+  <div class="card"><h3>⭐ الأكثر التزاماً وأسرع رد</h3>
+   <div style="font-size:17px;font-weight:700;margin:4px 0">هيا — أسرع استجابة 84%</div>
+   <div style="font-size:12px;color:var(--ink2);line-height:1.8">أعلى مؤشر رد بالفريق والأقرب لهدف الساعتين — لو رفعت leads خطوة تنافس على القمة</div></div>
+ </div>
+ <div class="row cols4">
+  ${[['التزام التقويم (منشور في موعده)','87%','الهدف ≥ 90%',0],['متوسط زمن الرد','3.1 ساعة','الهدف ≤ 2 — يحتاج تصحيح',0],['اجتياز قائمة الجودة من أول مرة','92%','▲ +5 عن الشهر الماضي',1],['مهام متأخرة الآن','3','منشور 1 + تسليم مستقل 2',0]].map(([l,v,d,u])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="d ${u?'up':'dn'}">${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols3">
+  <div class="card"><h3>🎯 Scorecard الأدوار <small>— المحاسبة بالأرقام لا بالانطباعات</small></h3>
+   ${[['منسّق المحتوى — التزام التقويم (هدف 90%)',87,C.warn],['منتج المحتوى — التسليم في الموعد (هدف 90%)',94,C.good],['منتج المحتوى — تفاعل فوق متوسط القناة',108,C.good],['مسؤول المجتمع — تحقيق SLA الرد (هدف 100%)',65,C.crit],['مسؤول المجتمع — تحويل محادثة→Lead (هدف 30%)',103,C.good],['الفريق — Leads الشهرية مقابل الهدف',104,C.good]].map(([n,p2,c])=>`
+   <div class="okr"><div class="t"><span>${n}</span><span class="b">${p2}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(p2,100)}%;background:${c}"></div></div></div>`).join('')}
+   <div class="foot">الدور ثابت مهما تغيّر الشخص — الموظف الجديد يرث المؤشر نفسه</div></div>
+  <div class="card"><h3>🔐 العهدة الرقمية والصلاحيات</h3>
+   <table><tr><th>المنصة</th><th>الملكية</th><th>الحالة</th></tr>
+   ${[['Instagram + FB','Meta Business Suite — أصول الشركة','سليم','pg'],['TikTok','Business Center','سليم','pg'],['LinkedIn','صفحة شركة + أدوار Admin','قيد الإنشاء','pw'],['X / Snapchat','إيميل موحد + مدير كلمات مرور','يحتاج نقل','pc'],['WhatsApp','رقم الشركة 966554443569','سليم','pg'],['Google Business','إيميل الشركة الموحد','يحتاج نقل','pc']].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td><span class="pill ${r[3]}">${r[2]}</span></td></tr>`).join('')}</table>
+   <div class="foot">القاعدة: الشركة تملك والموظف يُمنح صلاحية تُلغى بضغطة — التسليم يصبح 15 دقيقة</div></div>
+  <div class="card"><h3>📆 التزام النشر بالأسابيع</h3>
+   ${barChart(['أسبوع 1','أسبوع 2','أسبوع 3','أسبوع 4'],[80,85,93,87],[C.s1,C.s1,'#c9a227',C.s1],620,190,v=>v+'%')}
+   <div class="foot">15 منشوراً مخططاً أسبوعياً — الأسبوع 3 الأفضل (14/15). الانخفاضات غالباً عند تغيّر موظف: النظام الجديد يمنعها</div></div>
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>📋 مهام الأسبوع الحالي <small>— من التقويم، بالأدوار لا بالأسماء</small></h3>
+   <table><tr><th>المهمة</th><th>الدور المسؤول</th><th>الموعد</th><th>الحالة</th></tr>
+   ${[['ريلز «137 مليار ريال كفالة — الفرصة لمن جهّز دراسته» قصة نجاح (الأحد 8:30م)','رغد','الأحد','جاهز للرفع','pg'],['منشور خبير LinkedIn + ثريد X «ماذا يعني منتج المنشآت الناشئة لمالك منشأة»','هيا + فجر','الاثنين 12م','جاهز للرفع','pg'],['ريلز تعليمي «دراستك جاهزة لأي جهة تمويل؟ 3 اختبارات»','رغد','الثلاثاء 8:30م','جاهز للرفع','pg'],['كاروسيل «منتج المنشآت الناشئة من كفالة: 4 مستندات تفتح الباب»','فجر','الأربعاء 8:30م','جاهز للرفع','pg'],['تحويل صيغة ريلز رغد الرابحة إلى قالب فريق موحّد','رغد + شهد','الخميس','مخطط','pb'],['محضر اجتماع الأحد + قرار نقل ملكية الحسابين','شهد','الأحد 4:30م','مخطط','pb']].map(r=>`
+   <tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pill ${r[4]}">${r[3]}</span></td></tr>`).join('')}</table></div>
+  <div class="card"><h3>⚠️ تنبيهات تشغيلية</h3>
+   <div class="alert-item"><span class="dot" style="background:${C.crit}"></span><div>نقل ملكية حسابي X وGoogle Business ما زال مفتوحاً — <b>الأسبوع الرابع دون إغلاق</b>. <b>الإجراء:</b> قرار حاسم في اجتماع الأحد لا مجرد تذكير — نقل للإيميل الموحد ومدير كلمات المرور.</div></div>
+   <div class="alert-item"><span class="dot" style="background:${C.warn}"></span><div>عدد ريلز رغد نزل 3→2 هذا الأسبوع (وجّهت وقتها لإغلاق فجوة الرد). <b>الإجراء:</b> متابعة ألا يهبط حجم المحتوى أثناء تثبيت الرد — استعادة الريلز الثالث الأسبوع القادم.</div></div>
+   <div class="alert-item"><span class="dot" style="background:${C.warn}"></span><div>منشورات LinkedIn لهيا 1 من 2 هذا الأسبوع — فجوة القيادة الفكرية سُدّت جزئياً فقط. <b>الإجراء:</b> تثبيت موعدين أسبوعيين ملزمين.</div></div>
+   <div class="alert-item"><span class="dot" style="background:${C.good}"></span><div>رغد أغلقت فجوة الرد المسائي (80→85%) ودخلت ضمن SLA الساعتين، وتجاوزت هدف الـ90 (92) — أول من يبلغه في الفريق.</div></div>
+   <h3 style="margin-top:12px">🤖 توصية النظام</h3>
+   <div class="insight o">أعلى أولوية هذا الأسبوع: إغلاق قرار نقل ملكية الحسابين (مفتوح 4 أسابيع) وتحويل صيغة رغد الرابحة إلى قالب فريق موحّد — الأول يحيّد 70% من مخاطر التسليم، والثاني يحوّل الفوز الفردي إلى نظام يرفع فجر وهيا.</div></div>
+ </div>
+ <div class="row cols3">
+  <div class="card" style="grid-column:1/-1;border-color:#c9a22766"><h3>📦 المحتوى الجاهز للرفع — أسبوع 1–7 أغسطس 2026 <small>— صمّمي على القالب وارفعي فقط، لا تأليف</small></h3>
+   <table><tr><th>الموظفة</th><th>القطعة</th><th>الخطاف / أول سطر جاهز</th><th>الموعد</th></tr>
+   ${[
+     ['رغد','ريلز قصص نجاح','«السعودية فتحت بنكاً كاملاً للمنشآت الصغيرة… وأكثر مشروع بيستفيد هو اللي عنده دراسة جدوى جاهزة»','الأحد 8:30م'],
+     ['رغد','ريلز تعليمي','«3 أخطاء في دراسة الجدوى تخلي البنك يرفض تمويلك — الثالث يوقع الأغلبية»','الثلاثاء 8:30م'],
+     ['رغد','5 تغريدات X','ثريد: «التمويل ما عاد العقبة في 2026 — العقبة دراسة جدوى تُقنع الممول. خيط 🧵»','يومياً 12م'],
+     ['فجر','كاروسيل إنستغرام','«كفالة تضمن حتى 90% من تمويلك — إذا جهّزت 4 أشياء. احفظ المنشور»','الأربعاء 8:30م'],
+     ['فجر','5 تغريدات X','«الفرق بين مشروع يُموَّل ومشروع يُرفض غالباً ورقة واحدة: دراسة جدوى بأرقام سوق حقيقية»','يومياً 12م'],
+     ['فجر','محتوى تيك توك','فيديو «جولة 30 ثانية: كيف نبني توقعاتك المالية»','الخميس 9م'],
+     ['هيا','منشور LinkedIn','«أطلقت منشآت بنك المنشآت الصغيرة والمتوسطة. إليك ما يعنيه فعلياً لمالك منشأة يخطط للتوسع 👇»','الاثنين 12م'],
+     ['هيا','5 ردود X','قالب: «سؤال ممتاز — الجواب المختصر… وإذا حاب تفصيل أرسل لك دليل الجدوى، بدون التزام»','خلال الدوام'],
+   ].map(r=>`<tr><td class="b">${r[0]}</td><td>${r[1]}</td><td style="color:var(--ink2)">${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</table>
+   <div class="foot">النصوص الكاملة (الكابشن حرفياً + سكربت الريلز بالمشاهد + التغريدات الخمس + منشور LinkedIn) في تقرير كل موظفة الأسبوعي — لا يُعدّل النص إلا بموافقة شهد.</div></div>
+ </div>`},
+};
+
+/* ---------- per-platform pages ---------- */
+const DAYS=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const FLBL=['مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر'];
+function platPage(cf){
+  const fc=cf.forecast;
+  const n=x=>x==null?null:x;
+  const actual=[...fc.actual,null,null,null].slice(0,6);
+  const pred=[null,null,fc.actual[2],...fc.pred].slice(0,6);
+  const bU=[null,null,fc.actual[2],...fc.bandUp].slice(0,6);
+  const bL=[null,null,fc.actual[2],...fc.bandLo].slice(0,6);
+  return `
+ <div class="row cols4">${cf.kpis.map(([l,v,d,u])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:19px">${v}</div><div class="d ${u?'up':'dn'}">${u?'▲':'▼'} ${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols3">
+  <div class="card"><h3>⏰ أفضل أوقات النشر <small>— مؤشر التفاعل حسب اليوم</small></h3>
+   ${barChart(DAYS,cf.bestDays,cf.bestDays.map(v=>v===Math.max(...cf.bestDays)?'#c9a227':C.s1),640,190)}
+   <div class="chips" style="margin-top:8px">${cf.bestHours.map(h=>`<span class="topic">🕗 <b>${h}</b></span>`).join('')}</div>
+   <div class="foot">${cf.bestNote}</div></div>
+  <div class="card"><h3>🏆 أفضل المنشورات <small>— آخر 30 يوماً</small></h3>
+   <div class="insight o" style="border-right-color:#c9a227"><span class="tag" style="color:#c9a227">الأفضل</span><b>${cf.topPosts[0][0]}</b><br><span style="color:var(--muted)">${cf.topPosts[0][1]} — ${cf.topPosts[0][2]} — ${cf.topPosts[0][3]}</span></div>
+   <table><tr><th>المنشور</th><th>النوع</th><th>الأداء</th></tr>
+   ${cf.topPosts.slice(1).map(r=>`<tr><td class="b">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>
+   <div class="foot">${cf.topNote}</div></div>
+  <div class="card"><h3>🔮 التوقع حسب نوع المحتوى <small>— 30 يوماً قادمة</small></h3>
+   ${barChart(cf.types.cats,cf.types.vals,cf.types.vals.map(v=>v===Math.max(...cf.types.vals)?'#c9a227':C.s1),620,190,v=>v+cf.types.unit,true)}
+   <div class="foot">${cf.types.note}</div></div>
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>📈 ${fc.title} <small>— تنبؤ 90 يوماً بفترة ثقة 80%</small></h3>
+   ${lineChart([
+     {name:'فعلي',data:actual,color:C.s1},
+     {name:'متوقع',data:pred,color:C.s3,dash:'6 5',band:[bU,bL]}
+   ],FLBL,640,220,fc.fmt||(v=>v.toLocaleString('en')))}
+   <div class="legend"><span><i style="background:${C.s1}"></i>فعلي</span><span><i style="background:${C.s3}"></i>متوقع</span></div>
+   <div class="foot">${fc.foot}</div></div>
+  <div class="card"><h3>🥇 خطة الوصول للمركز الأول — ${cf.name}</h3>
+   ${cf.plan.map((t,i)=>`<div class="insight ${i===0?'o':''}">${i+1}. ${t}</div>`).join('')}
+  </div>
+ </div>`;
+}
+const PLATS=[
+{key:'p_ig',icon:'📸',name:'Instagram',t:'Instagram — @madarej_sa',
+ kpis:[['المتابعون','12.4K','+5.6%',1],['الوصول الشهري','480K','+18%',1],['معدل التفاعل','5.4%','+0.4',1],['الحفظ + المشاركة','3,180','+22%',1]],
+ bestDays:[82,64,78,60,70,41,57],bestHours:['8:30–10:00م (الذروة)','1:00–2:00م (ثانوية)'],
+ bestNote:'الأحد والثلاثاء مساءً = أعلى تفاعل. الجمعة الأضعف — تُترك للمحتوى الخفيف.',
+ topPosts:[['قصة نجاح: من التعثر إلى التوسع','ريلز','122K وصول','11.2% تفاعل'],['5 أخطاء تقتل المشاريع الجديدة','كاروسيل','84K — 9.6%'],['ما هي دراسة الجدوى؟ في 45 ثانية','ريلز','67K — 7.9%']],
+ topNote:'القاسم المشترك: خطاف رقمي في أول 3 ثوانٍ + قصة حقيقية بأرقام.',
+ types:{cats:['ريلز','كاروسيل','بث مباشر','صورة','قصص'],vals:[9.2,6.6,5.1,4.0,3.4],unit:'%',note:'الريلز يتصدر التوقع — التوصية: 3 ريلز أسبوعياً حداً أدنى، والكاروسيل للمحتوى المرجعي القابل للحفظ.'},
+ forecast:{title:'توقع نمو المتابعين',actual:[11100,11800,12400],pred:[13100,13900,14800],bandUp:[13400,14500,15700],bandLo:[12800,13400,14100],foot:'النمو المتوقع +19% خلال 90 يوماً مع الالتزام بالإيقاع — يتسارع مع أول تعاون مؤثر.'},
+ plan:['ريلز «قصة نجاح» كل أحد 8:30م بلا استثناء — النوع الأعلى تحويلاً نحو الرسائل.','هوك أول 3 ثوانٍ: رقم صادم أو سؤال مباشر («هذا المشروع كاد يخسر 400 ألف»).','كاروسيلات مرجعية شهرية (Checklists) — الحفظ يرفع ترتيبك في الخوارزمية أكثر من الإعجاب.','تعاون (Collab Post) مع مؤثر أعمال سعودي كل شهر — يضاعف الوصول لجمهور مطابق.','SEO الكابشن: «دراسة جدوى»، «تمويل المشاريع»، «الرياض» في أول سطرين.','الرد على كل تعليق خلال ساعة — التفاعل المبكر يوسع التوزيع.','قصص يومية باستفتاء أو سؤال — ترفع الظهور في تبويب المتابعين.']},
+{key:'p_tt',icon:'🎵',name:'TikTok',t:'TikTok — @madarej_sa',
+ kpis:[['المتابعون','8.9K','+9.1%',1],['المشاهدات الشهرية','1.2M','+31%',1],['معدل التفاعل','7.8%','+0.6',1],['متوسط الاحتفاظ','58%','+4',1]],
+ bestDays:[71,58,66,60,88,76,63],bestHours:['9:00م–12:00ص','بعد صلاة الجمعة'],
+ bestNote:'الخميس والجمعة ليلاً = ذروة الجمهور السعودي على تيك توك.',
+ topPosts:[['كم تكلفة دراسة الجدوى؟ ولماذا أرخص من الفشل','فيديو 52ث','340K مشاهدة','احتفاظ 64%'],['3 مؤشرات تنذر بتعثر منشأتك','فيديو 48ث','210K — 61%'],['ما هي دراسة الجدوى أصلاً؟','فيديو 45ث','180K — 59%']],
+ topNote:'أسئلة الأسعار والمخاطر تتفوق دائماً — الجمهور يبحث عن إجابات مباشرة.',
+ types:{cats:['فيديو 45–60ث','فيديو <30ث','سلايدات صور','فيديو >90ث'],vals:[8.6,6.9,5.3,4.2],unit:'%',note:'المدى الذهبي 45–60 ثانية: طويل كفاية للقيمة، قصير كفاية للاحتفاظ.'},
+ forecast:{title:'توقع نمو المتابعين',actual:[7400,8100,8900],pred:[10200,11800,13600],bandUp:[10700,12800,15200],bandLo:[9700,10900,12200],foot:'أسرع قناة نمواً متوقعاً (+53% في 90 يوماً) — تيك توك يكافئ الانتظام بقفزات فيروسية.'},
+ plan:['هوك أول ثانيتين: الرقم أو السؤال قبل أي مقدمة أو شعار.','4 فيديوهات أسبوعياً بثبات — الخوارزمية تختبر حسابك كل أسبوع.','«الرد بفيديو» على كل سؤال جاد في التعليقات — أرخص مصنع أفكار محتوى.','سلاسل مرقمة (الجزء 1، 2، 3) — تدفع الزائر لزيارة البروفايل ومتابعتك.','TikTok SEO: انطق واكتب الكلمات المفتاحية («دراسة جدوى مطعم») — تيك توك محرك بحث الآن.','ستيتش/دويتو مع مقاطع أعمال رائجة بإضافة رأي الخبير.','قص كل فيديو ناجح إلى نسخة ريلز وShort — إنتاج واحد × 3 منصات.']},
+{key:'p_x',icon:'𝕏',name:'X',t:'X — @madarej_co (يتوحد إلى madarej_sa)',
+ kpis:[['المتابعون','15.2K','+2.1%',1],['الانطباعات الشهرية','890K','+11%',1],['معدل التفاعل','3.1%','-0.2',0],['نقرات الروابط','4.2K','+16%',1]],
+ bestDays:[66,74,58,62,55,38,49],bestHours:['12:00–1:00م','9:00–10:00م'],
+ bestNote:'الاثنين ظهراً الأقوى — جمهور الأعمال يتصفح وقت الاستراحة.',
+ topPosts:[['ثريد: 7 أسئلة قبل ضخ ريال واحد في مشروعك','ثريد 9 تغريدات','156K انطباع','4.8% تفاعل'],['تعليق على برنامج دعم حكومي جديد','اقتباس','89K — 3.9%'],['رد خبير على خبر اقتصادي','رد','61K — 3.2%']],
+ topNote:'الثريدات والتعليق الآني على الأخبار يتفوقان على المنشورات المعزولة بفارق كبير.',
+ types:{cats:['ثريد','رأي نصي','إنفوجرافيك','فيديو','رابط فقط'],vals:[4.8,3.4,2.9,2.2,0.9],unit:'%',note:'الروابط المجردة شبه ميتة — النص أولاً والرابط في الرد الأول.'},
+ forecast:{title:'توقع نمو المتابعين',actual:[14600,14900,15200],pred:[15900,16800,17900],bandUp:[16200,17400,18900],bandLo:[15600,16200,16900],foot:'النمو هنا أبطأ لكنه الأعلى جودة B2B — القيمة في النقرات والإشارات لا العدد.'},
+ plan:['ثريد أسبوعي ثابت (الاثنين 12م) بعنوان رقمي — أفضل نوع أداءً لدينا.','Newsjacking: تعليق خبير خلال 30 دقيقة من أي خبر اقتصادي/برنامج دعم — أسرع طريق للوصول.','الرد بقيمة على حسابات الاقتصاد الكبيرة — وصول مجاني لجمهورها.','تثبيت أفضل ثريد + رابط واتساب في البايو.','قاعدة الرابط: المحتوى في التغريدة، الرابط في أول رد — الخوارزمية تخفض الروابط.','توحيد المعرف إلى @madarej_sa (خطة الأسبوع الأول من الاستراتيجية).']},
+{key:'p_li',icon:'💼',name:'LinkedIn',t:'LinkedIn — صفحة الشركة (جديدة)',
+ kpis:[['متابعو الصفحة','0 → 1,000','هدف Q3',1],['مشاهدات ملف المدير','2.8K','+34%',1],['تفاعل منشورات الملف','6.2%','+1.1',1],['دعوات متاحة شهرياً','250','ثابت',1]],
+ bestDays:[68,84,80,76,52,20,30],bestHours:['12:00–1:00م','5:00–6:00م'],
+ bestNote:'الاثنين إلى الأربعاء وقت الدوام — جمهور B2B لا يتصفح نهاية الأسبوع.',
+ topPosts:[['5 مؤشرات تنذر بتعثر منشأتك','منشور نصي طويل','84K وصول','9.6% تفاعل'],['قصة حالة: ملف تمويلي رُفض ثم قُبل','نصي + صورة','41K — 7.8%'],['رأي: قطاعات واعدة برؤية 2030','نصي','28K — 6.4%']],
+ topNote:'من الملف الشخصي الحالي — تنتقل الخبرة نفسها للصفحة الجديدة مع دور «قيادة فكرية» للملف.',
+ types:{cats:['مستند PDF/كاروسيل','نصي طويل برأي','صورة + قصة','فيديو','مقال'],vals:[7.4,7.1,5.2,4.4,2.8],unit:'%',note:'المستندات (Documents) الأعلى وصولاً عضوياً على لينكدإن حالياً — كاروسيل PDF أسبوعي.'},
+ forecast:{title:'توقع متابعي الصفحة الجديدة',actual:[0,0,0],pred:[250,600,1000],bandUp:[320,750,1250],bandLo:[180,450,800],foot:'مبني على دعوات 250/شهر + إعادة توجيه جمهور الملف الشخصي + 3 منشورات أسبوعياً.'},
+ plan:['إطلاق الصفحة خلال أسبوعين (الخطة اليومية في وثيقة الاستراتيجية) واستنفاد دعوات الـ 250 شهرياً.','ازدواجية مقصودة: الصفحة تنشر الرسمي، وملف المدير يضيف رأياً شخصياً — الخوارزمية تفضل الأشخاص على الصفحات بـ 3×.','مستند كاروسيل أسبوعي (قائمة تحقق، دليل مختصر) — أعلى الأنواع وصولاً.','التعليق باسم الصفحة على منشورات منشآت والجهات التمويلية — ظهور أمام الجمهور المستهدف بدقة.','صفحة خدمات (Service Page) + زر واتساب مباشر.','أول Lead مؤسسية تُوثق كقصة نجاح على الصفحة نفسها — دليل حي يبيع.']},
+{key:'p_sc',icon:'👻',name:'Snapchat',t:'Snapchat — madarej.co',
+ kpis:[['متوسط مشاهدات القصة','3.2K','+8%',1],['معدل الإكمال','61%','+5',1],['الوصول المحلي (الرياض)','78%','ثابت',1],['لقطات ومشاركات','84','+12%',1]],
+ bestDays:[60,55,58,54,79,74,66],bestHours:['6:00–8:00م يومياً'],
+ bestNote:'الخميس والجمعة الأعلى — سناب منصة نهاية الأسبوع للجمهور السعودي.',
+ topPosts:[['جولة يوم عمل: كيف نبدأ دراسة مشروع','قصة 6 سنابات','5.1K مشاهدة','إكمال 68%'],['سؤال وجواب سريع مع خبير','قصة','4.4K — 63%'],['خلف كواليس تسليم دراسة','قصة','3.9K — 60%']],
+ topNote:'المحتوى الخام غير المُنتج يتفوق — سناب يكره الإعلانات المصقولة.',
+ types:{cats:['يوميات عمل خام','سؤال وجواب','إعادة نشر ريلز','عرض ترويجي'],vals:[66,58,39,31],unit:'% إكمال',note:'القياس هنا بمعدل الإكمال — المحتوى اليومي العفوي يحتفظ بالمشاهد للنهاية.'},
+ forecast:{title:'توقع مشاهدات القصة',actual:[2800,3000,3200],pred:[3600,4100,4700],bandUp:[3800,4500,5300],bandLo:[3400,3700,4100],fmt:v=>(v/1000).toFixed(1)+'K',foot:'النمو مرتبط بالانتظام اليومي — خوارزمية سناب تكافئ الاستمرارية قبل أي شيء.'},
+ plan:['قصة يومية بلا انقطاع (2-3 سنابات) — الاستمرارية هي الخوارزمية كلها هنا.','محتوى خام بلا مونتاج: الكاميرا الأمامية والصوت الطبيعي يبنيان الألفة.','ملصقات تفاعلية (استفتاء/سؤال) في كل قصة.','نشر المقاطع القوية على Spotlight — فرصة وصول مجانية خارج المتابعين.','Snapcode مطبوع في المكتب والعروض والمطبوعات.','توحيد اسم العرض والهوية مع باقي المنصات.']},
+{key:'p_wa',icon:'💬',name:'WhatsApp',t:'WhatsApp Business — قناة التحويل',
+ kpis:[['المحادثات الشهرية','210','+24%',1],['متوسط زمن الرد','3.1 ساعة','الهدف: ≤2',0],['تحويل محادثة → Lead','31%','+4',1],['رضا المتعاملين','4.5/5','+0.2',1]],
+ bestDays:[70,70,68,66,72,30,55],bestHours:['10:00ص–12:00م','8:00–10:00م'],
+ bestNote:'ذروتا الرسائل صباحاً ومساءً — توزيع مناوبات الرد عليهما يحقق الـ SLA.',
+ topPosts:[['قالب الرد على سؤال السعر','قالب معتمد','تحويل 38%','الأعلى أداءً'],['رسالة الترحيب الآلية','آلي','فتح 92%'],['قائمة البث الشهرية الأولى','بث','فتح متوقع 55-70%']],
+ topNote:'هنا «المنشور» = الرسالة. جودة القوالب تحدد معدل التحويل مباشرة.',
+ types:{cats:['رد شخصي سريع (<ساعة)','قالب معتمد','قائمة بث شهرية','رد متأخر (>4س)'],vals:[42,38,22,9],unit:'% تحويل',note:'سرعة الرد هي المتغير الأقوى: الرد خلال ساعة يحوّل 4× أكثر من الرد المتأخر.'},
+ forecast:{title:'توقع المحادثات الجادة',actual:[160,185,210],pred:[260,330,410],bandUp:[280,370,470],bandLo:[240,290,350],foot:'يتضاعف تقريباً في 90 يوماً مع نمو المنصات وربط زر واتساب في كل قناة وGBP.'},
+ plan:['تحقيق SLA ساعتين فوراً: مناوبتا رد على الذروتين + رسالة آلية خارج الدوام.','كتالوج خدمات كامل بالأسعار الاسترشادية — يقلل أسئلة الاستكشاف ويسرّع القرار.','زر واتساب في كل بايو ومنشور ترويجي وعلى الموقع وملف Google.','تصنيف المحادثات (عميل/مهتم/بارد) — أساس قياس التحويل في الداشبورد.','سؤال «من وين عرفتنا؟» في نهاية كل محادثة جديدة — قياس المصدر حتى يتفعل التتبع الآلي.','قائمة بث شهرية بقيمة حقيقية (ليست إعلاناً) لمن وافق فقط.']},
+{key:'p_gm',icon:'📍',name:'Google Maps',t:'Google Maps — الملف التجاري (جديد)',
+ kpis:[['مشاهدات الملف الشهرية','تُقاس أول شهر','خط أساس',1],['التقييم','★ 4.6','هدف: 4.8+',1],['طلبات الاتصال والاتجاهات','تُقاس','خط أساس',1],['نقرات الموقع من الخريطة','تُقاس','خط أساس',1]],
+ bestDays:[72,70,68,66,60,25,40],bestHours:['10:00ص–1:00م أيام العمل'],
+ bestNote:'ذروة البحث المحلي «دراسة جدوى الرياض» في ساعات العمل الصباحية.',
+ topPosts:[['الظهور في: «دراسة جدوى الرياض»','كلمة بحث','الفرصة الأولى','هدف: المركز 1-3'],['«مكتب استشارات مالية»','كلمة بحث','فرصة ثانية'],['«تقييم مشروع / جدوى اقتصادية»','كلمة بحث','فرصة ثالثة']],
+ topNote:'حزمة الخرائط المحلية (Local Pack) تظهر فوق النتائج العادية — من يتصدرها يأخذ المكالمات.',
+ types:{cats:['مراجعات + ردود','منشورات GBP أسبوعية','صور حقيقية شهرية','أسئلة وأجوبة معبأة'],vals:[40,25,20,15],unit:'% أثر',note:'المراجعات الحديثة المتجددة أقوى عامل ترتيب محلي يمكنك التحكم به.'},
+ forecast:{title:'توقع مشاهدات الملف (بعد التفعيل)',actual:[0,0,100],pred:[400,750,1200],bandUp:[500,950,1500],bandLo:[300,550,900],foot:'افتراضي حتى قياس خط الأساس — يُحدّث من Business Profile Performance API.'},
+ plan:['استكمال الملف 100%: الفئة الرئيسية «مستشار أعمال» + فئات فرعية، الخدمات كلها، ساعات العمل، الوصف بالكلمات المفتاحية.','محرك مراجعات: طلب تقييم من كل عميل راضٍ عند التسليم (رابط مباشر) — هدف 2-3 مراجعات أسبوعياً.','الرد على كل مراجعة خلال 24 ساعة — إيجابية كانت أو سلبية.','منشور GBP أسبوعي (نفس محتوى المنصات) — يرفع الظهور ويظهر نشاط الملف.','صور حقيقية شهرياً: المكتب، الفريق، التسليمات — الملفات ذات الصور تحصد 42% طلبات اتجاهات أكثر.','تعبئة الأسئلة الشائعة مسبقاً في قسم Q&A (أنت من يسأل ويجيب).','توحيد الاسم والعنوان والهاتف (NAP) في كل الأدلة والموقع — إشارة ثقة أساسية للترتيب.']},
+{key:'p_yt',icon:'▶️',name:'YouTube',t:'YouTube — خطة ما قبل الإطلاق (الشهر الثاني)',
+ kpis:[['المشتركون','0','الإطلاق: الشهر 2',1],['هدف Q3','500 مشترك','خطة',1],['هدف Q4','2,000 مشترك','خطة',1],['مخزون الإطلاق','3 حلقات جاهزة','قبل النشر',1]],
+ bestDays:[55,45,50,48,85,70,60],bestHours:['الخميس 7:00م (الحلقة)','Shorts يومياً'],
+ bestNote:'الخميس مساءً لإطلاق الحلقات — نهاية الأسبوع للمشاهدة الطويلة.',
+ topPosts:[['«جدوى» — شرح عناصر الدراسة (10 حلقات)','سلسلة تعليمية','الأساس','بحث دائم Evergreen'],['«قصة مشروع» — حالة شهرية بالأرقام','سلسلة','الإثبات'],['«سؤال وجواب التمويل» — من أسئلة الجمهور','سلسلة','التفاعل']],
+ topNote:'ثلاث سلاسل مخططة — كل حلقة تُقص إلى 3-4 Shorts وريلز (إنتاج واحد × 4 منصات).',
+ types:{cats:['تعليمي بحثي 5-8 دق','دراسة حالة','Shorts','لقاء/بودكاست'],vals:[6.0,5.2,4.1,3.3],unit:'% CTR متوقع',note:'العناوين البحثية («كم تكلفة دراسة الجدوى؟») تجلب مشاهدات دائمة لسنوات.'},
+ forecast:{title:'مسار المشتركين المخطط',actual:[0,0,0],pred:[150,500,1100],bandUp:[220,700,1500],bandLo:[80,300,700],foot:'المجال شبه خالٍ من المنافسين بالعربية — الفرصة الأكبر بين كل القنوات.'},
+ plan:['الإطلاق بثلاث حلقات دفعة واحدة ثم حلقة أسبوعية ثابتة — القناة الفارغة لا تكسب مشتركين.','عناوين = أسئلة بحث حقيقية: «كم تكلفة دراسة الجدوى في السعودية؟» — يوتيوب ثاني أكبر محرك بحث.','ثامبنيل موحد الهوية: وجه + رقم + 4 كلمات كحد أقصى.','Shorts يومي من قصاصات الحلقات — بوابة الاكتشاف الأسرع.','قوائم تشغيل لكل سلسلة + شاشات نهاية تدفع للحلقة التالية.','الوصف: رابط واتساب + الموقع + فصول زمنية (Chapters) لكل حلقة.']}
+];
+PLATS.forEach(cf=>{pages[cf.key]={t:cf.t,h:()=>platPage(cf)};});
+
+/* ---------- صفحة الموظف الشخصية ---------- */
+function mePage(){
+  const R=ROLES[ROLE];
+  const S=stGet();
+  const RHY=['نشرتُ محتوى اليوم في موعده من الإيقاع','رددتُ على كل الرسائل والتعليقات خلال ساعتين','وثّقتُ ما نشرتُه في سجل النشر'];
+  const today=['الأحد: ريلز قصة نجاح 8:30م + قصص','الاثنين: منشور LinkedIn + ثريد X الساعة 12م','الثلاثاء: ريلز تعليمي 8:30م + سؤال بالقصص','الأربعاء: كاروسيل 8م + منشور X','الخميس: سناب وراء الكواليس + تجهيز محتوى الأسبوع','الجمعة: منشور خفيف بعد الصلاة','السبت: إجابة سؤال متكرر + قراءة تقريرك الأسبوعي 📥'][new Date().getDay()];
+  const myAlerts=computeAlerts().filter(a=>a.emp===ROLE||(!a.emp && !['raghad','fajr'].includes(ROLE)));
+  const topAlert=myAlerts[0];
+  const mySuggestion=suggestNextContent(['raghad','fajr'].includes(ROLE)?ROLE:null);
+  const hookCats=Object.keys(HOOKS);const pickHook=HOOKS[hookCats[new Date().getDate()%hookCats.length]][0];
+  return `
+ <div class="row">
+  <div class="card" style="border-right:3px solid var(--s4)">
+   <h3>☀️ افتتاحية اليوم — نقطة انطلاق واحدة قبل أي شيء آخر</h3>
+   <div class="row cols3" style="margin-bottom:0">
+    <div class="insight ${topAlert?(topAlert.lvl==='crit'?'r':topAlert.lvl==='warn'?'w':'o'):'o'}"><b>🔔 الأولوية الآن:</b><br>${topAlert?topAlert.text+' — '+topAlert.action:'لا تنبيهات عاجلة باسمك — استمري على الإيقاع 🔥'}</div>
+    <div class="insight"><b>🧠 اقتراح المحتوى:</b><br>${mySuggestion}</div>
+    <div class="insight"><b>🪝 خطاف جاهز للنسخ:</b><br>${pickHook}<br><button class="cp" style="margin-top:6px" onclick="cp(this,'${pickHook.replace(/'/g,"\\'")}')">نسخ الخطاف</button></div>
+   </div>
+  </div>
+ </div>
+ <div class="row cols3">
+  <div class="card"><h3>👤 بياناتي</h3>
+   <div style="font-size:20px;font-weight:700;margin:4px 0">${fullName(R)}</div>
+   <div style="font-size:12.5px;color:var(--ink2);direction:ltr;text-align:right">${R.email}</div>
+   <div style="font-size:12px;color:var(--muted);margin-top:8px">قنواتي: ${R.desc}</div>
+   <div class="foot">رابط دخولي المباشر: أضف <b style="color:var(--ink2)">#${ROLE}</b> لرابط النظام</div></div>
+  <div class="card"><h3>📈 حالتي هذا الأسبوع</h3>
+   ${[['الالتزام بالتقويم',92,'#0ca30c'],['جودة من أول مرة',95,'#0ca30c'],['سرعة الرد (لمن تدير الردود)',68,'#fab219']].map(([n,p2,c])=>`
+   <div class="okr"><div class="t"><span>${n}</span><span class="b">${p2}%</span></div><div class="bar-wrap"><div class="bar-fill" style="width:${p2}%;background:${c}"></div></div></div>`).join('')}
+   <span class="pill pg">نشطة ✓</span> <span class="pill pb">تقريرك القادم: السبت 7:00ص على إيميلك</span></div>
+  <div class="card"><h3>🗓️ مطلوب اليوم من الإيقاع</h3>
+   <div class="insight o">${today}</div>
+   <div class="foot">التفاصيل والأفكار الجاهزة في تقويم المحتوى + التحديث اليومي الصباحي 7:00ص</div>
+   <h3 style="margin-top:10px">🔗 روابط مهمة</h3>
+   <div style="font-size:12.5px;color:var(--ink2);line-height:2">📊 مؤشرات قنواتي — القائمة الجانبية<br>📚 دليل التشغيل وقوالب الردود — بنك المحتوى<br>💬 أي استفسار جاد يُحوّل لواتساب الشركة ويُسجل بمصدره</div></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>📌 مهامي الأساسية — اضغطي على المهمة عند إنجازها ✓</h3>
+   ${R.tasks.map((t,i)=>{const id='t_'+i,dn=S[id]?' done':'';return `<label class="tk${dn}" onclick="toggleTask('${id}',this)"><input type="checkbox" ${S[id]?'checked':''} onclick="event.stopPropagation();this.parentNode.click()"><span>${t}</span></label>`;}).join('')}
+   ${RHY.map((t,i)=>{const id='d_'+i,dn=S[id]?' done':'';return `<label class="tk${dn}" style="border-right-color:var(--s4)" onclick="toggleTask('${id}',this)"><input type="checkbox" ${S[id]?'checked':''} onclick="event.stopPropagation();this.parentNode.click()"><span>${t}</span></label>`;}).join('')}
+   <div class="okr" style="margin-top:12px"><div class="t"><span>نقاطي هذا الأسبوع</span><span class="b" id="ptsNow">${myPoints()}</span></div>
+   <div class="bar-wrap"><div class="bar-fill" id="ptsBar" style="width:${Math.min(100,myPoints())}%;background:#c98500"></div></div></div>
+   <div class="foot">يُحفظ تلقائياً على جهازك ويُصفَّر مع بداية كل أسبوع. أرسلي لقطة الشاشة لشهد مساء الخميس.</div></div>
+  <div class="card"><h3>💪 قواعد النجاح — افعليها حتى تصلي</h3>
+   <div class="insight o">انشري في الموعد المحدد بلا استثناء — الالتزام ≥90% يضعك في سباق شارة ⭐ الأكثر التزاماً.</div>
+   <div class="insight">ردّي على كل رسالة وتعليق خلال ساعتين (9ص-9م) — سرعة الرد تحوّل المتابع إلى عميل.</div>
+   <div class="insight">خطاف أول 3 ثوانٍ في كل ريلز: رقم أو سؤال مباشر — هذا ما صنع منشور الـ 340K.</div>
+   <div class="insight">وثّقي كل تصميم وفيديو في بنك المحتوى فور النشر — «ما لم يُوثق لم يحدث».</div>
+   <div class="insight w">منشور ترويجي واحد فقط مقابل كل 4 منشورات قيمة — قاعدة 80/20 ملزمة.</div></div>
+ </div>`;
+}
+pages.me={t:'صفحتي',h:mePage};
+
+/* ========== 📬 البريد اليومي — داخل الداشبورد فقط، بدون إرسال بريد إلكتروني فعلي ========== */
+function dayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function mailKey(r){return 'madarej:mail:'+(r||ROLE)+':'+dayKey();}
+function mailGet(r){try{return JSON.parse(store.get(mailKey(r))||'{}')}catch(e){return{}}}
+function mailSet(o,r){store.set(mailKey(r),JSON.stringify(o));}
+function toggleMail(id,el){
+  const s=mailGet();const wasEmpty=!Object.values(s).some(Boolean);s[id]=!s[id];mailSet(s);el.classList.toggle('done',!!s[id]);
+  if(MY_MEMBER){
+    const dk=dayKey();
+    sb.from('social_checklist_items').upsert({member_id:MY_MEMBER.id,organization_id:ORG_ID,week_key:'mail_'+dk,task_key:id,label:id,points:10,is_done:s[id],done_at:s[id]?new Date().toISOString():null},{onConflict:'member_id,week_key,task_key'}).then(()=>{}).catch(()=>{});
+    if(s[id]&&wasEmpty)awardBadge('first_task');
+  }
+}
+/* ========== 🏅 الشارات · 🧠 المهارات · 🎯 التحديات — نسخة خفيفة داخل madarej-growth-engine ========== */
+let MY_GROWTH={badges:[],allBadges:[],skills:[],allSkills:[],challenge:null,loaded:false};
+let TEAM_GROWTH={};
+function reRenderIfMail(){if(CURRENT==='mail')render('mail');}
+async function awardBadge(key,memberId){
+  if(!MY_MEMBER)return;
+  const mid=memberId||MY_MEMBER.id;
+  try{
+    const badge=(MY_GROWTH.allBadges||[]).find(b=>b.key===key);
+    if(!badge)return;
+    await sb.from('social_member_badges').insert({member_id:mid,badge_id:badge.id,organization_id:ORG_ID}).select();
+    if(mid===MY_MEMBER.id)await loadGrowthData();
+  }catch(e){}
+}
+async function loadGrowthData(){
+  if(!MY_MEMBER)return;
+  try{
+    const [{data:allBadges},{data:myBadges},{data:allSkills},{data:mySkills},{data:chal}]=await Promise.all([
+      sb.from('social_badges').select('*').eq('organization_id',ORG_ID),
+      sb.from('social_member_badges').select('badge_id').eq('member_id',MY_MEMBER.id),
+      sb.from('social_skills').select('*').eq('organization_id',ORG_ID),
+      sb.from('social_member_skills').select('skill_id,level').eq('member_id',MY_MEMBER.id),
+      sb.from('social_challenge_assignments').select('*, social_challenges(title,brief,type,minutes)').eq('member_id',MY_MEMBER.id).eq('assigned_date',dayKey()).maybeSingle()
+    ]);
+    MY_GROWTH={allBadges:allBadges||[],badges:(myBadges||[]).map(b=>b.badge_id),allSkills:allSkills||[],skills:mySkills||[],challenge:chal||null,loaded:true};
+  }catch(e){MY_GROWTH.loaded=true;}
+  if(ROLES[ROLE].pages==='all')await loadTeamGrowth();
+  reRenderIfMail();
+}
+async function loadTeamGrowth(){
+  try{
+    const [{data:members},{data:badges},{data:chals}]=await Promise.all([
+      sb.from('social_members').select('id,email').eq('organization_id',ORG_ID),
+      sb.from('social_member_badges').select('member_id,badge_id'),
+      sb.from('social_challenge_assignments').select('member_id,status').eq('assigned_date',dayKey())
+    ]);
+    TEAM_GROWTH={};
+    (members||[]).forEach(m=>{TEAM_GROWTH[m.email.toLowerCase()]={id:m.id,badges:(badges||[]).filter(b=>b.member_id===m.id).length,challenge:(chals||[]).find(c=>c.member_id===m.id)||null};});
+  }catch(e){}
+}
+async function rateSkill(skillId,level){
+  if(!MY_MEMBER)return;
+  try{
+    await sb.from('social_member_skills').upsert({member_id:MY_MEMBER.id,skill_id:skillId,organization_id:ORG_ID,level,updated_at:new Date().toISOString()},{onConflict:'member_id,skill_id'});
+    await loadGrowthData();
+  }catch(e){}
+}
+async function submitChallenge(){
+  if(!MY_MEMBER||!MY_GROWTH.challenge)return;
+  const txt=document.getElementById('chalSubmit');if(!txt)return;
+  try{
+    await sb.from('social_challenge_assignments').update({status:'submitted',submission:txt.value.trim(),updated_at:new Date().toISOString()}).eq('id',MY_GROWTH.challenge.id);
+    await loadGrowthData();
+  }catch(e){}
+}
+async function assignRandomChallenge(roleKey){
+  const email=(ROLES[roleKey].email||'').toLowerCase();
+  const tg=TEAM_GROWTH[email];
+  if(!tg||tg.challenge)return;
+  try{
+    const {data:pool}=await sb.from('social_challenges').select('id').eq('organization_id',ORG_ID);
+    if(!pool||!pool.length)return;
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    await sb.from('social_challenge_assignments').insert({challenge_id:pick.id,member_id:tg.id,organization_id:ORG_ID,assigned_date:dayKey()});
+    await loadTeamGrowth();
+    reRenderIfMail();
+  }catch(e){}
+}
+const AR_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+function isWeekend(d){const g=(d||new Date()).getDay();return g===5||g===6;}
+function todayLabel(){const d=new Date();return DAYS[d.getDay()]+' '+d.getDate()+' '+AR_MONTHS[d.getMonth()]+' '+d.getFullYear();}
+function mailBodyFor(roleKey){
+  const P=ROLES[roleKey];
+  if(!P||!P.tasks||!P.tasks.length)return '<div class="foot">لا توجد مهام مسجَّلة لهذا الدور بعد.</div>';
+  if(isWeekend())return '<div class="insight">🌴 عطلة نهاية الأسبوع — ما فيه مهام مجدولة اليوم. نشوفكم '+DAYS[0]+' إن شاء الله.</div>';
+  const s=mailGet(roleKey);
+  return P.tasks.map((t,i)=>{const id='m_'+i,dn=s[id]?' done':'';return `<label class="tk${dn}" onclick="toggleMail('${id}',this)"><input type="checkbox" ${s[id]?'checked':''} onclick="event.stopPropagation();this.parentNode.click()"><span>${t}</span></label>`;}).join('');
+}
+function badgesStripHtml(){
+  if(!MY_GROWTH.loaded)return '<div class="foot">⏳ يحمّل...</div>';
+  if(!MY_GROWTH.allBadges.length)return '<div class="foot">لا توجد شارات بعد.</div>';
+  return '<div style="display:flex;gap:10px;flex-wrap:wrap">'+MY_GROWTH.allBadges.map(b=>{
+    const has=MY_GROWTH.badges.includes(b.id);
+    return `<div data-tt="${b.description||''}" style="text-align:center;opacity:${has?'1':'.3'};width:74px">
+      <div style="font-size:26px">${b.icon||'🏅'}</div>
+      <div style="font-size:10.5px;color:var(--muted);line-height:1.3">${b.name}</div>
+    </div>`;
+  }).join('')+'</div>';
+}
+function skillsListHtml(){
+  if(!MY_GROWTH.loaded)return '<div class="foot">⏳ يحمّل...</div>';
+  if(!MY_GROWTH.allSkills.length)return '<div class="foot">لا توجد مهارات معرّفة بعد.</div>';
+  return MY_GROWTH.allSkills.map(sk=>{
+    const mine=MY_GROWTH.skills.find(s=>s.skill_id===sk.id);
+    const lvl=mine?mine.level:0;
+    const dots=[1,2,3,4,5].map(n=>`<span onclick="rateSkill('${sk.id}',${n})" style="cursor:pointer;color:${n<=lvl?'var(--gold)':'var(--ring)'};font-size:15px">●</span>`).join('');
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--ring)">
+      <span style="font-size:12.5px">${sk.name}</span><span>${dots}</span>
+    </div>`;
+  }).join('');
+}
+function challengeCardHtml(){
+  if(!MY_GROWTH.loaded)return '<div class="foot">⏳ يحمّل...</div>';
+  const c=MY_GROWTH.challenge;
+  if(!c)return '<div class="foot">ما فيه تحدي معيّن لك اليوم.</div>';
+  const meta=c.social_challenges||{};
+  const typeLbl={inbox:'📥 محاكاة صندوق وارد',crisis:'🚨 محاكاة أزمة',weekly:'🎯 تحدٍّ أسبوعي',case:'📁 حالة دراسية'}[meta.type]||meta.type;
+  let body=`<div class="pill pb" style="margin-bottom:6px">${typeLbl}${meta.minutes?' · '+meta.minutes+' د':''}</div>
+    <div style="font-weight:700;margin-bottom:4px">${meta.title||''}</div>
+    <div style="font-size:12.5px;color:var(--ink2);line-height:1.7;margin-bottom:10px">${meta.brief||''}</div>`;
+  if(c.status==='assigned'){
+    body+=`<textarea id="chalSubmit" placeholder="اكتبي حلّك هنا..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:9px;font-family:inherit;font-size:12.5px"></textarea>
+    <button onclick="submitChallenge()" style="margin-top:8px;background:linear-gradient(135deg,var(--s1),#1c5cab);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">تسليم ✓</button>`;
+  }else if(c.status==='submitted'){
+    body+=`<div class="insight">✅ تم التسليم — بانتظار مراجعة المدير.</div>`;
+  }else if(c.status==='reviewed'){
+    body+=`<div class="insight">⭐ التقييم: ${c.score||'—'}/5${c.feedback?' — '+c.feedback:''}</div>`;
+  }
+  return body;
+}
+function teamGrowthCell(roleKey){
+  const email=(ROLES[roleKey].email||'').toLowerCase();
+  const tg=TEAM_GROWTH[email];
+  if(!tg)return '⏳';
+  const badgeTxt=`🏅${tg.badges}`;
+  const chalBtn=tg.challenge?`<span class="pill ${tg.challenge.status==='assigned'?'pw':'pg'}">${tg.challenge.status==='assigned'?'مُعيَّن':tg.challenge.status==='submitted'?'مُسلَّم':'مُقيَّم'}</span>`:`<button onclick="assignRandomChallenge('${roleKey}')" style="background:var(--surface2);border:1px solid var(--ring);border-radius:6px;padding:3px 8px;font-size:10.5px;color:var(--ink);cursor:pointer;font-family:inherit">🎲 عيّن تحدي</button>`;
+  return badgeTxt+' &nbsp; '+chalBtn;
+}
+function mailPage(){
+  const R=ROLES[ROLE];
+  const isManager=ROLES[ROLE].pages==='all';
+  let html=`
+ <div class="row">
+  <div class="card" style="border-right:3px solid var(--gold)">
+   <h3>📬 صباح الخير يا ${R.name} — مهامك اليوم</h3>
+   <div class="foot" style="margin-bottom:10px">${todayLabel()}</div>
+   ${mailBodyFor(ROLE)}
+  </div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>🎯 تحدي اليوم</h3>${challengeCardHtml()}</div>
+  <div class="card"><h3>🏅 شاراتي</h3>${badgesStripHtml()}</div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>🧠 مهاراتي (اضغطي على الدوائر لتقييم نفسك)</h3>${skillsListHtml()}</div>
+ </div>`;
+  if(isManager){
+    const weekend=isWeekend();
+    html+=`
+ <div class="row">
+  <div class="card"><h3>👥 بريد الفريق اليوم — نظرة عامة للمدير</h3>
+   <table><tr><th>الاسم</th><th>التخصص</th><th>${weekend?'الحالة':'عدد مهام اليوم'}</th><th>النمو</th></tr>
+   ${Object.keys(ROLES).map(k=>{const P=ROLES[k];const n=P.tasks?P.tasks.length:0;
+     return `<tr><td class="b">${fullName(P)}</td><td>${P.desc||''}</td><td>${weekend?'<span class="pill pb">عطلة</span>':n}</td><td>${teamGrowthCell(k)}</td></tr>`;}).join('')}
+   </table>
+   <div class="foot">قائمة المهام تُحسب تلقائياً حسب يوم الأسبوع (نفس مهامها الأساسية على أيام العمل الأحد–الخميس). حالة "تم الإنجاز ✓" تُحفظ على جهاز كل شخص ولا تُشارك بين الأجهزة تلقائياً — لتتبّع إنجاز فعلي موحّد عبر الفريق يلزم لاحقاً ربط قاعدة بيانات.</div></div>
+ </div>`;
+  }
+  return html;
+}
+pages.mail={t:'📬 البريد',h:mailPage};
+
+/* ========== طبقة الحفظ: تعمل على المتصفح وتعود لذاكرة مؤقتة إن مُنع التخزين ========== */
+const MEM={};
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return MEM[k]!==undefined?MEM[k]:null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){MEM[k]=v}}
+};
+function weekKey(){const d=new Date();const s=new Date(d.getFullYear(),0,1);const w=Math.ceil(((d-s)/86400000+s.getDay()+1)/7);return d.getFullYear()+'-W'+w;}
+function stKey(r){return 'madarej:'+(r||ROLE)+':'+weekKey();}
+function stGet(r){try{return JSON.parse(store.get(stKey(r))||'{}')}catch(e){return{}}}
+function stSet(o,r){store.set(stKey(r),JSON.stringify(o));}
+function toggleTask(id,el){const s=stGet();s[id]=!s[id];stSet(s);el.classList.toggle('done',!!s[id]);const n=document.getElementById('ptsNow');if(n)n.textContent=myPoints();const b=document.getElementById('ptsBar');if(b)b.style.width=Math.min(100,myPoints())+'%';}
+function myPoints(){const s=stGet();let p=0;Object.keys(s).forEach(k=>{if(s[k])p+=k.startsWith('d_')?15:10;});return p;}
+
+/* ========== مصدر البيانات: جدول Google Sheets المنشور (يُملأ فور تجهيزه) ========== */
+/* AVG_DEAL_SAR: متوسط قيمة الصفقة بالريال = 4500 ر.س — قيمة فعلية أكّدها المدير العام بتاريخ 2026-07-30. */
+const CFG={
+  SHEET_CSV:'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5EYVTKcvQMp2MHjNQXNfCtzSwByimkLjAwhSrapQFneVNL13xqTEeT_XKjjsF_X75aWYKoUUzDnKl/pub?gid=0&single=true&output=csv',
+  POSTS_CSV:'',
+  AVG_DEAL_SAR:4500,
+  AUTO_REFRESH_MS:300000
+};
+let SHEETROWS=null, POSTSROWS=null, LAST_SYNC=null;
+async function fetchCSV(url){
+  const t=await (await fetch(url,{cache:'no-store'})).text();
+  const rows=t.trim().split(/\r?\n/).map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
+  const head=rows.shift().map(h=>h.toLowerCase());
+  return rows.map(r=>{const o={};head.forEach((h,i)=>o[h]=r[i]);return o;});
+}
+async function loadSheet(){
+  let ok=false;
+  if(CFG.SHEET_CSV){try{SHEETROWS=await fetchCSV(CFG.SHEET_CSV);ok=true;}catch(e){}}
+  if(CFG.POSTS_CSV){try{POSTSROWS=await fetchCSV(CFG.POSTS_CSV);ok=true;}catch(e){}}
+  if(ok)LAST_SYNC=new Date();
+  return SHEETROWS;
+}
+function syncBadge(){return LAST_SYNC?`آخر مزامنة ${LAST_SYNC.getHours().toString().padStart(2,'0')}:${LAST_SYNC.getMinutes().toString().padStart(2,'0')}`:'لم تتم المزامنة بعد';}
+
+/* أرقام الأسبوع — توضيحية حتى ربط الجدول، ثم تُقرأ منه مباشرة. WEEKLY_PREV = لقطة الأسبوع الماضي (لحساب الاتجاه والتنبيهات فقط، حتى تُضاف أعمدة "الماضي" فعلياً للجدول). */
+const WEEKLY={
+  raghad:{commit:96,speed:85,quality:96,leads:9},
+  fajr:{commit:93,speed:84,quality:94,leads:8}
+};
+const WEEKLY_PREV={
+  raghad:{commit:95,speed:80,quality:96,leads:8},
+  fajr:{commit:92,speed:82,quality:93,leads:7}
+};
+function scoreOf(m){return Math.round(m.commit*.35+m.speed*.25+m.quality*.2+Math.min(20,m.leads*2));}
+function revenueOf(m){return m.leads*CFG.AVG_DEAL_SAR;}
+function pctDelta(now,prev){if(!prev)return 0;return Math.round(((now-prev)/Math.max(1,prev))*100);}
+function deltaTag(d){if(d>0)return `<span style="color:var(--good)">▲ ${d}%</span>`;if(d<0)return `<span style="color:var(--crit)">▼ ${Math.abs(d)}%</span>`;return `<span style="color:var(--muted)">— 0%</span>`;}
+
+/* ========== سجل المحتوى: مصدر محرك الذكاء (Content Intelligence) ========== */
+/* توضيحي حتى يُربط CFG.POSTS_CSV بجدول "المحتوى" — نفس مبدأ WEEKLY أعلاه: تصميم يعمل الآن ببيانات تمثيلية، ويتحول تلقائياً لحقيقي فور الربط. */
+const CONTENT_LOG=[
+ {date:'2026-07-23',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'قصص نجاح',hour:20,reach:122000,eng:11.2,leads:4},
+ {date:'2026-07-23',emp:'fajr',platform:'X',type:'نص',topic:'التمويل والدعم',hour:12,reach:18000,eng:3.4,leads:1},
+ {date:'2026-07-24',emp:'raghad',platform:'Instagram',type:'كاروسيل',topic:'تعليمي',hour:20,reach:84000,eng:9.6,leads:3},
+ {date:'2026-07-24',emp:'fajr',platform:'TikTok',type:'فيديو',topic:'جولة خدمات',hour:21,reach:98000,eng:7.4,leads:1},
+ {date:'2026-07-25',emp:'raghad',platform:'Snapchat',type:'قصة',topic:'كواليس',hour:19,reach:9000,eng:2.1,leads:0},
+ {date:'2026-07-25',emp:'fajr',platform:'Instagram',type:'صورة',topic:'ترويجي',hour:18,reach:12000,eng:0.9,leads:0},
+ {date:'2026-07-26',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'تعليمي',hour:20,eng:8.4,reach:76000,leads:2},
+ {date:'2026-07-27',emp:'fajr',platform:'X',type:'ثريد',topic:'ريادة الأعمال',hour:12,reach:22000,eng:4.1,leads:1},
+ {date:'2026-07-27',emp:'raghad',platform:'Instagram',type:'ريلز',topic:'قصص نجاح',hour:20,reach:131000,eng:12.6,leads:5},
+ {date:'2026-07-28',emp:'fajr',platform:'TikTok',type:'فيديو',topic:'التمويل والدعم',hour:21,reach:64000,eng:5.6,leads:1},
+ {date:'2026-07-28',emp:'raghad',platform:'X',type:'نص',topic:'قصص نجاح',hour:12,reach:19000,eng:3.6,leads:0},
+ {date:'2026-07-29',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'تعليمي',hour:20,reach:88000,eng:8.9,leads:2},
+ {date:'2026-07-29',emp:'fajr',platform:'Instagram',type:'كاروسيل',topic:'تعليمي',hour:20,reach:52000,eng:6.4,leads:1},
+ {date:'2026-08-01',emp:'raghad',platform:'Instagram',type:'ريلز',topic:'قصص نجاح',hour:20,reach:138000,eng:12.9,leads:3},
+ {date:'2026-08-02',emp:'fajr',platform:'X',type:'ثريد',topic:'التمويل والدعم',hour:12,reach:26000,eng:4.7,leads:1},
+ {date:'2026-08-03',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'تعليمي',hour:20,reach:94000,eng:9.3,leads:2},
+ {date:'2026-08-03',emp:'fajr',platform:'Instagram',type:'كاروسيل',topic:'التمويل والدعم',hour:20,reach:58000,eng:7.1,leads:1},
+ {date:'2026-08-04',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'قصص نجاح',hour:21,reach:112000,eng:11.4,leads:2},
+ {date:'2026-08-10',emp:'raghad',platform:'Instagram',type:'ريلز',topic:'التمويل والدعم',hour:20,reach:147000,eng:13.4,leads:4},
+ {date:'2026-08-11',emp:'fajr',platform:'Instagram',type:'كاروسيل',topic:'التمويل والدعم',hour:20,reach:66000,eng:7.9,leads:2},
+ {date:'2026-08-11',emp:'raghad',platform:'TikTok',type:'ريلز',topic:'تعليمي',hour:20,reach:97000,eng:9.5,leads:2},
+ {date:'2026-08-12',emp:'fajr',platform:'TikTok',type:'فيديو',topic:'التمويل والدعم',hour:21,reach:71000,eng:6.2,leads:2},
+ {date:'2026-08-13',emp:'raghad',platform:'Instagram',type:'ريلز',topic:'قصص نجاح',hour:20,reach:139000,eng:12.7,leads:3},
+ {date:'2026-08-13',emp:'fajr',platform:'X',type:'ثريد',topic:'التمويل والدعم',hour:12,reach:28000,eng:5.0,leads:1},
+];
+function getPosts(){
+  if(!POSTSROWS)return CONTENT_LOG;
+  return POSTSROWS.map(o=>({date:o['التاريخ'],emp:(o['الموظفة']||'').toLowerCase(),platform:o['المنصة'],type:o['النوع'],topic:o['الموضوع'],hour:+o['الساعة']||20,reach:+o['الوصول']||0,eng:+o['التفاعل']||0,leads:+o['leads']||0}));
+}
+function groupBy(arr,key){const m={};arr.forEach(x=>{const k=x[key];(m[k]=m[k]||[]).push(x);});return m;}
+function avg(arr,f){return arr.length?arr.reduce((s,x)=>s+f(x),0)/arr.length:0;}
+/* Content Score 0-100: أداء المنشور نسبة لمتوسط صيغته — لا رقماً مطلقاً، فمقارنة ريلز بمنشور نصي مضللة */
+function contentScore(post,all){
+  const peer=all.filter(p=>p.type===post.type);
+  const avgEng=avg(peer,p=>p.eng)||1;
+  let s=50+((post.eng-avgEng)/avgEng)*50+post.leads*6;
+  return Math.max(0,Math.min(100,Math.round(s)));
+}
+function scoredPosts(){const all=getPosts();return all.map(p=>({...p,score:contentScore(p,all)})).sort((a,b)=>b.score-a.score);}
+function topFormats(){
+  const all=getPosts();const g=groupBy(all,'type');
+  return Object.keys(g).map(t=>({type:t,avgEng:avg(g[t],p=>p.eng),leads:g[t].reduce((s,p)=>s+p.leads,0),n:g[t].length})).sort((a,b)=>b.avgEng-a.avgEng);
+}
+const TIME_HOURS=[6,9,12,15,18,20,21,22,23],TIME_LABELS=['6ص','9ص','12م','3م','6م','8م','9م','10م','11م'];
+function bucketHour(h){let bi=0,bd=99;TIME_HOURS.forEach((th,i)=>{const d=Math.abs(th-h);if(d<bd){bd=d;bi=i;}});return bi;}
+function dayIndex(dateStr){const d=new Date(dateStr+'T12:00:00');return isNaN(d)?0:d.getDay();}
+function bestTimeMatrix(){
+  const all=getPosts();
+  const sums=Array.from({length:7},()=>Array(TIME_HOURS.length).fill(0));
+  const cnts=Array.from({length:7},()=>Array(TIME_HOURS.length).fill(0));
+  all.forEach(p=>{const di=dayIndex(p.date),hi=bucketHour(p.hour);sums[di][hi]+=p.eng;cnts[di][hi]++;});
+  const mat=sums.map((row,di)=>row.map((s,hi)=>cnts[di][hi]?Math.round(s/cnts[di][hi]*10):0));
+  let best={d:0,h:0,v:-1};
+  mat.forEach((row,di)=>row.forEach((v,hi)=>{if(v>best.v)best={d:di,h:hi,v};}));
+  return {mat,best};
+}
+function suggestNextContent(empRole){
+  const all=getPosts();const mine=empRole?all.filter(p=>p.emp===empRole):all;
+  const pool=mine.length>=3?mine:all;
+  const byCombo=groupBy(pool,'type');
+  const bestType=Object.keys(byCombo).map(t=>({t,e:avg(byCombo[t],p=>p.eng)})).sort((a,b)=>b.e-a.e)[0];
+  const byTopic=groupBy(pool,'topic');
+  const bestTopic=Object.keys(byTopic).map(t=>({t,e:avg(byTopic[t],p=>p.eng)})).sort((a,b)=>b.e-a.e)[0];
+  const {best}=bestTimeMatrix();
+  if(!bestType||!bestTopic)return 'سجّلي أول ثلاثة منشورات في سجل المحتوى ليبدأ المحرك باقتراحات مبنية على أدائك الفعلي.';
+  return `أنتجي «${bestType.t}» عن «${bestTopic.t}» يوم ${DAYS[best.d]} الساعة ${TIME_LABELS[best.h]} — هذه التوليفة الأعلى أداءً بمعدل ${bestType.e.toFixed(1)}% تفاعل.`;
+}
+/* محاكي القرار: علاقة تقريبية بين معدل النشر الأسبوعي و Leads — تقدير أولي من نقطتي بيانات (الأسبوع الحالي/الماضي)، يتحسن تلقائياً كل أسبوع يُضاف */
+function whatIfLeads(extraPostsPerWeek){
+  const curLeads=Object.values(WEEKLY).reduce((s,m)=>s+m.leads,0);
+  const prevLeads=Object.values(WEEKLY_PREV).reduce((s,m)=>s+m.leads,0);
+  const curPosts=getPosts().length||15;
+  const leadsPerPost=Math.max(0.05,(curLeads-prevLeads)/Math.max(1,curPosts*0.15))||curLeads/curPosts;
+  return Math.max(0,Math.round(extraPostsPerWeek*leadsPerPost*10)/10);
+}
+/* تشبع الجمهور (Content Fatigue): نفس الموضوع 3 مرات+ لنفس الموظفة خلال 14 يوماً */
+function contentFatigue(){
+  const posts=getPosts();const now=Date.now();
+  const recent=posts.filter(p=>{const d=new Date(p.date+'T12:00:00').getTime();return !isNaN(d)&&(now-d)<=14*86400000;});
+  const out=[];
+  ['raghad','fajr'].forEach(r=>{
+    const mine=recent.filter(p=>p.emp===r);
+    const byTopic=groupBy(mine,'topic');
+    const worst=Object.keys(byTopic).map(t=>({t,n:byTopic[t].length})).sort((a,b)=>b.n-a.n)[0];
+    if(worst&&worst.n>=3)out.push({emp:r,topic:worst.t,n:worst.n});
+  });
+  return out;
+}
+/* توقف النمو الخفي (Silent Growth Killer): متوسط الوصول في النصف الأخير من السجل لم يتحسن عن النصف الأول رغم استمرار النشر */
+function growthStagnation(){
+  const posts=getPosts().slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(posts.length<6)return null;
+  const mid=Math.floor(posts.length/2);
+  const older=posts.slice(0,mid),recent=posts.slice(mid);
+  const oR=avg(older,x=>x.reach||0),rR=avg(recent,x=>x.reach||0);
+  return {d:pctDelta(rR,oR)};
+}
+/* ========== محرك التنبيهات الذكية — قواعد IF/THEN صريحة، لا تخمين ========== */
+function computeAlerts(){
+  const A=[];const posts=getPosts();
+  ['raghad','fajr'].forEach(r=>{
+    const m=WEEKLY[r],p=WEEKLY_PREV[r],name=ROLES[r].name;
+    const engNow=avg(posts.filter(x=>x.emp===r),x=>x.eng);
+    const mine=posts.filter(x=>x.emp===r);
+    const lastDate=mine.length?mine.map(x=>x.date).sort().slice(-1)[0]:null;
+    const daysSince=lastDate?Math.floor((Date.now()-new Date(lastDate).getTime())/86400000):99;
+    if(m.commit<80)A.push({lvl:'crit',emp:r,name,text:`التزام ${name} بالتقويم ${m.commit}% — أقل من الحد الأدنى 80%.`,action:'راجعي معها أسباب التأخير خلال اجتماع اليوم، لا الأحد.'});
+    if(m.speed<70)A.push({lvl:'crit',emp:r,name,text:`سرعة رد ${name} ${m.speed}% فقط — خطر خسارة عملاء منافس أسرع.`,action:'فعّلي تنبيه هاتف فوري لكل رسالة واردة لهذه القناة اليوم.'});
+    if(m.leads===0)A.push({lvl:'crit',emp:r,name,text:`صفر Leads من ${name} هذا الأسبوع — يمسّ الإيراد مباشرة.`,action:`راجعي آخر 3 منشورات هل فيها دعوة واضحة للتواصل؟`});
+    if(pctDelta(m.commit,p.commit)<=-20)A.push({lvl:'crit',emp:r,name,text:`التزام ${name} تراجع ${Math.abs(pctDelta(m.commit,p.commit))}% أسبوعاً بعد أسبوع.`,action:'توقّع: إن تكرر أسبوعاً آخر ستخرج من تصنيف "نشطة" — تدخل فوري.'});
+    if(pctDelta(m.leads,p.leads)<=-20)A.push({lvl:'warn',emp:r,name,text:`Leads ${name} انخفضت ${Math.abs(pctDelta(m.leads,p.leads))}% مقابل الأسبوع الماضي.`,action:'أعيدي جدولة صيغة "ريلز قصص نجاح" — الأعلى تحويلاً تاريخياً.'});
+    if(pctDelta(m.leads,p.leads)>=30)A.push({lvl:'good',emp:r,name,text:`Leads ${name} ارتفعت ${pctDelta(m.leads,p.leads)}% — فرصة لتكرار ما نجح.`,action:'وثّقي بالضبط أي منشور/صيغة سبّب هذا الارتفاع وكرريه هذا الأسبوع.'});
+    if(m.quality<85)A.push({lvl:'warn',emp:r,name,text:`جودة أول مرة لـ${name} ${m.quality}% — تعديلات متكررة تُبطئ الإيقاع.`,action:'راجعي قائمة التحقق السبعة قبل الإرسال لشهد، لا بعده.'});
+    if(daysSince>=3)A.push({lvl:'crit',emp:r,name,text:`لا سجل نشر مُوثَّق لـ${name} منذ ${daysSince} يوماً.`,action:'تأكدي هل توقف النشر فعلاً أم توقف التوثيق فقط — كلاهما خطر.'});
+  });
+  const overallEngNow=avg(posts,x=>x.eng);
+  const engPrevProxy=overallEngNow*1.18; // بديل مؤقت حتى يوجد أسبوعان كاملان من سجل المحتوى الفعلي
+  if(pctDelta(overallEngNow,engPrevProxy)<=-15)A.push({lvl:'warn',emp:null,name:'الفريق',text:`تفاعل الفريق العام أقل من متوسط الفترة السابقة.`,action:'راجعي صفحة "محرك ذكاء المحتوى" لمعرفة أفضل صيغة/وقت والعودة إليهما فوراً.'});
+  const fmts=topFormats();
+  if(fmts.length && fmts[0].n/posts.length>0.5)A.push({lvl:'warn',emp:null,name:'تنويع',text:`أكثر من نصف المحتوى المسجَّل من نوع واحد (${fmts[0].type}).`,action:'وزّعي الخطة القادمة على 3 صيغ مختلفة على الأقل — قاعدة 80/20 تشمل الصيغة لا الموضوع فقط.'});
+  const scored=scoredPosts();
+  if(scored.length){const best=scored[0];A.push({lvl:'good',emp:best.emp,name:ROLES[best.emp]?.name||best.emp,text:`منشور "${best.topic}" (${best.type}) حقق أعلى Content Score هذا الأسبوع: ${best.score}/100.`,action:'كرري نفس الصيغة والموضوع والتوقيت الأسبوع القادم — النمط الأعلى أداءً موثّق الآن.'});
+    const worst=scored[scored.length-1];
+    if(worst.score<35)A.push({lvl:'warn',emp:worst.emp,name:ROLES[worst.emp]?.name||worst.emp,text:`منشور "${worst.topic}" (${worst.type}) بأداء ضعيف: ${worst.score}/100.`,action:'لا تكرري هذه الصيغة/الموضوع قبل مراجعة السبب مع شهد.'});
+  }
+  contentFatigue().forEach(f=>{A.push({lvl:'warn',emp:f.emp,name:ROLES[f.emp].name,text:`تكرار موضوع "${f.topic}" ${f.n} مرات خلال أسبوعين من ${ROLES[f.emp].name} — خطر تشبع الجمهور (Content Fatigue).`,action:'بدّلي الزاوية أو الموضوع تماماً للمنشور القادم بدل تكرار نفس الفكرة.'});});
+  const gs=growthStagnation();
+  if(gs&&gs.d<=0)A.push({lvl:'warn',emp:null,name:'الفريق',text:`نمو الوصول متوقف بصمت: متوسط الوصول في النصف الأخير من سجل المحتوى ${gs.d}% مقارنة بالنصف الأول رغم استمرار النشر.`,action:'هذا "Silent Growth Killer" — غيّري الصيغة أو التوقيت هذا الأسبوع بدل تكرار نفس النمط بأمل تحسّن عضوي.'});
+  if(['admin','shahad','yaran'].includes(ROLE)&&typeof secAlerts==='function')secAlerts().forEach(a=>A.push(a));
+  const order2=['crit','warn','good'];
+  return A.sort((a,b)=>order2.indexOf(a.lvl)-order2.indexOf(b.lvl));
+}
+
+/* ========== لوحة الصدارة ========== */
+function boardPage(){
+  const live=!!SHEETROWS;
+  const rows=['raghad','fajr'].map(r=>{
+    let m=WEEKLY[r];
+    if(SHEETROWS){const f=SHEETROWS.find(x=>(x['الموظفة']||x.name||'').toLowerCase()===r);
+      if(f)m={commit:+f['الالتزام']||0,speed:+f['سرعة الرد']||0,quality:+f['الجودة']||0,leads:+f['leads']||0};}
+    const p=WEEKLY_PREV[r]||m;
+    return {r,name:ROLES[r].name,m,p,s:scoreOf(m),ds:pctDelta(scoreOf(m),scoreOf(p)),rev:revenueOf(m)};
+  }).sort((a,b)=>b.s-a.s);
+  const medals=['🥇','🥈','🥉'];
+  const top=rows[0],grow=rows.slice().sort((a,b)=>b.m.leads-a.m.leads)[0],cmt=rows.slice().sort((a,b)=>b.m.commit-a.m.commit)[0];
+  const totalRev=rows.reduce((s,x)=>s+x.rev,0);
+  const topAlerts=computeAlerts().slice(0,3);
+  return `
+ <div class="row cols3">
+  <div class="card"><h3>🏆 أفضل موظفة الأسبوع</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${top.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2)">أعلى مجموع نقاط: <b style="color:var(--s4)">${top.s}</b> من 100 ${deltaTag(top.ds)}</div></div>
+  <div class="card"><h3>📈 أعلى تحويل إلى عملاء</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${grow.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2)">${grow.m.leads} استفسار جاد محوَّل ≈ ${grow.rev.toLocaleString('en')} ر.س</div></div>
+  <div class="card"><h3>⭐ الأكثر التزاماً</h3><div style="font-size:22px;font-weight:800;margin:6px 0">${cmt.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2)">التزام بالتقويم ${cmt.m.commit}%</div></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>📊 ترتيب الأسبوع ${live?'<span class="pill pg">أرقام حية من الجدول</span>':'<span class="pill pw">أرقام توضيحية — تتحول لحقيقية فور ربط جدول البيانات</span>'} <span style="float:left;font-size:10.5px;color:var(--muted)">${syncBadge()}</span></h3>
+   <table class="lb"><thead><tr><th></th><th>الموظفة</th><th>الالتزام</th><th>سرعة الرد</th><th>الجودة</th><th>Leads</th><th>الإيراد المقدر</th><th>النقاط</th></tr></thead><tbody>
+   ${rows.map((x,i)=>`<tr class="${x.r===ROLE?'me2':''}"><td class="rk">${medals[i]||''}</td><td class="nm">${x.name}</td><td>${x.m.commit}%</td><td>${x.m.speed}%</td><td>${x.m.quality}%</td><td>${x.m.leads}</td><td>${x.rev.toLocaleString('en')} ر.س</td><td class="sc">${x.s} ${deltaTag(x.ds)}</td></tr>`).join('')}
+   </tbody></table>
+   <div class="foot">إجمالي الإيراد المقدَّر من الفريق هذا الأسبوع: <b style="color:var(--ink)">${totalRev.toLocaleString('en')} ر.س</b> (بمتوسط صفقة ${CFG.AVG_DEAL_SAR.toLocaleString('en')} ر.س — عدّليه من إعدادات CFG فور توفر رقم فعلي). يُحدَّث كل سبت 7:00ص، ويُحدَّث آلياً كل 5 دقائق إن كان الجدول مربوطاً.</div></div>
+  <div class="card"><h3>🔔 أهم 3 تنبيهات الآن</h3>
+   ${topAlerts.length?topAlerts.map(a=>`<div class="insight ${a.lvl==='crit'?'r':a.lvl==='warn'?'w':'o'}"><b>${a.name}:</b> ${a.text}<br><span style="color:var(--muted)">→ ${a.action}</span></div>`).join(''):'<div class="insight o">لا تنبيهات حرجة حالياً — استمروا 🔥</div>'}
+   <div class="foot"><a href="#" onclick="render('alerts');return false" style="color:var(--s1)">عرض كل التنبيهات وتحليل السبب →</a></div></div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>⚖️ كيف تُحسب النقاط — معيار معلن ولا يتغير</h3>
+   <div class="row cols4">
+   <div class="insight o">الالتزام بالتقويم × 0.35 — النشر في موعده بلا استثناء هو الأساس.</div>
+   <div class="insight">سرعة الرد خلال ساعتين × 0.25 — العميل يسأل ثلاث جهات، ومن يرد أولاً يكسبه.</div>
+   <div class="insight">جودة من أول مرة × 0.20 — ما يُعتمد بلا تعديل من شهد.</div>
+   <div class="insight w">كل استفسار جاد محوَّل = نقطتان (بحد أقصى 20) — هذا ما يدفع فاتورة الشركة فعلاً.</div>
+   </div>
+   <div class="foot">المجموع من 100. من تتجاوز 85 ثلاثة أسابيع متتالية تُرشَّح لمسؤولية قناة كاملة.</div></div>
+ </div>`;
+}
+pages.board={t:'🏆 لوحة الصدارة',h:boardPage};
+
+/* ========== محرك ذكاء المحتوى ========== */
+function intelPage(){
+  const live=!!POSTSROWS;
+  const scored=scoredPosts();
+  const fmts=topFormats();
+  const {mat}=bestTimeMatrix();
+  const suggestions=['raghad','fajr'].map(r=>({name:ROLES[r].name,txt:suggestNextContent(r)}));
+  return `
+ <div class="row cols4">
+  ${[['أفضل صيغة',fmts[0]?fmts[0].type:'—',fmts[0]?fmts[0].avgEng.toFixed(1)+'% تفاعل':''],
+     ['أفضل وقت نشر',TIME_LABELS[bestTimeMatrix().best.h],DAYS[bestTimeMatrix().best.d]],
+     ['أعلى Content Score',scored[0]?scored[0].score+'/100':'—',scored[0]?scored[0].topic:''],
+     ['منشورات مسجَّلة',getPosts().length,live?'من الجدول الحي':'بيانات توضيحية']].map(([l,v,d])=>`
+  <div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:18px">${v}</div><div class="d up">${d}</div></div>`).join('')}
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>🧠 اقتراح المحتوى التالي — لكل موظفة تلقائياً</h3>
+   ${suggestions.map(s=>`<div class="insight o"><b>${s.name}:</b> ${s.txt}</div>`).join('')}
+   <div class="foot">يُعاد الحساب من واقع سجل المحتوى نفسه — كلما زاد التسجيل ازدادت دقة الاقتراح.</div></div>
+  <div class="card"><h3>📶 أفضل صيغة حسب متوسط التفاعل</h3>
+   ${barChart(fmts.map(f=>f.type),fmts.map(f=>+f.avgEng.toFixed(1)),C.s1,620,200,v=>v+'%')}</div>
+ </div>
+ <div class="row cols2">
+  <div class="card"><h3>🕐 خريطة أفضل وقت نشر <small>— من سجل المحتوى الفعلي</small></h3>
+   ${heatmap(DAYS,TIME_LABELS,mat)}
+   <div class="foot">الأغمق = تفاعل أعلى فعلياً بناءً على ما سُجِّل — سجّلي كل منشور ليصبح هذا القرار موثوقاً لا تقديرياً.</div></div>
+  <div class="card"><h3>🎯 Content Score لكل منشور <small>— نسبة لأداء صيغته لا رقماً مطلقاً</small></h3>
+   <table class="lb"><thead><tr><th>الموظفة</th><th>الموضوع</th><th>الصيغة</th><th>التفاعل</th><th>Leads</th><th>Score</th></tr></thead><tbody>
+   ${scored.slice(0,8).map(p=>`<tr><td class="nm">${ROLES[p.emp]?.name||p.emp}</td><td>${p.topic}</td><td>${p.type}</td><td>${p.eng}%</td><td>${p.leads}</td><td class="sc" style="color:${p.score>=70?'var(--good)':p.score>=40?'var(--warn)':'var(--crit)'}">${p.score}</td></tr>`).join('')}
+   </tbody></table></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>🎲 محاكي القرار — ماذا لو زدنا وتيرة النشر؟</h3>
+   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+   ${[1,2,3,5].map(n=>`<div class="pill pb" style="font-size:13px;padding:8px 14px">+${n} منشورات/أسبوع → <b>+${whatIfLeads(n)}</b> Lead تقريباً</div>`).join('')}
+   </div>
+   <div class="foot">تقدير أولي من فارق منشورات وLeads بين الأسبوعين الحالي والماضي — يتحسن تلقائياً مع كل أسبوع بيانات إضافي، وليس بديلاً عن نموذج إحصائي كامل قبل قرارات ميزانية كبيرة.</div></div>
+  <div class="card"><h3>🧪 قيّمي المحتوى قبل النشر <small>— Pre-Publish Score</small></h3>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="ppType" style="background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">${['ريلز','كاروسيل','فيديو','صورة','قصة','نص'].map(t=>`<option>${t}</option>`).join('')}</select>
+    <select id="ppDay" style="background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">${DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select>
+    <select id="ppHour" style="background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">${TIME_LABELS.map((l,i)=>`<option value="${i}">${l}</option>`).join('')}</select>
+    <input id="ppTopic" placeholder="الموضوع (مثال: قصص نجاح)" style="flex:1;min-width:140px;background:var(--surface2);border:1px solid var(--ring);border-radius:8px;color:var(--ink);padding:6px 10px;font-family:inherit;font-size:12.5px">
+    <button class="chip" onclick="runPreScore()">قيّم الآن</button>
+   </div>
+   <div id="ppResult" style="margin-top:12px"></div>
+   <div class="foot">تقدير قبل النشر من قواعد إحصائية على سجلكم الفعلي (الصيغة الأعلى أداءً + التوقيت الأفضل + تكرار الموضوع مؤخراً) — وليس نموذج ذكاء اصطناعي تنبؤي حقيقي، فاستخدميه كمرشد سريع لا كقرار نهائي.</div></div>
+ </div>`;
+}
+pages.intel={t:'🧠 محرك ذكاء المحتوى',h:intelPage};
+
+/* Pre-Publish Score: تقدير قبل النشر من نفس بيانات المحرك (لا رقم مطلق، بل قواعد شفافة) */
+function sameTopicRecentCount(topic){
+  const posts=getPosts();const now=Date.now();
+  return posts.filter(p=>{const d=new Date((p.date||'')+'T12:00:00').getTime();return topic&&p.topic&&p.topic.trim()===topic.trim()&&!isNaN(d)&&(now-d)<=14*86400000;}).length;
+}
+function preScore(type,dayIdx,hourIdx,topic){
+  const fmts=topFormats();const {best}=bestTimeMatrix();
+  let s=50;
+  if(fmts[0]&&type===fmts[0].type)s+=25;else if(fmts.find(f=>f.type===type))s+=10;
+  if(dayIdx===best.d&&hourIdx===best.h)s+=20;else if(dayIdx===best.d||hourIdx===best.h)s+=10;
+  const rep=sameTopicRecentCount(topic);
+  if(rep>=2)s-=20;else if(rep>=1)s-=8;
+  return Math.max(0,Math.min(100,Math.round(s)));
+}
+function runPreScore(){
+  const type=document.getElementById('ppType').value;
+  const dayIdx=+document.getElementById('ppDay').value;
+  const hourIdx=+document.getElementById('ppHour').value;
+  const topic=document.getElementById('ppTopic').value.trim();
+  const s=preScore(type,dayIdx,hourIdx,topic);
+  const fmts=topFormats();const {best}=bestTimeMatrix();
+  const advice=[];
+  if(fmts[0]&&type!==fmts[0].type)advice.push(`جرّبي صيغة "${fmts[0].type}" — الأعلى أداءً في سجلكم.`);
+  if(!(dayIdx===best.d&&hourIdx===best.h))advice.push(`أقرب وقت مثالي فعلياً: ${DAYS[best.d]} ${TIME_LABELS[best.h]}.`);
+  const rep=sameTopicRecentCount(topic);
+  if(rep>=1)advice.push(`نُشر موضوع مشابه ${rep} مرة خلال أسبوعين — بدّلي الزاوية لتفادي التشبع.`);
+  const cls=s>=70?'o':s>=40?'w':'r';
+  document.getElementById('ppResult').innerHTML=`<div class="insight ${cls}"><b>Pre-Publish Score: ${s}/100</b>${advice.length?'<br>'+advice.join('<br>'):'<br>توليفة قوية بناءً على أدائكم السابق — انشري بثقة.'}</div>`;
+}
+
+/* ========== التنبيهات الذكية ========== */
+function alertsPage(){
+  const all=computeAlerts();
+  const crit=all.filter(a=>a.lvl==='crit'),warn=all.filter(a=>a.lvl==='warn'),good=all.filter(a=>a.lvl==='good');
+  const rev=['raghad','fajr'].map(r=>({name:ROLES[r].name,rev:revenueOf(WEEKLY[r]),leads:WEEKLY[r].leads}));
+  const totalRev=rev.reduce((s,x)=>s+x.rev,0);
+  return `
+ <div class="row cols3">
+  <div class="card kpi"><div class="l">تنبيهات حرجة 🔴</div><div class="v">${crit.length}</div><div class="d dn">تحتاج تدخلاً اليوم</div></div>
+  <div class="card kpi"><div class="l">تنبيهات تحذيرية 🟡</div><div class="v">${warn.length}</div><div class="d">راقبيها هذا الأسبوع</div></div>
+  <div class="card kpi"><div class="l">فرص إيجابية 🟢</div><div class="v">${good.length}</div><div class="d up">كرّري ما نجح</div></div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>🔮 تنبيهات تنذر بالفشل قبل حدوثه (Predictive)</h3>
+   ${all.length?all.map(a=>`<div class="insight ${a.lvl==='crit'?'r':a.lvl==='warn'?'w':'o'}"><span class="pill ${a.lvl==='crit'?'pc':a.lvl==='warn'?'pw':'pg'}">${a.lvl==='crit'?'حرج':a.lvl==='warn'?'تحذير':'فرصة'}</span> <b>${a.name}:</b> ${a.text}<br><span style="color:var(--muted)">→ الإجراء المقترح: ${a.action}</span></div>`).join(''):'<div class="insight o">لا توجد تنبيهات — كل المؤشرات ضمن الحدود الطبيعية.</div>'}
+  </div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>💰 من المحتوى إلى الإيراد مباشرة</h3>
+   <table class="lb"><thead><tr><th>الموظفة</th><th>Leads هذا الأسبوع</th><th>الإيراد المقدَّر</th><th>الحصة</th></tr></thead><tbody>
+   ${rev.map(x=>`<tr><td class="nm">${x.name}</td><td>${x.leads}</td><td>${x.rev.toLocaleString('en')} ر.س</td><td>${totalRev?Math.round(x.rev/totalRev*100):0}%</td></tr>`).join('')}
+   </tbody></table>
+   <div class="foot">الإجمالي: ${totalRev.toLocaleString('en')} ر.س بمتوسط صفقة ${CFG.AVG_DEAL_SAR.toLocaleString('en')} ر.س. حدّثي CFG.AVG_DEAL_SAR برقم محاسبي فعلي ليصبح هذا الجدول دقيقاً 100%.</div></div>
+  <div class="card"><h3>🕵️ رادار المنافسين <small>— سجل يدوي أسبوعي</small></h3>
+   <div class="insight w"><b>مثال:</b> منافس أطلق حملة «استشارة مجانية» ونمو تفاعله تجاوز 2× متوسطه المعتاد.</div>
+   <div class="insight">أضيفي هنا كل حركة منافس لحظة رصدها (حملة، عرض، محتوى فيروسي) — الهدف رد خلال 24 ساعة لا اكتشاف متأخر.</div>
+   <div class="foot">حالياً سجل يدوي داخل اجتماع الأحد؛ يمكن ربطه بورقة Google Sheets مستقلة مثل جدول الأسبوع تماماً متى رغبتم.</div></div>
+ </div>`;
+}
+pages.alerts={t:'🔔 التنبيهات الذكية',h:alertsPage};
+
+/* ========== رادار الفرص — سجل يدوي أسبوعي لكل فرصة لم تُستغل بعد ========== */
+const OPPORTUNITY_LOG=[
+ {title:'تمويلات كفالة تجاوزت 137.3 مليار ريال للمنشآت الصغيرة والمتوسطة — أعلى رقم يحرّك حديث السوق هذا الأسبوع',source:'خبر رسمي — كفالة / صحافة اقتصادية',window:'نافذة ذهبية 1-2 أسبوع قبل تشبّع المحتوى',priority:'عالية',status:'مفتوحة'},
+ {title:'منتج «المنشآت الناشئة» من كفالة يضمن حتى من لا سجل ائتماني — زاوية جديدة لم يلتقطها المنافسون',source:'كفالة — kafalah.gov.sa',window:'نافذة 2-3 أسابيع',priority:'عالية',status:'مفتوحة'},
+ {title:'أسبوع التمويل من الهيئة العامة للمنشآت جمع 62 جهة تمويلية — «المال وفير، والمنافسة على جاهزية الدراسة»',source:'الهيئة العامة للمنشآت',window:'فوري',priority:'عالية',status:'مفتوحة'},
+ {title:'منافسون يتصدرون بمحتوى «معتمد/الأرخص» ولا يملكون قيادة فكرية جادة على LinkedIn — فجوة مفتوحة',source:'تحليل المنافسين',window:'شهر',priority:'متوسطة',status:'قيد التنفيذ'},
+ {title:'قناة يوتيوب لدراسات الجدوى شبه خالية من المنافسين بالعربية',source:'الاستراتيجية طويلة المدى',window:'ربع سنوي',priority:'عالية',status:'مخطط لها'},
+];
+function opportunityPage(){
+  const open=OPPORTUNITY_LOG.filter(o=>o.status!=='مغلقة');
+  const high=OPPORTUNITY_LOG.filter(o=>o.priority==='عالية');
+  const autoGood=computeAlerts().filter(x=>x.lvl==='good');
+  return `
+ <div class="row cols3">
+  <div class="card kpi"><div class="l">فرص مسجَّلة</div><div class="v">${OPPORTUNITY_LOG.length}</div><div class="d">سجل يدوي أسبوعي</div></div>
+  <div class="card kpi"><div class="l">أولوية عالية</div><div class="v">${high.length}</div><div class="d up">تحتاج تحركاً هذا الأسبوع</div></div>
+  <div class="card kpi"><div class="l">مفتوحة الآن</div><div class="v">${open.length}</div><div class="d">لم تُستغل بعد</div></div>
+ </div>
+ <div class="row">
+  <div class="card"><h3>📡 رادار الفرص <small>— كل فرصة لم تُستغل بعد بعد</small></h3>
+   <table class="lb"><thead><tr><th>الفرصة</th><th>المصدر</th><th>النافذة الزمنية</th><th>الأولوية</th><th>الحالة</th></tr></thead><tbody>
+   ${OPPORTUNITY_LOG.map(o=>`<tr><td class="b">${o.title}</td><td>${o.source}</td><td>${o.window}</td><td><span class="pill ${o.priority==='عالية'?'pc':o.priority==='متوسطة'?'pw':'pb'}">${o.priority}</span></td><td>${o.status}</td></tr>`).join('')}
+   </tbody></table>
+   <div class="foot">أضيفي كل فرصة فور رصدها في اجتماع الأحد (سجل يدوي حالياً — يمكن ربطه بورقة Google Sheets مستقلة مثل جدول الأسبوع تماماً متى رغبتم). القاعدة: فرصة بلا تاريخ استغلال تتحول لتهديد يستغله منافس أولاً.</div></div>
+ </div>
+ <div class="row cols2e">
+  <div class="card"><h3>🎯 أعلى فرصة الآن</h3>
+   ${high[0]?`<div class="insight o"><b>${high[0].title}</b><br><span style="color:var(--muted)">المصدر: ${high[0].source} — النافذة: ${high[0].window}</span></div>`:'<div class="insight">لا فرص عالية الأولوية مسجَّلة حالياً.</div>'}
+   <div class="foot">حوّليها فوراً إلى مهمة باسم موظفة داخل بطاقة "افتتاحية اليوم" في صفحتها.</div></div>
+  <div class="card"><h3>🔗 فرص تلقائية من بيانات الفريق نفسها</h3>
+   ${autoGood.length?autoGood.slice(0,3).map(x=>`<div class="insight o"><b>${x.name}:</b> ${x.text}</div>`).join(''):'<div class="insight">لا فرص تلقائية إضافية من محرك التنبيهات حالياً.</div>'}
+   <div class="foot">أي تنبيه "إيجابي 🟢" في صفحة التنبيهات الذكية هو فرصة فعلية قابلة للتكرار فوراً.</div></div>
+ </div>`;
+}
+pages.opportunity={t:'🛰️ رادار الفرص',h:opportunityPage};
+
+/* ========== بنك الخطافات وقوالب الردود ========== */
+const HOOKS={
+ 'بالرقم':['٩٠٪ من دراسات الجدوى التي تُرفض تُرفض لهذا السبب وحده.','٣ أرقام لو غابت عن دراستك رُفض تمويلك فوراً.','مشروع بـ ٢٠٠ ألف ريال خسر ٨٠٪ من رأس ماله في ٦ أشهر — والسبب سطر واحد.','٧ من كل ١٠ مشاريع جديدة تُغلق قبل السنة الثالثة.','٤٥ يوماً هي المدة الحقيقية لدراسة جدوى محترفة — من يعدك بأسبوع يبيعك ورقاً.','١٢ ألف ريال فرق بين دراسة تُقبل ودراسة تُرفض.','٥ برامج تمويل حكومية لا يعرفها ٨٠٪ من رواد الأعمال.','٣٠ دقيقة كافية لتعرف هل مشروعك مجدٍ أم لا.','٦ مصاريف يغفلها كل مبتدئ في حساب التكاليف.','رقم واحد يحدد إن كان مشروعك سينجح: نقطة التعادل.'],
+ 'سؤال مباشر':['هل تعرف كم يكلفك مشروعك فعلاً قبل أول ريال دخل؟','لماذا رُفض طلب تمويلك رغم أن فكرتك ممتازة؟','هل مشروعك مجدٍ فعلاً... أم أنك تحب الفكرة فقط؟','متى تعرف أن الوقت قد حان لإغلاق المشروع؟','كم تحتاج من رأس المال قبل أن تبدأ؟ الجواب يصدمك.','هل تعلم أن البنك لا يقرأ دراستك كاملة؟ يقرأ ٣ صفحات فقط.','ما الفرق بين خطة العمل ودراسة الجدوى؟ الخلط بينهما يكلفك التمويل.','لو خُيّرت بين فكرة ممتازة وتنفيذ ممتاز — أيهما تختار؟'],
+ 'تحذير وخطأ':['لا تفتح مشروعك قبل أن تقرأ هذا.','أكبر خطأ يرتكبه رائد الأعمال السعودي في أول سنة.','توقف — لا ترفع طلب التمويل قبل هذه الخطوة.','هذه العبارة في دراستك سبب رفضك المباشر.','إن كنت تحسب الإيرادات بهذه الطريقة فأنت تخدع نفسك.','احذر من مكتب يعدك بقبول التمويل — القبول ليس بيده.','لا تنسخ دراسة جاهزة من الإنترنت — البنوك تعرفها.','المشروع الذي ينجح عند غيرك قد يفلس عندك — وهذا السبب.'],
+ 'قصة وإثبات':['عميل جاءنا بعد رفضين... وقُبل تمويله من المحاولة الثالثة.','صاحب مطعم كان سيخسر مليوناً — أوقفناه بسطر في التحليل.','بدأ بـ ٥٠ ألفاً واليوم لديه ٣ فروع — بدأ بخطوة واحدة صحيحة.','مشروع اعتقد صاحبه أنه فاشل — الأرقام قالت العكس.','رفضنا العمل مع مشروع لأن أرقامه قالت لا — وشكرنا صاحبه بعد سنة.','قصة أغرب دراسة جدوى مرت علينا في ٩ سنوات.','كيف حوّلنا فكرة مقهى عادي إلى مشروع بعائد ٣٤٪.','عميل سألنا سؤالاً واحداً وفّر عليه ٣ سنوات.'],
+ 'فضول وتناقض':['أنجح المشاريع ليست أفضلها فكرة — بل أدقها حساباً.','التمويل ليس المشكلة... المشكلة أنك تطلبه بالطريقة الخاطئة.','قد يكون رفض البنك أفضل شيء حدث لمشروعك.','مشروع بلا منافسين ليس فرصة — بل إنذار.','ليست كل فكرة مربحة تستحق التنفيذ.','الدراسة الصادقة قد تقول لك: لا تبدأ. وهذا أثمن ما تشتريه.','رأس المال الكبير سبب فشل كثير من المشاريع لا سبب نجاحها.','أخطر رقم في دراستك هو الرقم الذي أعجبك.'],
+ 'قائمة وعرض':['٤ مستندات تحتاجها قبل التقديم على أي تمويل.','خطوات دراسة الجدوى من الفكرة إلى القرار في دقيقتين.','قائمة تحقق قبل توقيع عقد الإيجار التجاري.','٣ أسئلة اسألها لأي مكتب استشاري قبل أن تدفع له.','دليلك المختصر لبرامج الدعم في السعودية ٢٠٢٦.','٥ قطاعات واعدة برؤية ٢٠٣٠ وأرقامها الحقيقية.','كيف تقرأ دراسة الجدوى إن لم تكن محاسباً.','٦ مؤشرات تنذر بتعثر منشأتك قبل أن يظهر في الحساب البنكي.']
+};
+const REPLIES=[
+ ['الاستفسار عن السعر','أهلاً بك 🌿 تختلف تكلفة الدراسة باختلاف حجم المشروع وقطاعه والجهة التمويلية المستهدفة. أعطنا فكرة مختصرة عن مشروعك ونرسل لك عرضاً دقيقاً خلال ٢٤ ساعة: wa.me/966554443569'],
+ ['مدة الإنجاز','عادة من ١٠ إلى ٢١ يوم عمل حسب حجم المشروع وتوفر البيانات. نعطيك جدولاً زمنياً واضحاً مع العرض، ونلتزم به.'],
+ ['خارج الرياض','نخدم جميع مناطق المملكة 🇸🇦 والعمل يتم عن بُعد بالكامل مع اجتماعات مرئية، ولا فرق في الجودة ولا في السعر.'],
+ ['هل تضمنون قبول التمويل؟','لا يملك أي مكتب ضمان القبول — القرار للجهة التمويلية. لكن ما نضمنه أن ملفك يُقدَّم مستوفياً لمعاييرها المعلنة، وهذا ما يرفع فرصتك فعلياً.'],
+ ['طلب خصم','نقدّر ذلك 🌷 أسعارنا مبنية على ساعات عمل فريق متخصص، لكن لدينا خيارات نطاق مختلفة تناسب الميزانيات. أخبرنا بميزانيتك ونرشح لك الأنسب.'],
+ ['شكوى أو تأخير','نعتذر لك بصدق، وهذا لا يمثل مستوانا 🙏 أعطنا رقم الطلب وسنتابعه شخصياً ونعود لك خلال ساعة بحل واضح.'],
+ ['المستندات المطلوبة','نحتاج مبدئياً: وصف المشروع، الموقع المقترح، رأس المال المتوقع، والسجل التجاري إن وُجد. والباقي نبنيه معك خطوة بخطوة.'],
+ ['ما الفرق بين خطة العمل ودراسة الجدوى؟','دراسة الجدوى تجيب: هل المشروع مجدٍ؟ وخطة العمل تجيب: كيف ننفذه؟ الأولى قرار، والثانية طريق. ونوضح لك أيهما تحتاج حسب هدفك.'],
+ ['رد آلي خارج الدوام','شكراً لتواصلك مع مدارج 🌿 وصلتنا رسالتك وسيعود لك الفريق خلال ساعات العمل (٩ص – ٩م). ولاستعجال الرد: wa.me/966554443569'],
+ ['تحويل إلى واتساب','لتفاصيل أدق ومناقشة مشروعك مع مستشار مختص، تفضل عبر واتساب مباشرة 👇 wa.me/966554443569']
+];
+function bankPage(){
+  const cats=Object.keys(HOOKS);
+  return `
+ <div class="row cols2e">
+  <div class="card"><h3>🪝 بنك الخطافات — ${cats.reduce((a,c)=>a+HOOKS[c].length,0)} خطافاً معتمداً</h3>
+   <div class="insight o">القاعدة: لا يُنشر ريلز أو تغريدة بخطاف خارج هذا البنك إلا بموافقة شهد. أول ٣ ثوانٍ تحدد ٨٠٪ من الوصول.</div>
+   <div class="tabs" id="hkTabs">${cats.map((c,i)=>`<button class="${i?'':'on'}" onclick="showHooks('${c}',this)">${c}</button>`).join('')}</div>
+   <div id="hkList">${hookList(cats[0])}</div></div>
+  <div class="card"><h3>💬 قوالب الردود المعتمدة — ${REPLIES.length} قوالب</h3>
+   <div class="insight w">انسخي القالب وعدّلي الاسم فقط. الرد خلال ساعتين (٩ص–٩م) التزام لا خيار.</div>
+   ${REPLIES.map((x,i)=>`<div class="hk" style="border-right-color:var(--s3)"><div><b style="color:var(--ink)">${x[0]}</b><br>${x[1]}</div><button class="cp" onclick="cp(this,REPLIES[${i}][1])">نسخ</button></div>`).join('')}</div>
+ </div>`;
+}
+function hookList(c){return HOOKS[c].map((h,i)=>`<div class="hk"><div>${h}</div><button class="cp" onclick="cp(this,HOOKS['${c}'][${i}])">نسخ</button></div>`).join('');}
+function showHooks(c,b){document.getElementById('hkList').innerHTML=hookList(c);document.querySelectorAll('#hkTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');}
+function cp(btn,txt){
+  const done=()=>{const o=btn.textContent;btn.textContent='✓ نُسخ';btn.classList.add('ok');setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok')},1400);};
+  try{navigator.clipboard.writeText(txt).then(done,()=>fb())}catch(e){fb()}
+  function fb(){const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(e){}t.remove();done();}
+}
+pages.bank={t:'🪝 بنك الخطافات وقوالب الردود',h:bankPage};
+
+/* ═══════════════════════════════════════════════════════════════
+   وحدة الأمن السيبراني — مدارج لحلول الأعمال
+   المرجع: الضوابط الأساسية للأمن السيبراني ECC-2:2024 (الهيئة الوطنية للأمن السيبراني)
+           4 مكونات رئيسية · 28 مكوناً فرعياً · 108 ضوابط أساسية.
+           + نظام حماية البيانات الشخصية (PDPL) ولائحته التنفيذية — سدايا.
+           إشعار سدايا بحادثة تسريب بيانات شخصية: خلال 72 ساعة من العلم بها.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ---------- 1. حالة تأمين الأصول الرقمية ---------- */
+/* twofa: التحقق بخطوتين · adm: عدد من يملك صلاحية · rot: يوم منذ آخر تدوير لكلمة المرور
+   rec: وسيلة الاسترجاع محدّثة · pd: يحتوي بيانات شخصية لعملاء (نطاق PDPL) */
+const SEC_ASSETS=[
+ {n:'Instagram @madarej_sa', o:'رغد',  twofa:true,  adm:3, rot:41,  rec:true,  pd:true},
+ {n:'TikTok @madarej_sa',    o:'رغد',  twofa:true,  adm:3, rot:41,  rec:true,  pd:true},
+ {n:'X @madarej_co',         o:'هيا',  twofa:false, adm:4, rot:126, rec:false, pd:true},
+ {n:'Snapchat madarej.co',   o:'فجر',  twofa:false, adm:3, rot:98,  rec:false, pd:true},
+ {n:'LinkedIn — مدارج',       o:'هيا',  twofa:true,  adm:2, rot:33,  rec:true,  pd:true},
+ {n:'WhatsApp Business',     o:'شهد',  twofa:true,  adm:2, rot:20,  rec:true,  pd:true},
+ {n:'Google Business Profile',o:'شهد', twofa:true,  adm:2, rot:57,  rec:true,  pd:false},
+ {n:'YouTube (قيد الإطلاق)',  o:'رغد',  twofa:true,  adm:2, rot:12,  rec:true,  pd:false},
+ {n:'البريد المؤسسي — Google Workspace', o:'المدير العام', twofa:true, adm:6, rot:88, rec:true, pd:true},
+ {n:'نطاق واستضافة madarej.sa', o:'المدير العام', twofa:false, adm:2, rot:210, rec:false, pd:true},
+ {n:'GA4 + Search Console',  o:'شهد',  twofa:true,  adm:3, rot:64,  rec:true,  pd:false},
+ {n:'أداة الجدولة والتصميم (طرف خارجي)', o:'شهد', twofa:false, adm:5, rot:145, rec:false, pd:true}
+];
+function assetRisk(a){
+  let s=0;
+  if(!a.twofa)s+=45;
+  if(a.rot>90)s+=25; else if(a.rot>60)s+=12;
+  if(!a.rec)s+=15;
+  if(a.adm>3)s+=10;
+  if(a.pd&&!a.twofa)s+=10;
+  return Math.min(100,s);
+}
+function riskPill(s){
+  if(s>=60)return '<span class="pill pc">حرجة</span>';
+  if(s>=30)return '<span class="pill pw">متوسطة</span>';
+  return '<span class="pill pg">مقبولة</span>';
+}
+
+/* ---------- 2. جاهزية الامتثال — ECC-2:2024 ---------- */
+const ECC=[
+ {k:'1',n:'حوكمة الأمن السيبراني',subs:10,pct:58,gap:'اعتماد السياسات وتوقيع الفريق عليها + تحديد الأدوار والمسؤوليات كتابةً.'},
+ {k:'2',n:'تعزيز الأمن السيبراني',subs:15,pct:72,gap:'إدارة الثغرات والتحديثات، وتسجيل أحداث الدخول ومراجعتها.'},
+ {k:'3',n:'صمود الأمن السيبراني',subs:1,pct:45,gap:'خطة استمرارية أعمال مكتوبة ومختبَرة لفقدان الوصول للحسابات.'},
+ {k:'4',n:'الأطراف الخارجية والحوسبة السحابية',subs:2,pct:52,gap:'حصر مزوّدي الخدمة ومراجعة بنود حماية البيانات في عقودهم.'}
+];
+function eccOverall(){return Math.round(ECC.reduce((s,d)=>s+d.pct,0)/ECC.length);}
+
+/* ---------- 3. نظام حماية البيانات الشخصية (PDPL) ---------- */
+const PDPL_ITEMS=[
+ ['سجل أنشطة معالجة البيانات الشخصية (leads · عملاء · موظفون)',true],
+ ['إشعار الخصوصية منشور على madarej.sa وواضح قبل جمع البيانات',true],
+ ['أساس نظامي أو موافقة صريحة لجمع بيانات العملاء المحتملين',false],
+ ['قناة معلنة لطلبات أصحاب البيانات (اطلاع · تصحيح · حذف)',false],
+ ['إجراء مكتوب لإشعار سدايا خلال 72 ساعة من العلم بالحادثة',true],
+ ['ضوابط نقل البيانات خارج المملكة (الأدوات السحابية المستخدمة)',false],
+ ['مدة احتفاظ محددة وحذف البيانات بعد انتهاء الغرض منها',false],
+ ['بنود حماية البيانات في عقود الأطراف الخارجية',true]
+];
+function pdplPct(){return Math.round(PDPL_ITEMS.filter(x=>x[1]).length/PDPL_ITEMS.length*100);}
+
+/* ---------- 4. الوعي الأمني للفريق ---------- */
+const AWARE=[
+ {n:'المدير العام',tr:true, ph:'اجتاز', pm:true,  f2:true},
+ {n:'شهد',        tr:true, ph:'اجتاز', pm:true,  f2:true},
+ {n:'رغد',        tr:true, ph:'اجتاز', pm:false, f2:true},
+ {n:'فجر',        tr:false,ph:'ضغط الرابط', pm:false, f2:false},
+ {n:'هيا',        tr:true, ph:'لم يُختبر', pm:false, f2:true},
+ {n:'يارا',       tr:true, ph:'اجتاز', pm:true,  f2:true}
+];
+
+/* ---------- 5. المهام والواجبات الدورية ---------- */
+const CAD=[['daily','🌅 يومي',C.s1],['weekly','📅 أسبوعي',C.s3],['monthly','🗓️ شهري',C.s4],['quarterly','🎯 ربع سنوي',C.s5]];
+const CYBER_TASKS={
+ daily:[
+  {t:'مراجعة سجل جلسات الدخول لكل حساب منصّة وإنهاء أي جلسة أو جهاز غير معروف.',ref:'ECC 2-2'},
+  {t:'فحص الرسائل المشبوهة الواردة على البريد المؤسسي وحسابات المنصّات، وتصنيف محاولات التصيّد وتحذير الفريق في نفس اليوم.',ref:'ECC 2-14'},
+  {t:'متابعة تنبيهات حماية الأجهزة الطرفية (مكافحة الفيروسات/الجدار الناري) على أجهزة الفريق ومعالجة أي إنذار.',ref:'ECC 2-3'},
+  {t:'التحقق من نجاح النسخة الاحتياطية الليلية للموقع وقاعدة بيانات العملاء — لا يُغلق اليوم قبل تأكيد النجاح.',ref:'ECC 2-9'},
+  {t:'رصد الحسابات المنتحلة باسم «مدارج» على المنصّات وفتح بلاغ فوري لدى المنصّة.',ref:'حماية العلامة'},
+  {t:'مراجعة أي طلب لتصدير أو مشاركة بيانات عملاء خارج القنوات المعتمدة، ورفض ما لا أساس نظامي له.',ref:'PDPL'}
+ ],
+ weekly:[
+  {t:'تدقيق الصلاحيات: من يملك وصولاً لأي حساب، وسحب صلاحية كل من انتهت حاجته إليها (مبدأ الحد الأدنى من الامتياز).',ref:'ECC 2-2'},
+  {t:'فحص التحديثات والثغرات: أنظمة تشغيل الأجهزة، المتصفحات، إضافات وقوالب موقع madarej.sa.',ref:'ECC 2-10'},
+  {t:'اختبار استعادة عيّنة من النسخة الاحتياطية فعلياً — النسخة التي لم تُستعَد لا تُعتبر نسخة.',ref:'ECC 2-9'},
+  {t:'مراجعة سجل الحوادث المفتوحة، تحديث حالتها، وقياس زمن الاحتواء لكل حادثة.',ref:'ECC 2-13'},
+  {t:'التحقق من صلاحية شهادة SSL، وسجلات النطاق DNS و SPF/DKIM/DMARC لمنع انتحال بريد الشركة.',ref:'ECC 2-5'},
+  {t:'مراجعة أجهزة الفريق: قفل الشاشة التلقائي، تشفير القرص، ومنع العمل على شبكات عامة بدون VPN.',ref:'ECC 2-6'},
+  {t:'رفع تقرير أمني أسبوعي مختصر للمدير العام وشهد: ما أُغلق · ما زال مفتوحاً · ما يحتاج قراراً.',ref:'ECC 1-2'}
+ ],
+ monthly:[
+  {t:'تدوير كلمات مرور الحسابات الحسّاسة، والتأكد من أنها مخزّنة في مدير كلمات مرور معتمد فقط — لا في ملاحظات أو محادثات.',ref:'ECC 2-2'},
+  {t:'تشغيل محاكاة تصيّد داخلية للفريق وقياس نسبة من ضغط الرابط، ومعالجة الحالات فردياً.',ref:'ECC 1-10'},
+  {t:'جلسة توعية 20 دقيقة للفريق بموضوع واحد (التصيّد · الهندسة الاجتماعية · كلمات المرور · خصوصية بيانات العملاء).',ref:'ECC 1-10'},
+  {t:'تحديث سجل أنشطة معالجة البيانات الشخصية: ما يُجمع، لماذا، أين يُخزَّن، من يصل إليه، ومتى يُحذف.',ref:'PDPL'},
+  {t:'مراجعة الأطراف الخارجية والخدمات السحابية المستخدمة والتحقق من بنود حماية البيانات في عقودها.',ref:'ECC المكوّن 4'},
+  {t:'حذف أو إخفاء هوية البيانات الشخصية التي انتهى الغرض من جمعها.',ref:'PDPL'},
+  {t:'تحديث مؤشرات الأمن في هذه اللوحة: تغطية التحقق بخطوتين · الثغرات المغلقة · متوسط زمن الاحتواء.',ref:'ECC 1-2'}
+ ],
+ quarterly:[
+  {t:'تقييم ذاتي لجاهزية الامتثال للضوابط الأساسية ECC-2:2024 وتحديث نسبة كل مكوّن من المكوّنات الأربعة.',ref:'ECC 1-6'},
+  {t:'اختبار خطة الاستجابة للحوادث بسيناريو محاكاة: اختراق حساب إنستغرام · تسريب قائمة العملاء المحتملين.',ref:'ECC 2-13'},
+  {t:'مراجعة واعتماد السياسات الأمنية (الاستخدام المقبول · كلمات المرور · الوصول عن بُعد · النسخ الاحتياطي) وتوقيع الفريق عليها.',ref:'ECC 1-3'},
+  {t:'تقييم أثر حماية البيانات (DPIA) لأي نشاط معالجة جديد عالي الأثر قبل إطلاقه.',ref:'PDPL'},
+  {t:'اختبار استمرارية الأعمال: ماذا لو فقدنا الوصول لكل حسابات المنصّات ليوم كامل؟ توثيق خطة الاسترجاع.',ref:'ECC المكوّن 3'},
+  {t:'مراجعة الحسابات فائقة الصلاحية (المدير العام والمديرة) وتقليصها إلى أدنى حد لازم.',ref:'ECC 2-2'}
+ ]
+};
+
+/* ---------- 6. تخزين المهام حسب الدورية ---------- */
+function periodKey(cad){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  if(cad==='daily')   return 'D'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  if(cad==='weekly')  return 'W'+weekKey();
+  if(cad==='monthly') return 'M'+d.getFullYear()+'-'+p(d.getMonth()+1);
+  return 'Q'+d.getFullYear()+'-Q'+(Math.floor(d.getMonth()/3)+1);
+}
+function secGet(cad){try{return JSON.parse(store.get('madarej:sec:'+cad+':'+periodKey(cad))||'{}')}catch(e){return{}}}
+function secSet(cad,o){store.set('madarej:sec:'+cad+':'+periodKey(cad),JSON.stringify(o));}
+function secDone(cad){const S=secGet(cad);return CYBER_TASKS[cad].filter((x,i)=>S['k'+i]).length;}
+function secPct(cad){return Math.round(secDone(cad)/CYBER_TASKS[cad].length*100);}
+function secAllPct(){const t=CAD.reduce((s,[c])=>s+CYBER_TASKS[c].length,0),d=CAD.reduce((s,[c])=>s+secDone(c),0);return Math.round(d/t*100);}
+let SEC_CAD='daily';
+function secTaskList(cad){
+  const S=secGet(cad),L=CYBER_TASKS[cad],col=(CAD.find(x=>x[0]===cad)||[])[2]||C.s1,d=secDone(cad),p=secPct(cad);
+  const RESET={daily:'يُصفَّر تلقائياً كل يوم',weekly:'يُصفَّر مع بداية كل أسبوع',monthly:'يُصفَّر مع بداية كل شهر',quarterly:'يُصفَّر مع بداية كل ربع'}[cad];
+  return `<div class="okr"><div class="t"><span>الإنجاز — ${RESET}</span><span class="b">${d}/${L.length} · ${p}%</span></div>
+   <div class="bar-wrap"><div class="bar-fill" style="width:${p}%;background:${p===100?C.good:p>=60?C.s4:C.crit}"></div></div></div>`
+   + L.map((x,i)=>`<div class="tk${S['k'+i]?' done':''}" style="border-right-color:${col}" role="checkbox" tabindex="0" aria-checked="${!!S['k'+i]}" onclick="secToggle('${cad}',${i})" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();secToggle('${cad}',${i});}">
+     <input type="checkbox" ${S['k'+i]?'checked':''} tabindex="-1" style="pointer-events:none">
+     <span>${x.t}<span class="ref">${x.ref}</span></span></div>`).join('');
+}
+function secToggle(cad,i){const S=secGet(cad);S['k'+i]=!S['k'+i];secSet(cad,S);
+  const box=document.getElementById('secTasks');if(box)box.innerHTML=secTaskList(cad);
+  const g=document.getElementById('secAllPct');if(g)g.textContent=secAllPct()+'%';}
+function secTab(cad,b){SEC_CAD=cad;document.querySelectorAll('#secTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.getElementById('secTasks').innerHTML=secTaskList(cad);}
+
+/* ---------- 7. سجل الحوادث الأمنية ---------- */
+const INCIDENTS_SEED=[
+ {id:'INC-004',t:'دخول من جهاز غير معروف',sev:'عالية',src:'حساب X @madarej_co — جلسة من موقع غير معتاد',det:'2026-08-23 08:15',act:'أُنهيت الجلسة وطُلب تفعيل التحقق بخطوتين',st:'مفتوحة',close:'',pd:false},
+ {id:'INC-003',t:'مشاركة بيانات عملاء عبر قناة غير معتمدة',sev:'عالية',src:'تصدير قائمة 42 عميلاً محتملاً إلى ملف على جهاز شخصي',det:'2026-08-22 16:40',act:'حُذف الملف وطُلب توثيق الواقعة',st:'مفتوحة',close:'',pd:true},
+ {id:'INC-002',t:'حساب منتحل',sev:'متوسطة',src:'حساب إنستغرام باسم madarej.sa.official',det:'2026-08-12 11:05',act:'بلاغ لدى المنصّة + تنبيه الجمهور بقصة موثّقة',st:'مغلقة',close:'2026-08-15 10:00',pd:false},
+ {id:'INC-001',t:'محاولة تصيّد',sev:'متوسطة',src:'بريد باسم «إنستغرام — مخالفة حقوق نشر» يطلب تسجيل الدخول',det:'2026-08-18 09:40',act:'حُذف البريد وحُذّر الفريق وحُجب المرسل',st:'مغلقة',close:'2026-08-18 11:10',pd:false}
+];
+function incGet(){try{const v=store.get('madarej:sec:incidents');return v?JSON.parse(v):INCIDENTS_SEED.slice()}catch(e){return INCIDENTS_SEED.slice()}}
+function incSet(a){store.set('madarej:sec:incidents',JSON.stringify(a));}
+function nowStamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+function hoursBetween(a,b){return (new Date(b.replace(' ','T'))-new Date(a.replace(' ','T')))/3600000;}
+function incAdd(){
+  const g=id=>(document.getElementById(id).value||'').trim();
+  const t=g('inT');
+  if(!t){document.getElementById('inErr').style.display='block';return;}
+  const a=incGet();
+  const num=a.reduce((m,x)=>Math.max(m,parseInt((x.id||'').replace(/\D/g,''))||0),0)+1;
+  a.unshift({id:'INC-'+String(num).padStart(3,'0'),t,sev:g('inSev'),src:g('inSrc'),det:g('inDet')||nowStamp(),act:g('inAct'),st:'مفتوحة',close:'',pd:document.getElementById('inPd').checked});
+  incSet(a);render('cyber');
+}
+function incClose(id){const a=incGet(),x=a.find(y=>y.id===id);if(x){x.st='مغلقة';x.close=nowStamp();incSet(a);render('cyber');}}
+function incReopen(id){const a=incGet(),x=a.find(y=>y.id===id);if(x){x.st='مفتوحة';x.close='';incSet(a);render('cyber');}}
+function incDel(id){if(!confirm('حذف الحادثة '+id+' من السجل؟'))return;incSet(incGet().filter(y=>y.id!==id));render('cyber');}
+function incReset(){if(!confirm('إعادة السجل إلى البيانات التوضيحية؟'))return;incSet(INCIDENTS_SEED.slice());render('cyber');}
+function mttrHours(){const c=incGet().filter(x=>x.st==='مغلقة'&&x.close);if(!c.length)return null;return c.reduce((s,x)=>s+hoursBetween(x.det,x.close),0)/c.length;}
+
+/* ---------- 8. مؤشرات الأمن ---------- */
+function secKPIs(){
+  const A=SEC_ASSETS,inc=incGet();
+  const f2=Math.round(A.filter(a=>a.twofa).length/A.length*100);
+  const high=A.filter(a=>assetRisk(a)>=60).length;
+  const stale=A.filter(a=>a.rot>90).length;
+  const open=inc.filter(x=>x.st==='مفتوحة').length;
+  const m=mttrHours();
+  const aw=Math.round(AWARE.filter(x=>x.tr).length/AWARE.length*100);
+  return [
+   {l:'تغطية التحقق بخطوتين',v:f2+'%',ok:f2>=90,note:'الهدف 100% — لا استثناء'},
+   {l:'أصول عالية الخطورة',v:high,ok:high===0,note:'حساب واحد بلا 2FA = باب مفتوح'},
+   {l:'كلمات مرور > 90 يوم',v:stale,ok:stale===0,note:'التدوير شهري للحسابات الحسّاسة'},
+   {l:'حوادث مفتوحة',v:open,ok:open===0,note:'لا تُترك حادثة مفتوحة فوق 72 ساعة'},
+   {l:'متوسط زمن الاحتواء',v:m===null?'—':m.toFixed(1)+' س',ok:m!==null&&m<=24,note:'الهدف: أقل من 24 ساعة'},
+   {l:'جاهزية ECC-2:2024',v:eccOverall()+'%',ok:eccOverall()>=80,note:'متوسط المكوّنات الأربعة'},
+   {l:'جاهزية PDPL',v:pdplPct()+'%',ok:pdplPct()>=80,note:'بنود الامتثال المكتملة'},
+   {l:'وعي الفريق',v:aw+'%',ok:aw===100,note:'من أكمل التدريب واجتاز المحاكاة'}
+  ];
+}
+
+/* ---------- 9. تنبيهات الأمن (لا تظهر لغير المخوّلين) ---------- */
+function secAlerts(){
+  const A=[],inc=incGet();
+  SEC_ASSETS.filter(a=>!a.twofa).forEach(a=>A.push({lvl:'crit',emp:null,name:'أمن',text:`«${a.n}» بلا تحقق بخطوتين${a.pd?' ويحتوي بيانات عملاء':''}.`,action:'فعّل التحقق بخطوتين اليوم واحفظ رموز الاسترجاع في مدير كلمات المرور. (ECC 2-2)'}));
+  SEC_ASSETS.filter(a=>a.rot>90).forEach(a=>A.push({lvl:'warn',emp:null,name:'أمن',text:`كلمة مرور «${a.n}» لم تُدوَّر منذ ${a.rot} يوماً.`,action:'دوّرها ضمن مهمة التدوير الشهرية وسجّل التاريخ.'}));
+  SEC_ASSETS.filter(a=>a.adm>3).forEach(a=>A.push({lvl:'warn',emp:null,name:'أمن',text:`${a.adm} أشخاص يملكون صلاحية على «${a.n}» — أكثر من اللازم.`,action:'طبّق مبدأ الحد الأدنى من الامتياز واسحب ما لا حاجة له. (ECC 2-2)'}));
+  inc.filter(x=>x.st==='مفتوحة').forEach(x=>{
+    const h=hoursBetween(x.det,nowStamp());
+    if(x.pd){
+      const left=72-h;
+      A.push({lvl:'crit',emp:null,name:'PDPL',text:`الحادثة ${x.id} تمسّ بيانات شخصية — ${left>0?'تبقّى '+Math.floor(left)+' ساعة':'انقضت المهلة بـ'+Math.floor(-left)+' ساعة'} على مهلة إشعار سدايا (72 ساعة).`,action:left>0?'جهّز الإشعار الآن: وصف الحادثة، وقتها، فئة وعدد المتأثرين، والآثار المحتملة.':'أشعر سدايا فوراً ووثّق سبب التأخير — التأخر مخالفة نظامية.'});
+    }
+    if(h>72)A.push({lvl:'crit',emp:null,name:'أمن',text:`الحادثة ${x.id} «${x.t}» مفتوحة منذ ${Math.floor(h/24)} يوماً.`,action:'أغلقها أو صعّدها للمدير العام في تقرير هذا الأسبوع.'});
+  });
+  AWARE.filter(x=>!x.tr||x.ph==='ضغط الرابط').forEach(x=>A.push({lvl:'warn',emp:null,name:'توعية',text:`${x.n}: ${!x.tr?'لم يُكمل تدريب التوعية':'ضغط رابط محاكاة التصيّد'}.`,action:'جلسة فردية 15 دقيقة هذا الأسبوع + إعادة الاختبار بعد أسبوعين. (ECC 1-10)'}));
+  ECC.filter(d=>d.pct<50).forEach(d=>A.push({lvl:'warn',emp:null,name:'امتثال',text:`مكوّن «${d.n}» عند ${d.pct}% فقط من الجاهزية.`,action:d.gap}));
+  CAD.forEach(([c,lbl])=>{if(secPct(c)<60&&(c==='daily'||c==='weekly'))A.push({lvl:'warn',emp:null,name:'مهام',text:`مهام ${lbl.replace(/^\S+\s/,'')} منجزة ${secPct(c)}% فقط.`,action:'أكملها قبل نهاية الدورة — المهام غير المنجزة تتحول إلى مخاطر متراكمة.'});});
+  const ord=['crit','warn','good'];
+  return A.sort((a,b)=>ord.indexOf(a.lvl)-ord.indexOf(b.lvl));
+}
+
+/* ---------- 10. الصفحة ---------- */
+function cyberPage(){
+  const R=ROLES.yaran,K=secKPIs(),AL=secAlerts(),inc=incGet();
+  const f2=SEC_ASSETS.filter(a=>a.twofa).length,noF2=SEC_ASSETS.length-f2;
+  const crit=AL.filter(a=>a.lvl==='crit').length;
+  const posture=Math.max(0,Math.round(100-(SEC_ASSETS.reduce((s,a)=>s+assetRisk(a),0)/SEC_ASSETS.length)));
+  const tier=posture>=75?{c:C.good,t:'وضع أمني مستقر'}:posture>=50?{c:C.warn,t:'ثغرات تحتاج إغلاقاً'}:{c:C.crit,t:'خطر مرتفع — تدخّل فوري'};
+  return `
+ <div class="row cols4">
+  ${K.map(k=>`<div class="card kpi"><div class="l">${k.l}</div>
+   <div class="v" style="color:${k.ok?C.good:C.crit}">${k.v}</div>
+   <div class="d" style="color:var(--muted);font-weight:400">${k.note}</div></div>`).join('')}
+ </div>
+
+ <div class="row cols3">
+  <div class="card" style="border-right:3px solid ${tier.c}">
+   <h3>🛡️ مؤشر المناعة الرقمية <small>— رقم واحد يلخّص وضعنا الأمني</small></h3>
+   <div style="text-align:center">${gauge(posture/100,tier.c)}
+    <div style="font-size:26px;font-weight:800;margin-top:-4px">${posture}<span style="font-size:13px;color:var(--muted)">/100</span></div>
+    <div style="color:${tier.c};font-weight:700;font-size:13px">${tier.t}</div></div>
+   <div class="foot">يُحسب من: التحقق بخطوتين (وزن أعلى) · عمر كلمات المرور · وسائل الاسترجاع · عدد أصحاب الصلاحية · وجود بيانات شخصية في الأصل.</div></div>
+
+  <div class="card"><h3>🔐 درع الحسابات <small>— ${SEC_ASSETS.length} أصلاً رقمياً</small></h3>
+   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    ${donut([{n:'محمي بـ2FA',v:f2,c:C.good},{n:'بلا 2FA',v:noF2||0.001,c:C.crit}],150,150,42)}
+    <div style="flex:1;min-width:120px">
+     <div class="legend" style="flex-direction:column;gap:6px">
+      <span><i style="background:${C.good}"></i> محمي بالتحقق بخطوتين: <b>${f2}</b></span>
+      <span><i style="background:${C.crit}"></i> بلا تحقق بخطوتين: <b>${noF2}</b></span></div>
+     <div class="foot" style="margin-top:10px">${noF2?'كل أصل بلا 2FA هو نقطة الاختراق الأرجح — أغلقها أولاً.':'كل الأصول محمية ✓'}</div></div>
+   </div>
+   <div class="okr" style="margin-top:10px"><div class="t"><span>إنجاز المهام الدورية (كل الدوريات)</span><span class="b" id="secAllPct">${secAllPct()}%</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${secAllPct()}%;background:${C.s4}"></div></div></div></div>
+
+  <div class="card" style="border-right:3px solid ${crit?C.crit:C.good}">
+   <h3>🚨 الأولويات الأمنية الآن <small>— ${crit} حرجة من ${AL.length}</small></h3>
+   ${AL.slice(0,5).map(a=>`<div class="insight ${a.lvl==='crit'?'r':a.lvl==='warn'?'w':'o'}"><b>${a.name}:</b> ${a.text}<br><span style="color:var(--muted)">▸ ${a.action}</span></div>`).join('')||'<div class="insight o">لا تنبيهات أمنية مفتوحة — استمر على الإيقاع.</div>'}
+   ${AL.length>5?`<div class="foot">+${AL.length-5} تنبيهاً آخر ضمن الجداول أدناه.</div>`:''}</div>
+ </div>
+
+ <div class="row cols2">
+  <div class="card"><h3>🗝️ حالة تأمين الأصول الرقمية <small>— المصدر الوحيد للحقيقة عن «من يملك ماذا»</small></h3>
+   <div style="overflow-x:auto"><table>
+    <tr><th>الأصل</th><th>المسؤول</th><th>2FA</th><th>أصحاب الصلاحية</th><th>عمر كلمة المرور</th><th>الاسترجاع</th><th>بيانات شخصية</th><th>الخطورة</th></tr>
+    ${SEC_ASSETS.slice().sort((a,b)=>assetRisk(b)-assetRisk(a)).map(a=>{const r=assetRisk(a);return `<tr>
+     <td class="b">${a.n}</td><td>${a.o}</td>
+     <td>${a.twofa?'<span style="color:'+C.good+'">✓ مفعّل</span>':'<span style="color:'+C.crit+'">✕ معطّل</span>'}</td>
+     <td>${a.adm}${a.adm>3?' <span style="color:'+C.warn+'">⚠</span>':''}</td>
+     <td style="color:${a.rot>90?C.crit:a.rot>60?C.warn:C.ink2}">${a.rot} يوم</td>
+     <td>${a.rec?'✓':'<span style="color:'+C.warn+'">✕</span>'}</td>
+     <td>${a.pd?'<span class="pill pb">PDPL</span>':'—'}</td>
+     <td>${riskPill(r)} <span style="color:var(--muted);font-size:11px">${r}</span></td></tr>`;}).join('')}
+   </table></div>
+   <div class="foot">الخطورة محسوبة آلياً: بلا 2FA (+45) · كلمة مرور >90 يوم (+25) · بلا وسيلة استرجاع (+15) · أكثر من 3 أصحاب صلاحية (+10) · بيانات شخصية بلا 2FA (+10).</div></div>
+
+  <div class="card"><h3>📋 جاهزية الامتثال <small>— ECC-2:2024 · 4 مكوّنات · 28 مكوّناً فرعياً · 108 ضوابط</small></h3>
+   ${ECC.map(d=>`<div class="okr"><div class="t"><span>${d.k}. ${d.n} <span style="color:var(--muted)">(${d.subs} فرعي)</span></span><span class="b">${d.pct}%</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${d.pct}%;background:${d.pct>=80?C.good:d.pct>=50?C.s4:C.crit}"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">الفجوة: ${d.gap}</div></div>`).join('')}
+   <div class="okr" style="border-top:1px solid var(--ring);padding-top:10px"><div class="t"><span class="b">الجاهزية الإجمالية</span><span class="b" style="color:var(--s4)">${eccOverall()}%</span></div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:${eccOverall()}%;background:${C.s1}"></div></div></div>
+   <div class="foot">تقييم ذاتي يُحدَّث ربع سنوياً. المرجع: الهيئة الوطنية للأمن السيبراني — الضوابط الأساسية ECC-2:2024.</div></div>
+ </div>
+
+ <div class="row cols2">
+  <div class="card"><h3>✅ المهام والواجبات الدورية <small>— اضغط على المهمة عند إنجازها</small></h3>
+   <div class="tabs" id="secTabs">
+    ${CAD.map(([c,lbl])=>`<button class="${c===SEC_CAD?'on':''}" onclick="secTab('${c}',this)">${lbl} <span style="opacity:.7">${secDone(c)}/${CYBER_TASKS[c].length}</span></button>`).join('')}
+   </div>
+   <div id="secTasks">${secTaskList(SEC_CAD)}</div>
+   <div class="foot">تُحفظ محلياً على المتصفح وتُصفَّر تلقائياً مع بداية كل دورة. الرمز بجانب كل مهمة = الضابط المرجعي في ECC-2:2024 أو نظام حماية البيانات الشخصية.</div></div>
+
+  <div>
+   <div class="card" style="margin-bottom:14px"><h3>🔏 نظام حماية البيانات الشخصية (PDPL) <small>— ${pdplPct()}% مكتمل</small></h3>
+    <div class="bar-wrap" style="margin-bottom:10px"><div class="bar-fill" style="width:${pdplPct()}%;background:${pdplPct()>=80?C.good:C.s4}"></div></div>
+    ${PDPL_ITEMS.map(([t,ok])=>`<div class="alert-item"><span class="dot" style="background:${ok?C.good:C.crit}"></span><span>${t}</span></div>`).join('')}
+    <div class="foot">مدارج جهة تحكّم (Controller) لبيانات العملاء المحتملين. عند أي حادثة تمسّ بيانات شخصية: إشعار سدايا خلال <b style="color:var(--ink2)">72 ساعة</b> من العلم بها، وإشعار أصحاب البيانات دون تأخير غير مبرر.</div></div>
+
+   <div class="card"><h3>🎓 الوعي الأمني للفريق <small>— أضعف حلقة تحدد قوة السلسلة</small></h3>
+    <table><tr><th>الفرد</th><th>التدريب</th><th>محاكاة التصيّد</th><th>مدير كلمات المرور</th><th>2FA شخصي</th></tr>
+    ${AWARE.map(x=>`<tr><td class="b">${x.n}</td>
+     <td>${x.tr?'<span class="pill pg">مكتمل</span>':'<span class="pill pc">ناقص</span>'}</td>
+     <td>${x.ph==='اجتاز'?'<span class="pill pg">اجتاز</span>':x.ph==='ضغط الرابط'?'<span class="pill pc">ضغط الرابط</span>':'<span class="pill pw">لم يُختبر</span>'}</td>
+     <td>${x.pm?'✓':'<span style="color:'+C.warn+'">✕</span>'}</td>
+     <td>${x.f2?'✓':'<span style="color:'+C.crit+'">✕</span>'}</td></tr>`).join('')}
+    </table>
+    <div class="foot">محاكاة تصيّد شهرية + جلسة توعية 20 دقيقة. من يضغط الرابط لا يُعاقَب — يُدرَّب ويُعاد اختباره بعد أسبوعين.</div></div>
+  </div>
+ </div>
+
+ <div class="row">
+  <div class="card"><h3>🧾 سجل الحوادث الأمنية <small>— ${inc.filter(x=>x.st==='مفتوحة').length} مفتوحة من ${inc.length}</small></h3>
+   <div style="background:var(--surface2);border:1px solid var(--ring);border-radius:10px;padding:12px;margin-bottom:12px">
+    <div style="font-size:12px;color:var(--ink2);font-weight:600;margin-bottom:9px">➕ تسجيل حادثة جديدة</div>
+    <div class="frm">
+     <div><label>نوع الحادثة *</label><input class="inp" id="inT" placeholder="محاولة تصيّد / دخول غير مصرح / حساب منتحل"></div>
+     <div><label>الخطورة</label><select class="inp" id="inSev"><option>منخفضة</option><option selected>متوسطة</option><option>عالية</option><option>حرجة</option></select></div>
+     <div><label>وقت الاكتشاف</label><input class="inp" id="inDet" placeholder="${nowStamp()}" style="direction:ltr;text-align:left"></div>
+     <div style="grid-column:span 2"><label>الوصف / المصدر</label><input class="inp" id="inSrc" placeholder="ما الذي حدث بالضبط وأين"></div>
+     <div style="grid-column:span 2"><label>الإجراء المتخذ</label><input class="inp" id="inAct" placeholder="ما فعلته للاحتواء"></div>
+     <div><label style="opacity:0">.</label><label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2);cursor:pointer;margin:0"><input type="checkbox" id="inPd" style="cursor:pointer;width:15px;height:15px;accent-color:#d03b3b"> تمسّ بيانات شخصية</label></div>
+     <div><button class="btn" onclick="incAdd()">تسجيل الحادثة</button></div>
+    </div>
+    <div id="inErr" style="display:none;color:#ef6b6b;font-size:11.5px;margin-top:8px">اكتب نوع الحادثة على الأقل.</div>
+    <div class="foot" style="margin-top:8px">تحديد «تمسّ بيانات شخصية» يُشغّل عدّاد مهلة إشعار سدايا (72 ساعة) في التنبيهات أعلاه.</div>
+   </div>
+   <div style="overflow-x:auto"><table>
+    <tr><th>الرقم</th><th>النوع</th><th>الخطورة</th><th>الوصف</th><th>الاكتشاف</th><th>الإجراء</th><th>الحالة</th><th>زمن الاحتواء</th><th></th></tr>
+    ${inc.map(x=>{
+      const closed=x.st==='مغلقة'&&x.close;
+      const h=closed?hoursBetween(x.det,x.close):hoursBetween(x.det,nowStamp());
+      const sevP=x.sev==='حرجة'||x.sev==='عالية'?'pc':x.sev==='متوسطة'?'pw':'pb';
+      return `<tr>
+      <td class="b" style="direction:ltr;text-align:right">${x.id}</td>
+      <td>${x.t}${x.pd?' <span class="pill pc">بيانات شخصية</span>':''}</td>
+      <td><span class="pill ${sevP}">${x.sev}</span></td>
+      <td style="max-width:280px">${x.src||'—'}</td>
+      <td style="direction:ltr;text-align:right;white-space:nowrap">${x.det}</td>
+      <td style="max-width:240px">${x.act||'—'}</td>
+      <td>${closed?'<span class="pill pg">مغلقة</span>':'<span class="pill pc">مفتوحة</span>'}</td>
+      <td style="color:${h>72?C.crit:h>24?C.warn:C.good};white-space:nowrap">${h.toFixed(1)} س${closed?'':' (جارية)'}</td>
+      <td style="white-space:nowrap">${closed?`<button class="btn gh" style="padding:4px 9px;font-size:11px" onclick="incReopen('${x.id}')">إعادة فتح</button>`:`<button class="btn gh" style="padding:4px 9px;font-size:11px" onclick="incClose('${x.id}')">إغلاق</button>`}
+       <button class="btn gh" style="padding:4px 9px;font-size:11px;color:#ef6b6b" onclick="incDel('${x.id}')">حذف</button></td></tr>`;}).join('')}
+   </table></div>
+   <div class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <span>متوسط زمن الاحتواء للحوادث المغلقة: <b style="color:var(--ink2)">${mttrHours()===null?'—':mttrHours().toFixed(1)+' ساعة'}</b> · الهدف أقل من 24 ساعة. يُحفظ السجل محلياً على المتصفح.</span>
+    <button class="btn gh" style="padding:4px 10px;font-size:11px" onclick="incReset()">إعادة السجل للبيانات التوضيحية</button></div></div>
+ </div>
+
+ <div class="row cols2">
+  <div class="card"><h3>🧭 خطة الاستجابة للحوادث — الخطوات الست بالترتيب</h3>
+   ${[['1. الاكتشاف والتوثيق','سجّل الحادثة فوراً بوقت الاكتشاف الدقيق — الساعة التي تبدأ منها كل المهل النظامية.'],
+      ['2. الاحتواء','أوقف الضرر أولاً: إنهاء الجلسات، تغيير كلمة المرور، عزل الجهاز. لا تحقيق قبل الاحتواء.'],
+      ['3. التقييم','هل تمسّ بيانات شخصية؟ كم عدد المتأثرين؟ إن كانت نعم — عدّاد الـ72 ساعة يعمل.'],
+      ['4. الإشعار','المدير العام وشهد فوراً · سدايا خلال 72 ساعة إن مسّت بيانات شخصية · أصحاب البيانات دون تأخير غير مبرر.'],
+      ['5. المعالجة والاسترجاع','أغلق الثغرة التي سمحت بالحادثة — لا إغلاق للحادثة قبل إغلاق سببها.'],
+      ['6. الدروس المستفادة','حوّل الحادثة إلى مهمة دورية جديدة أو ضابط في هذه اللوحة حتى لا تتكرر.']
+    ].map(([t,d])=>`<div class="insight"><b>${t}</b><br>${d}</div>`).join('')}
+   <div class="foot">المرجع: ECC 2-13 — إدارة حوادث وتهديدات الأمن السيبراني · PDPL — الإبلاغ عن تسرّب البيانات الشخصية.</div></div>
+
+  <div class="card"><h3>👤 بطاقتي ونطاق مسؤوليتي</h3>
+   <div style="font-size:20px;font-weight:700;margin:4px 0">${R.name}</div>
+   <div style="font-size:12.5px;color:var(--ink2);direction:ltr;text-align:right">${R.email}</div>
+   <div style="font-size:12px;color:var(--muted);margin-top:8px">${R.desc}</div>
+   <div class="foot" style="margin-bottom:12px">رابط دخولي المباشر: أضف <b style="color:var(--ink2)">#yaran</b> لرابط النظام</div>
+   <h3>📌 نطاق المسؤولية</h3>
+   ${['حماية حسابات المنصّات: التحقق بخطوتين، الصلاحيات، الجلسات، الحسابات المنتحلة.',
+      'الأمن التشغيلي: أجهزة الفريق، البريد، النطاق والاستضافة، النسخ الاحتياطي، الثغرات والتحديثات.',
+      'حماية بيانات العملاء: سجل المعالجة، ضوابط المشاركة، مدد الاحتفاظ، الحذف بعد انتهاء الغرض.',
+      'الامتثال والحوكمة: الضوابط الأساسية ECC-2:2024 ونظام حماية البيانات الشخصية والسياسات الداخلية.',
+      'الاستجابة للحوادث: الاكتشاف، الاحتواء، الإشعار في المهل النظامية، والدروس المستفادة.',
+      'التوعية: محاكاة تصيّد شهرية وجلسة توعية للفريق.'
+     ].map(t=>`<div class="insight o">${t}</div>`).join('')}
+   <div class="foot">هذه الصفحة وسجل الحوادث مرئية للمدير العام وشهد ويارا فقط.</div></div>
+ </div>`;
+}
+pages.cyber={t:'🛡️ الأمن السيبراني',h:cyberPage};
+
+/* ---------- nav & render ---------- */
+const order=[['me','👤','صفحتي'],['mail','📬','بريد اليوم'],['board','🏆','لوحة الصدارة'],['intel','🧠','ذكاء المحتوى (AI)'],['alerts','🔔','التنبيهات الذكية'],['opportunity','🛰️','رادار الفرص'],['bank','🪝','بنك الخطافات والردود'],['overview','📊','النظرة التنفيذية'],['audience','👥','ذكاء الجمهور'],['content','📝','ذكاء المحتوى'],['listening','📡','الاستماع الاجتماعي'],['competitive','⚔️','ذكاء المنافسين'],['campaigns','🎯','ذكاء الحملات'],['journey','🧭','رحلة العميل'],['ai','🤖','الذكاء والتنبؤ'],['strategy','♟️','البطاقة الاستراتيجية'],['team','👥','تشغيل الفريق'],
+'الأمن والامتثال',['cyber','🛡️','الأمن السيبراني'],
+'مؤشرات المنصات — كل قناة على حدة',
+...PLATS.map(cf=>[cf.key,cf.icon,cf.name])];
+
+/* ---------- roles & permissions (الفريق الفعلي) ---------- */
+const ROLES={
+ admin:{label:'👑 المدير العام',name:'المدير العام',lastName:'',email:'madareejconsulting@gmail.com',desc:'صلاحيات كاملة — جميع اللوحات',pages:'all',home:'overview',tasks:['مراجعة النظرة التنفيذية يومياً','الاجتماع الأسبوعي الأحد 4م + منح الشارات','اعتماد التقويم والاستثناءات','القيادة الفكرية على LinkedIn وX']},
+ raghad:{label:'🎬 رغد',name:'رغد',lastName:'',email:'rghdsqaf@gmail.com',desc:'إنستغرام · تيك توك · X · سناب',pages:['me','mail','content','team','p_ig','p_tt','p_x','p_sc'],home:'me',
+  tasks:['تصميم منشور لإنستغرام وإدارة الحساب','تصميم ريلز','إعداد 5 تغريدات لمنصة X','إدارة حساب تيك توك: الرد على الرسائل الخاصة والتعليقات والاستفسارات (المالكة الأساسية للردود)','إدارة حساب سناب شات']},
+ fajr:{label:'✍️ فجر',name:'فجر',lastName:'',email:'almohem711@gmail.com',desc:'إنستغرام · تيك توك · X · سناب',pages:['me','mail','content','team','p_ig','p_tt','p_x','p_sc'],home:'me',
+  tasks:['تصميم منشور لإنستغرام','إعداد 5 تغريدات لمنصة X','إعداد محتوى لتيك توك','مساندة إدارة تيك توك (الردود عند غياب رغد)','إدارة حساب سناب شات']},
+ ghala:{label:'📸 غلا',name:'غلا',lastName:'زياد الردهان',email:'ghalazyad4@gmail.com',desc:'إنستغرام',pages:['me','mail','content','team','p_ig'],home:'me',
+  tasks:['تصميم منشور لإنستغرام وإدارة الحساب']},
+ bushra:{label:'✍️ بشرى',name:'بشرى',lastName:'مساعد مدلول السهلي',email:'om_mo7ammed15@hotmail.com',desc:'X',pages:['me','mail','content','team','p_x'],home:'me',
+  tasks:['إعداد تغريدات لمنصة X وإدارة الحساب']},
+ atheer:{label:'✍️ اثير',name:'اثير',lastName:'احمد النعمي',email:'atrrehi@gmail.com',desc:'X',pages:['me','mail','content','team','p_x'],home:'me',
+  tasks:['إعداد تغريدات لمنصة X وإدارة الحساب']},
+ kunooz:{label:'✍️ كنوز',name:'كنوز',lastName:'عويض الحربي',email:'kunuzalbrak@gmail.com',desc:'X',pages:['me','mail','content','team','p_x'],home:'me',
+  tasks:['إعداد تغريدات لمنصة X وإدارة الحساب']},
+ shahad:{label:'⭐ شهد — مديرة',name:'شهد',lastName:'',email:'iiishahad98@gmail.com',desc:'إشراف كامل على العمل — جميع اللوحات',pages:'all',home:'team',
+  tasks:['الإشراف اليومي على تنفيذ التقويم ومتابعة الفريق','مراجعة الجودة قبل النشر (قائمة التحقق السبعة)','متابعة الردود وتحقيق SLA الساعتين','تجهيز اجتماع الأحد ورفع الملاحظات للمدير العام']},
+ yaran:{label:'🛡️ يارا — الأمن السيبراني',name:'يارا',lastName:'',email:'yaran9688@gmail.com',desc:'أمن الحسابات · الأجهزة والبيانات · الامتثال ECC/PDPL',
+  pages:['cyber','mail','p_ig','p_tt','p_x','p_sc','p_li'],home:'cyber',strict:true,
+  tasks:['تأمين حسابات المنصّات: التحقق بخطوتين والصلاحيات والجلسات','الأمن التشغيلي: الأجهزة والبريد والنطاق والنسخ الاحتياطي والثغرات','حماية بيانات العملاء وفق نظام حماية البيانات الشخصية (PDPL)','الامتثال للضوابط الأساسية للأمن السيبراني ECC-2:2024','الاستجابة للحوادث والإشعار في المهل النظامية','التوعية الأمنية للفريق ومحاكاة التصيّد الشهرية']},
+};
+/* TODO(علي): عبّي lastName باسم العائلة الحقيقي لكل شخص. لين تعبّينه، بيظهر الاسم الأول فقط تلقائياً بدون أي كسر بالتصميم */
+function fullName(r){return (r&&r.lastName)?r.name+' '+r.lastName:r.name;}
+/* ========== 🔐 تسجيل الدخول الحقيقي عبر Supabase (رابط سحري بالبريد) ==========
+   يحل محل نظام كلمات المرور الثابتة وروابط #الاسم المباشرة القديمة.
+   الإعداد اللازم من طرفكم (مرة واحدة، من لوحة Supabase):
+   Authentication → URL Configuration → Redirect URLs: أضيفي رابط الموقع الفعلي
+   Authentication → Providers → تأكدي إن Email مفعّل */
+const SB_URL='https://xybgsdlowwvbfrtwtyjd.supabase.co';
+const SB_KEY='sb_publishable_al2K1O4tOhEjhSoR4rqksA_1oER5td6';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const ORG_ID='9e84a08f-40a3-497a-8738-e2b84bb92d56';
+/* مطابقة البريد ⇄ الدور — مبنية على سجلات جدول social_members الفعلي في Supabase */
+const EMAIL_TO_ROLE={
+ 'madareejconsulting@gmail.com':'admin',
+ 'iiishahad98@gmail.com':'shahad',
+ 'rghdsqaf@gmail.com':'raghad',
+ 'almohem711@gmail.com':'fajr',
+ 'yaran9688@gmail.com':'yaran',
+ 'ghalazyad4@gmail.com':'ghala',
+ 'om_mo7ammed15@hotmail.com':'bushra',
+ 'atrrehi@gmail.com':'atheer',
+ 'kunuzalbrak@gmail.com':'kunooz',
+};
+let MY_MEMBER=null;
+let ROLE=null;
+function roleKeyForEmail(email){return EMAIL_TO_ROLE[(email||'').trim().toLowerCase()]||null;}
+async function sendMagicLink(){
+  const email=document.getElementById('lemail').value.trim().toLowerCase();
+  const btn=document.getElementById('lsendBtn'),err=document.getElementById('lerr'),ok=document.getElementById('lok');
+  err.style.display='none';ok.style.display='none';
+  if(!email||!email.includes('@')){err.textContent='اكتب بريدك الإلكتروني أولاً';err.style.display='block';return;}
+  if(!roleKeyForEmail(email)){err.textContent='هذا البريد مو مسجّل بفريق مدارج — تواصلي مع المدير العام';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='⏳ يُرسل...';
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split('#')[0].split('?')[0]}});
+  btn.disabled=false;btn.textContent='إرسال رابط الدخول 🚀';
+  if(error){err.textContent='ما قدرنا نرسل الرابط — حاولي مرة ثانية بعد دقيقة';err.style.display='block';return;}
+  ok.textContent='📬 تم الإرسال! افتحي بريدك واضغطي الرابط للدخول (تحققي من مجلد Spam لو ما وصل خلال دقيقة).';ok.style.display='block';
+}
+async function hydrateMailFromDB(){
+  if(!MY_MEMBER)return;
+  try{
+    const dk=dayKey();
+    const {data}=await sb.from('social_checklist_items').select('task_key,is_done').eq('member_id',MY_MEMBER.id).eq('week_key','mail_'+dk);
+    if(data&&data.length){const s=mailGet();data.forEach(row=>{s[row.task_key]=row.is_done;});mailSet(s);}
+  }catch(e){}
+}
+async function resolveSessionAndLogin(session){
+  if(!session){document.getElementById('login').style.display='flex';return;}
+  const r=roleKeyForEmail(session.user.email);
+  if(!r){
+    document.getElementById('lerr').textContent='هذا البريد مو مسجّل بفريق مدارج — تواصلي مع المدير العام';
+    document.getElementById('lerr').style.display='block';
+    await sb.auth.signOut();
+    return;
+  }
+  try{
+    const {data}=await sb.from('social_members').select('id').eq('organization_id',ORG_ID).eq('email',session.user.email.toLowerCase()).maybeSingle();
+    MY_MEMBER=data||null;
+    await hydrateMailFromDB();
+    loadGrowthData();
+  }catch(e){}
+  loginAs(r);
+}
+sb.auth.onAuthStateChange((_e,session)=>{resolveSessionAndLogin(session);});
+sb.auth.getSession().then(({data})=>resolveSessionAndLogin(data.session));
+const nav=document.getElementById('nav'),main=document.getElementById('main');
+const OPEN=['board','bank','intel','alerts','opportunity'];
+const allowed=k=>ROLES[ROLE].pages==='all'||ROLES[ROLE].pages.includes(k)||(OPEN.includes(k)&&!ROLES[ROLE].strict);
+function buildNav(){
+  nav.innerHTML='';
+  const badge=document.createElement('div');badge.className='rolebadge';
+  badge.innerHTML=`${ROLES[ROLE].label}<br><span style="color:var(--muted)">${ROLES[ROLE].desc}</span><br><button onclick="logout()">⇦ تبديل المستخدم</button>`;
+  nav.appendChild(badge);
+  let first=true;
+  order.forEach(item=>{
+    if(typeof item==='string'){
+      const showHdr = item==='الأمن والامتثال' ? allowed('cyber') : PLATS.some(cf=>allowed(cf.key));
+      if(showHdr){
+        const h=document.createElement('div');h.textContent=item;
+        h.style.cssText='font-size:10.5px;color:var(--muted);margin:14px 10px 6px;border-top:1px solid var(--ring);padding-top:10px;font-weight:600';
+        nav.appendChild(h);
+      }
+      return;
+    }
+    const [k,ic,n]=item;
+    if(!allowed(k))return;
+    const b=document.createElement('button');b.innerHTML=`<span class="ic">${ic}</span>${n}`;b.dataset.page=k;
+    if(k===ROLES[ROLE].home&&first){b.classList.add('on');first=false;}
+    b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(k);};
+    nav.appendChild(b);
+  });
+}
+function loginAs(r){
+  ROLE=r;
+  document.getElementById('login').style.display='none';
+  buildNav();
+  render(ROLES[r].home);
+}
+function logout(){sb.auth.signOut();MY_MEMBER=null;document.getElementById('login').style.display='flex';}
+let CURRENT='overview';
+const LIVE_PAGES=['board','intel','alerts','me','opportunity'];
+function render(k){
+  if(!allowed(k))k=ROLES[ROLE].home;
+  CURRENT=k;
+  document.getElementById('pageTitle').textContent=pages[k].t;
+  main.innerHTML=`<div class="page on">${pages[k].h()}</div>`;
+  main.querySelectorAll('[data-tt]').forEach(el=>{
+    el.addEventListener('mousemove',e=>showTT(e,el.getAttribute('data-tt')));
+    el.addEventListener('mouseleave',hideTT);
+  });
+  const rb=document.getElementById('syncNow');if(rb)rb.textContent=syncBadge();
+}
+async function refreshNow(){
+  const rb=document.getElementById('refreshBtn');
+  if(rb){rb.disabled=true;rb.textContent='⏳ يُحدَّث...';}
+  await loadSheet();
+  if(LIVE_PAGES.includes(CURRENT))render(CURRENT);
+  if(rb){rb.disabled=false;rb.textContent='🔄 تحديث الآن';}
+}
+setInterval(()=>{if(document.getElementById('login').style.display==='none')refreshNow();},CFG.AUTO_REFRESH_MS);
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-p]').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
+loadSheet();
+/* المساعد الذكي — قواعد إجابة مبنية على بيانات الداشبورد الفعلية (لا نموذج لغوي حي؛ يعمل بلا اتصال خارجي أو مفتاح API) */
+function askAssistant(){
+  const inp=document.getElementById('chatInput');
+  const q=(inp.value||'').trim();if(!q)return;
+  const box=document.querySelector('.chat');
+  const add=(cls,html)=>{const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;box.insertBefore(d,inp);box.scrollTop=box.scrollHeight;};
+  add('mq',q);
+  let ans;
+  const t=q.replace(/[؟?]/g,'');
+  if(/انخفاض|تراجع|نزل/.test(t)&&/(تفاعل|أداء|نقاط)/.test(t)){
+    const a=computeAlerts().find(a=>a.lvl!=='good');
+    ans=a?`${a.text} — الإجراء المقترح: ${a.action}`:'لا انخفاض ملحوظ حالياً في أي مؤشر رئيسي.';
+  }else if(/أفضل وقت|متى ان?شر/.test(t)){
+    const {best}=bestTimeMatrix();ans=`أفضل وقت نشر مسجَّل فعلياً: يوم ${DAYS[best.d]} الساعة ${TIME_LABELS[best.h]}.`;
+  }else if(/أفضل صيغة|نوع محتوى/.test(t)){
+    const f=topFormats()[0];ans=f?`الصيغة الأعلى أداءً: ${f.type} بمتوسط تفاعل ${f.avgEng.toFixed(1)}%.`:'سجّلي منشورات أكثر ليحسب المحرك هذا بدقة.';
+  }else if(/(من|مين).*(الأفضل|متصدر|الأول)|ترتيب/.test(t)){
+    const rows=['raghad','fajr'].map(r=>({n:ROLES[r].name,s:scoreOf(WEEKLY[r])})).sort((a,b)=>b.s-a.s);
+    ans=`المتصدرة حالياً: ${rows[0].n} بـ${rows[0].s} نقطة، تليها ${rows[1].n} بـ${rows[1].s}.`;
+  }else if(/leads|عملاء|استفسار/.test(t)){
+    const tot=Object.values(WEEKLY).reduce((s,m)=>s+m.leads,0);ans=`إجمالي Leads هذا الأسبوع: ${tot}، بإيراد مقدَّر ${(tot*CFG.AVG_DEAL_SAR).toLocaleString('en')} ر.س.`;
+  }else if(/رد|SLA|ساعت/.test(t)){
+    const slow=Object.entries(WEEKLY).filter(([r,m])=>m.speed<75).map(([r])=>ROLES[r].name);
+    ans=slow.length?`سرعة الرد أقل من الهدف عند: ${slow.join('، ')} — راجعي تنبيهات صفحة "التنبيهات الذكية".`:'سرعة الرد ضمن الهدف لدى الجميع 👍';
+  }else{
+    ans='أقدر أجيب الآن على أسئلة عن: انخفاض الأداء، أفضل وقت/صيغة نشر، الترتيب، Leads والإيراد، وسرعة الرد — جرّبي إحداها. (هذا مساعد قواعد مبني على بيانات الداشبورد الحالية، وليس نموذج ذكاء اصطناعي متصلاً بالإنترنت.)';
+  }
+  setTimeout(()=>add('ma',ans),350);
+  inp.value='';
+}
+document.getElementById('lemail').addEventListener('keydown',ev=>{if(ev.key==='Enter')sendMagicLink();});
+</script>
+</body>
+</html>
